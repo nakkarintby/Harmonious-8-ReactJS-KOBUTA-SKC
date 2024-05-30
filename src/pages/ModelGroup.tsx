@@ -17,6 +17,8 @@ import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
 
 export function ModelGroup() {
   const authRequest = {
@@ -26,6 +28,48 @@ export function ModelGroup() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [createValue , setCreateValue] = React.useState("");
+  
+
+  const CreateModal = () => {
+    withReactContent(Swal).fire({
+      title: '<div style="text-align:left">Create Model Group</div>',
+      showCancelButton: true,
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Create",
+      html: (
+        <Grid container spacing={2} py={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Model Group Name"
+              id="outlined-size-small"
+              defaultValue=""
+              size="small"
+              fullWidth
+              onChange={(e) => {
+                setCreateValue(e.currentTarget.value);
+              }}
+            />
+          </Grid>
+        </Grid>
+      ),
+      preConfirm: () => {
+        if (!createValue) {
+          Swal.showValidationMessage('Model Group Name is required');
+        } else {
+          return createValue;
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        alert(`Model Group Name: ${result.value}`);
+      }
+    });
+  };
+
+  
 
   return (
     <>
@@ -47,7 +91,10 @@ export function ModelGroup() {
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" onClick={handleOpen}>
+              {/* <Button variant="outlined" onClick={handleOpen}>
+                Create1
+              </Button> */}
+               <Button variant="outlined" onClick={CreateModal}>
                 Create
               </Button>
             </Box>
@@ -62,6 +109,16 @@ export function ModelGroup() {
           open={open}
           onClose={handleClose}
           slots={{ backdrop: StyledBackdrop }}
+          style={{
+            content: {
+              top: '50%',
+              left: '50%',
+              right: 'auto',
+              bottom: 'auto',
+              marginRight: '-50%',
+              transform: 'translate(-50%, -50%)',
+            },
+          }}
         >
           <ModalContent sx={{ width: 400 }}>
             <h2 id="unstyled-modal-title" className="modal-title">

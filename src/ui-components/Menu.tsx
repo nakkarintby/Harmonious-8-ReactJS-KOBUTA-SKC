@@ -172,7 +172,12 @@ export default function TemporaryDrawer() {
               </ListItemIcon>
               <ListItemText primary="System Role" />
             </ListItemButton>
-            <ListItemButton sx={{ pl: 4 }} onClick={toggleDrawer(false)}>
+            <ListItemButton
+              sx={{ pl: 4 }}
+              onClick={toggleDrawer(false)}
+              component={Link}
+              to="/systemsetting"
+            >
               <ListItemIcon>
                 <DragHandleIcon />
               </ListItemIcon>

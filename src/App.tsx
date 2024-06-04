@@ -22,6 +22,7 @@ import { Users } from "./pages/Users";
 import { SystemRole } from "./pages/SystemRole";
 import { SRDetail } from "./pages/SRDetail";
 import { UDetail } from "./pages/UDetail";
+import { SystemSetting } from "./pages/SystemSetting";
 
 type AppProps = {
   pca: IPublicClientApplication;
@@ -59,6 +60,7 @@ function Pages() {
       <Route path="/users/detail" element={<UDetail />} />
 
       <Route path="/systemrole" element={<SystemRole />} />
+      <Route path="/systemsetting" element={<SystemSetting />} />
       <Route path="/systemrole/detail" element={<SRDetail />} />
       <Route path="/" element={<Home />} />
     </Routes>

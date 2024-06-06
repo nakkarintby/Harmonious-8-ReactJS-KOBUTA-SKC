@@ -48,14 +48,14 @@ function App({ pca }: AppProps) {
 function Pages() {
   return (
     <Routes>
-      <Route path="/scheduleLine" element={<ScheduleLine />} />
-      <Route path="/scheduleLine/model" element={<Model />} />
-      <Route path="/modelgroups" element={<ModelGroup />} />
-      <Route path="/modelgroups/detail" element={<MGDetail />} />
-      <Route path="/line" element={<Line />} />
-      <Route path="/line/detail" element={<LDetail />} />
-      <Route path="/inspectiongroups" element={<InspectionGroup />} />
-      <Route path="/inspectionitem" element={<InspectionItem />} />
+      <Route path="/masterData/scheduleLine" element={<ScheduleLine />} />
+      <Route path="/masterData/scheduleLine/model" element={<Model />} />
+      <Route path="/masterData/modelgroups" element={<ModelGroup />} />
+      <Route path="/masterData/modelgroups/:modelGroup/detail/" element={<MGDetail />} />
+      <Route path="/masterData/line" element={<Line />} />
+      <Route path="/masterData/line/station" element={<LDetail />} />
+      <Route path="/masterData/inspectiongroups" element={<InspectionGroup />} />
+      <Route path="/masterData/inspectiongroups/inspectionitem" element={<InspectionItem />} />
       <Route path="/users" element={<Users />} />
       <Route path="/users/detail" element={<UDetail />} />
 

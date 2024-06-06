@@ -1,4 +1,4 @@
-import LineData from "../ui-components/MasterData/LineData";
+import ModelGroupData from "../ui-components/MasterData/ModelGroupData";
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
@@ -10,23 +10,18 @@ import {
   // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
-import {
-  Backdrop,
-  Box,
-  Button,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-} from "@mui/material";
+import { Backdrop, Box, Button, Grid } from "@mui/material";
 import * as React from "react";
-import { useState } from "react";
+
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
+import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 
-export function Line() {
+export function ModelGroup() {
   const authRequest = {
     ...loginRequest,
   };
@@ -34,14 +29,41 @@ export function Line() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [createValue , setCreateValue] = React.useState("");
+  
 
-  const [scheduleline, setScheduleline] = useState("400000");
-
-  const handleChange = (event: {
-    target: { value: React.SetStateAction<string> };
-  }) => {
-    setScheduleline(event.target.value);
+  const CreateModal = () => {
+    withReactContent(Swal).fire({
+      title: '<div style="text-align:left">Create Model Group</div>',
+      showCancelButton: true,
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Create",
+      html: (
+        <Grid container spacing={2} py={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Model Group Name"
+              id="outlined-size-small"
+              defaultValue=""
+              size="small"
+              fullWidth
+              onChange={(e) => {
+                setCreateValue(e.currentTarget.value);
+              }}
+            />
+          </Grid>
+        </Grid>
+      ),
+    }).then((result) => {
+      if (result.isConfirmed) {
+          toastAlert("success", "Add Model Group Success!", 3000);
+      }
+    });
   };
+
+  
 
   return (
     <>
@@ -54,19 +76,26 @@ export function Line() {
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
-              <ActiveLastBreadcrumb prm1="masterData" prm2="line" prm3="" />
+              <ActiveLastBreadcrumb
+                prm1="masterData"
+                prm2="modelgroups"
+                prm3=""
+              />
             </Box>
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" onClick={handleOpen}>
+              {/* <Button variant="outlined" onClick={handleOpen}>
+                Create1
+              </Button> */}
+               <Button variant="outlined" onClick={CreateModal}>
                 Create
               </Button>
             </Box>
           </Grid>
         </Grid>
 
-        <LineData />
+        <ModelGroupData />
 
         <Modal
           aria-labelledby="unstyled-modal-title"
@@ -74,64 +103,30 @@ export function Line() {
           open={open}
           onClose={handleClose}
           slots={{ backdrop: StyledBackdrop }}
+          style={{
+            content: {
+              top: '50%',
+              left: '50%',
+              right: 'auto',
+              bottom: 'auto',
+              marginRight: '-50%',
+              transform: 'translate(-50%, -50%)',
+            },
+          }}
         >
-          <ModalContent sx={{ width: 600 }}>
+          <ModalContent sx={{ width: 400 }}>
             <h2 id="unstyled-modal-title" className="modal-title">
-              Create Line
+              Create Model Group
             </h2>
             <Grid container spacing={2}>
-              {/* <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Line ID"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 600 }}
-                />
-              </Grid> */}
-
               <Grid item xs={6} md={8}>
                 {" "}
                 <TextField
-                  label="Line Name"
+                  label="Model Group Name"
                   id="outlined-size-small"
                   defaultValue=""
                   size="small"
-                  style={{ width: 600 }}
-                />
-              </Grid>
-              <Grid item xs={6} md={8}>
-                <InputLabel id="demo-simple-select-label">
-                  Schedule Line
-                </InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={scheduleline}
-                  label="Schedule Line"
-                  onChange={handleChange}
-                  size="small"
-                  style={{ width: 600 }}
-                >
-                  <MenuItem value={300000}>SH</MenuItem>
-                  <MenuItem value={400000}>TRACTOR</MenuItem>
-                  <MenuItem value={500000}>COMBINE</MenuItem>
-                  <MenuItem value={700000}>Rotary</MenuItem>
-                  <MenuItem value={800000}>B TRACTOR</MenuItem>
-                  <MenuItem value={990000}>TTL Dozer</MenuItem>
-                  <MenuItem value={990002}>Line Cell</MenuItem>
-                  <MenuItem value={990004}>Line KIT-SET</MenuItem>
-                </Select>
-              </Grid>
-              <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Takt Time"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 600 }}
+                  style={{ width: 400 }}
                 />
               </Grid>
               <Grid item xs={6} md={12} container justifyContent="flex-end">
@@ -154,7 +149,6 @@ const Modal = styled(BaseModal)`
   z-index: 1300;
   inset: 0;
   display: flex;
-
   align-items: center;
   justify-content: center;
 `;

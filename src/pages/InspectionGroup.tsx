@@ -71,8 +71,8 @@ export function InspectionGroup() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="Master Data"
-                prm2="Inspection Group"
+                prm1="masterData"
+                prm2="inspectiongroups"
                 prm3=""
               />
             </Box>

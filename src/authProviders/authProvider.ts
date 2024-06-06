@@ -29,7 +29,8 @@ export const protectedResources = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 export const loginRequest: PopupRequest = {
-  scopes: ["api://334eddc1-75b9-427b-8c3f-c1c1e7949c36/user_impersonation"],
+  // scopes: ["api://334eddc1-75b9-427b-8c3f-c1c1e7949c36/user_impersonation"],
+  scopes: ["user.read"],
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.

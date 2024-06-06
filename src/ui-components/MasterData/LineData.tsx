@@ -46,7 +46,7 @@ const columns: GridColDef[] = [
       <>
         <Link
           to={{
-            pathname: "/line/detail",
+            pathname: "/masterData/line/station",
             state: [{ data: row }],
           }}
         >
@@ -56,7 +56,7 @@ const columns: GridColDef[] = [
         </Link>
         <Link
           to={{
-            pathname: "/line/detail",
+            pathname: "/masterData/line/station",
             state: [{ data: row }],
           }}
         >

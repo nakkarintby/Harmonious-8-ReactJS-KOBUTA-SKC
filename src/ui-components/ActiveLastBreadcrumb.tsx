@@ -18,14 +18,14 @@ export default function ActiveLastBreadcrumb({
           <Link
             underline="hover"
             color="inherit"
-            href="/material-ui/getting-started/installation/"
+            href=''
           >
             {prm1}
           </Link>
           <Link
             underline="hover"
             color="text.primary"
-            href="/material-ui/react-breadcrumbs/"
+            href= {'/' + prm1 +'/'+ prm2}
             aria-current="page"
           >
             {prm2}
@@ -34,7 +34,7 @@ export default function ActiveLastBreadcrumb({
           <Link
             underline="hover"
             color="text.primary"
-            href="/material-ui/react-breadcrumbs/"
+            href= {'/' + prm1 +'/'+ prm2+'/'+prm3}
             aria-current="page"
           >
             {prm3}

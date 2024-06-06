@@ -74,7 +74,7 @@ export default function TemporaryDrawer() {
               sx={{ pl: 4 }}
               onClick={toggleDrawer(false)}
               component={Link}
-              to="/scheduleLine"
+              to="/masterData/scheduleLine"
             >
               <ListItemIcon>
                 <DragHandleIcon />
@@ -96,7 +96,7 @@ export default function TemporaryDrawer() {
               sx={{ pl: 4 }}
               onClick={toggleDrawer(false)}
               component={Link}
-              to="/modelgroups"
+              to="/masterData/modelgroups"
             >
               <ListItemIcon>
                 <DragHandleIcon />
@@ -107,7 +107,7 @@ export default function TemporaryDrawer() {
               sx={{ pl: 4 }}
               onClick={toggleDrawer(false)}
               component={Link}
-              to="/line"
+              to="/masterData/line"
             >
               <ListItemIcon>
                 <DragHandleIcon />
@@ -124,7 +124,7 @@ export default function TemporaryDrawer() {
               sx={{ pl: 4 }}
               onClick={toggleDrawer(false)}
               component={Link}
-              to="/inspectiongroups"
+              to="/masterData/inspectiongroups"
             >
               <ListItemIcon>
                 <DragHandleIcon />

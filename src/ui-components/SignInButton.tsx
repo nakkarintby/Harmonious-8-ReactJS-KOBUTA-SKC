@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import { loginRequest } from "../authProviders/authProvider";
+import { setAuthToken } from "../api/axios/instanceAxios";
 
 export const SignInButton = () => {
   const { instance } = useMsal();
@@ -15,7 +16,11 @@ export const SignInButton = () => {
     setAnchorEl(null);
 
     if (loginType === "popup") {
-      instance.loginPopup(loginRequest);
+      // instance.loginPopup(loginRequest);
+      instance.loginPopup(loginRequest).then((tokenResponse) => {
+        console.log(tokenResponse.accessToken)
+        setAuthToken(tokenResponse.accessToken)
+      });
     } else if (loginType === "redirect") {
       instance.loginRedirect(loginRequest);
     }

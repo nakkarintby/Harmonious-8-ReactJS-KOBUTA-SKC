@@ -42,7 +42,7 @@ const columns: GridColDef[] = [
     renderCell: ({ row }: Partial<GridRowParams>) => (
       <Link
         to={{
-          pathname: "/scheduleLine/model",
+          pathname: "/masterData/scheduleLine/model",
           state: [{ data: row }],
         }}
       >
@@ -85,47 +85,55 @@ const rows = [
     scheduleLineCode: "300000",
     scheduleLineName: "SH",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 2,
     scheduleLineCode: "400000",
     scheduleLineName: "TRACTOR",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 3,
     scheduleLineCode: "500000",
     scheduleLineName: "COMBINE",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 4,
     scheduleLineCode: "700000",
     scheduleLineName: "Rotary",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 5,
     scheduleLineCode: "800000",
     scheduleLineName: "B TRACTOR",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 6,
     scheduleLineCode: "990000",
     scheduleLineName: "TTL Dozer",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 7,
     scheduleLineCode: "990002",
     scheduleLineName: "Line Cell",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
   {
     id: 8,
     scheduleLineCode: "990004",
     scheduleLineName: "Line KIT-SET",
     createdOn: "2024-05-09T00:00:00",
+    modifiedOn: "2024-05-09T00:00:00",
   },
 ];

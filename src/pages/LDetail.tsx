@@ -68,9 +68,9 @@ export function LDetail() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="Master Data"
-                prm2="Line"
-                prm3="Station"
+                prm1="masterData"
+                prm2="line"
+                prm3="station"
               />
             </Box>
           </Grid>

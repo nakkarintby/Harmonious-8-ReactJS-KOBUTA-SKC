@@ -5,8 +5,29 @@ import Button from "@mui/material/Button";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
+import { useEffect, useState } from "react"
+import axios from "axios";
 
 const ModelGroupData = () => {
+  const [data,setData] = useState([])
+  
+  async function fetchData () {
+    const tmp = '2017-10-21T05:31:13.573Z'
+    alert(tmp)
+    try{
+      const response = await axios.get('https://665ecd1f1e9017dc16f173a2.mockapi.io/ModelGroup1')
+      setData(response.data);
+    }catch (error){
+      console.log('error',error)
+    }
+  }
+
+  useEffect(() => { 
+    fetchData();
+  }, []);
+
+
+
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
@@ -18,7 +39,7 @@ const ModelGroupData = () => {
             color: "primary.main",
           },
         }}
-        rows={rows}
+        rows={data}
         rowHeight={40}
         columns={columns}
         initialState={{
@@ -43,7 +64,7 @@ const columns: GridColDef[] = [
     renderCell: ({ row }: Partial<GridRowParams>) => (
       <Link
         to={{
-          pathname: "/modelgroups/detail",
+          pathname: "/masterData/modelgroups/detail",
           state: [{ data: row }],
         }}
       >
@@ -56,50 +77,33 @@ const columns: GridColDef[] = [
   {
     field: "modelGroup",
     headerName: "Model Group",
-    width: 200,
-    headerAlign: "center",
+    width: 150,
+
   },
   {
     field: "createdOn",
     headerName: "Created On",
-    width: 200,
-    headerAlign: "center",
+    width: 300,
+   
   },
   {
     field: "createdBy",
     headerName: "Created By",
     width: 200,
-    headerAlign: "center",
+
   },
   {
     field: "modifiedOn",
     headerName: "Modified On",
-    width: 200,
-    headerAlign: "center",
+    width: 300,
+
   },
   {
     field: "modifiedBy",
     headerName: "Modified By",
-    width: 200,
-    headerAlign: "center",
+    width: 300,
+
   },
 ];
 
-const rows = [
-  {
-    id: 1,
-    modelGroup: "L5018DT",
-    createdBy: "HMS",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 2,
-    modelGroup: "L4018DT",
-    createdBy: "HMS",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-];
+

@@ -24,7 +24,7 @@ export function ScheduleLine() {
         errorComponent={ErrorComponent}
         loadingComponent={Loading}
       >
-        <ActiveLastBreadcrumb prm1="Master Data" prm2="Schedule Line" prm3="" />
+        <ActiveLastBreadcrumb prm1="masterData" prm2="scheduleLine" prm3="" />
         <ScheduleLineData />
       </MsalAuthenticationTemplate>
     </>

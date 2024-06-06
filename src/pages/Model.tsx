@@ -25,9 +25,9 @@ export function Model() {
         loadingComponent={Loading}
       >
         <ActiveLastBreadcrumb
-          prm1="Master Data"
-          prm2="Schedule Line"
-          prm3="Model"
+          prm1="masterData"
+          prm2="scheduleLine"
+          prm3="model"
         />
         <ModelData />
       </MsalAuthenticationTemplate>

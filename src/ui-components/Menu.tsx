@@ -11,7 +11,7 @@ import ListItemText from "@mui/material/ListItemText";
 // import MailIcon from "@mui/icons-material/Mail";
 import MenuIcon from "@mui/icons-material/Menu";
 // import Divider from "@mui/material/Divider";
-import { Link } from "react-router-dom";
+import { Link, defer } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ListSubheader from "@mui/material/ListSubheader";
@@ -22,12 +22,163 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import Collapse from "@mui/material/Collapse";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import StorageIcon from "@mui/icons-material/Storage";
+import instanceAxios from "../api/axios/instanceAxios";
+
+
+interface Header {
+  userId: number;
+  empId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  personalId: string;
+  systemRoleId: number;
+  isSuperUser: boolean;
+  menuRoleId: number;
+  menuId: number;
+  code: string;
+  nameTH: string;
+  nameEN: string;
+  icon: string | null;
+  href: string;
+  visible: boolean;
+  menuGroup: string;
+  refCode: string | null;
+  isGrpHd: boolean;
+  canCheckDisplay: boolean;
+  canCheckCreate: boolean;
+  canCheckEdit: boolean;
+  canCheckDelete: boolean;
+  canCheckActive: boolean;
+  canDisplay: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canActive: boolean;
+  sequence: number;
+}
+
+interface Item {
+  menuRoleId: number;
+  menuId: number;
+  code: string;
+  nameTH: string;
+  nameEN: string;
+  icon: string | null;
+  href: string;
+  visible: boolean;
+  menuGroup: string;
+  refCode: string | null;
+  isGrpHd: boolean;
+  canCheckDisplay: boolean;
+  canCheckCreate: boolean;
+  canCheckEdit: boolean;
+  canCheckDelete: boolean;
+  canCheckActive: boolean;
+  canDisplay: boolean;
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canActive: boolean;
+  sequence: number;
+}
+
+interface Menu {
+  headers: Header[];
+  items: Item[];
+}
+
+function convertToMenu(data: any[]): Menu {
+  const headers: Header[] = data.filter(item => item.isGrpHd).map(item => ({
+      userId: item.userId,
+      empId: item.empId,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      email: item.email,
+      personalId: item.personalId,
+      systemRoleId: item.systemRoleId,
+      isSuperUser: item.isSuperUser,
+      menuRoleId: item.menuRoleId,
+      menuId: item.menuId,
+      code: item.code,
+      nameTH: item.nameTH,
+      nameEN: item.nameEN,
+      icon: item.icon,
+      href: item.href,
+      visible: item.visible,
+      menuGroup: item.menuGroup,
+      refCode: item.refCode,
+      isGrpHd: item.isGrpHd,
+      canCheckDisplay: item.canCheckDisplay,
+      canCheckCreate: item.canCheckCreate,
+      canCheckEdit: item.canCheckEdit,
+      canCheckDelete: item.canCheckDelete,
+      canCheckActive: item.canCheckActive,
+      canDisplay: item.canDisplay,
+      canCreate: item.canCreate,
+      canEdit: item.canEdit,
+      canDelete: item.canDelete,
+      canActive: item.canActive,
+      sequence: item.sequence
+  }));
+
+  const items: Item[] = data.filter(item => !item.isGrpHd).map(item => ({
+      menuRoleId: item.menuRoleId,
+      menuId: item.menuId,
+      code: item.code,
+      nameTH: item.nameTH,
+      nameEN: item.nameEN,
+      icon: item.icon,
+      href: item.href,
+      visible: item.visible,
+      menuGroup: item.menuGroup,
+      refCode: item.refCode,
+      isGrpHd: item.isGrpHd,
+      canCheckDisplay: item.canCheckDisplay,
+      canCheckCreate: item.canCheckCreate,
+      canCheckEdit: item.canCheckEdit,
+      canCheckDelete: item.canCheckDelete,
+      canCheckActive: item.canCheckActive,
+      canDisplay: item.canDisplay,
+      canCreate: item.canCreate,
+      canEdit: item.canEdit,
+      canDelete: item.canDelete,
+      canActive: item.canActive,
+      sequence: item.sequence
+  }));
+
+  return {
+      headers,
+      items
+  };
+}
+
+async function getMenuAPI() {
+  let dataApi:any ;
+  try {
+    await instanceAxios
+      .get(`/Menu/GetMenuByUser`)
+      .then(async function (response: any) {
+        dataApi = response.data
+      })
+      .catch(function (error: any) {
+        console.log("Err");
+      });
+  } catch (err) {
+    console.log(err);
+  }
+  return dataApi;
+}
+
 export default function TemporaryDrawer() {
   const [open, setOpen] = React.useState(false);
 
   const [openMaster, setOpenMaster] = React.useState(false);
 
   const [openAdministrator, setOpenAdministrator] = React.useState(false);
+
+  const [menuDataList, setMenuDataList] = React.useState<Menu|undefined>(undefined);
+  
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -41,8 +192,24 @@ export default function TemporaryDrawer() {
     setOpenAdministrator(!openAdministrator);
   };
 
+  const GetIcon = (str: string) => {
+    switch (str) {
+      case 'HomeIcon':
+        return <HomeIcon />;
+      case 'StorageIcon':
+        return <StorageIcon />;
+      case 'DragHandleIcon':
+        return <DragHandleIcon />;
+      case 'ChecklistRtlIcon':
+        return <ChecklistRtlIcon />;
+      case 'SettingsIcon':
+        return <SettingsIcon />;
+      default:
+        return null;
+    }
+  };
+
   const DrawerList = (
-    // <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)}>
     <Box sx={{ width: 250 }} role="presentation">
       <List
         sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
@@ -54,168 +221,77 @@ export default function TemporaryDrawer() {
           </ListSubheader>
         }
       >
-        <ListItemButton onClick={toggleDrawer(false)}>
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
-          <ListItemText primary="Home" />
-        </ListItemButton>
-
-        <ListItemButton onClick={handleClick}>
-          <ListItemIcon>
-            <StorageIcon />
-          </ListItemIcon>
-          <ListItemText primary="Master Data" />
-          {openMaster ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={openMaster} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
+        {menuDataList?.headers.map((row) => (
+          <div key={row.menuId}>
             <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/masterData/scheduleLine"
+              onClick={() => {
+                if (row.menuGroup === "MASTERDATA") {
+                  handleClick();
+                } else if (row.menuGroup === "ADMINISTRATOR") {
+                  handleClickAdministrator();
+                } else {
+                  toggleDrawer(false)();
+                }
+              }}
             >
               <ListItemIcon>
-                <DragHandleIcon />
+              {GetIcon(row.icon ??"")}
               </ListItemIcon>
-              <ListItemText primary="Schedule Line" />
+              <ListItemText primary={row.nameEN} />
+              {row.menuGroup == "MASTERDATA" ? (
+                openMaster ? (
+                  <ExpandLess />
+                ) : (
+                  <ExpandMore />
+                )
+              ) : row.menuGroup == "ADMINISTRATOR" ? (
+                openAdministrator ? (
+                  <ExpandLess />
+                ) : (
+                  <ExpandMore />
+                )
+              ) : (
+                ""
+              )}
             </ListItemButton>
-            {/* <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/model"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Model" />
-            </ListItemButton> */}
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/masterData/modelgroups"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Model Group" />
-            </ListItemButton>
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/masterData/line"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Line" />
-            </ListItemButton>
-            {/* <ListItemButton sx={{ pl: 4 }} onClick={toggleDrawer(false)}>
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Station" />
-            </ListItemButton> */}
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/masterData/inspectiongroups"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Inspection Group" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-
-        <ListItemButton onClick={toggleDrawer(false)}>
-          <ListItemIcon>
-            <ChecklistRtlIcon />
-          </ListItemIcon>
-          <ListItemText primary="Inspection Data" />
-        </ListItemButton>
-
-        <ListItemButton onClick={handleClickAdministrator}>
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Administrator" />
-          {openAdministrator ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-        <Collapse in={openAdministrator} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/users"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Users" />
-            </ListItemButton>
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/systemrole"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="System Role" />
-            </ListItemButton>
-            <ListItemButton
-              sx={{ pl: 4 }}
-              onClick={toggleDrawer(false)}
-              component={Link}
-              to="/systemsetting"
-            >
-              <ListItemIcon>
-                <DragHandleIcon />
-              </ListItemIcon>
-              <ListItemText primary="System Setting" />
-            </ListItemButton>
-          </List>
-        </Collapse>
-      </List>
-
-      {/* <List>
-        {["Home", "Inspection Data", "Inspection Group", "Station"].map(
-          (text, index) => (
-            <ListItem key={text} disablePadding component={Link} to="/profile">
-              <ListItemButton>
-                <ListItemIcon>
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            </ListItem>
-          )
-        )}
-      </List>
-      <Divider />
-      <List>
-        {["User", "System Setting"].map((text, index) => (
-          <ListItem key={text} disablePadding component={Link} to="/profile">
-            <ListItemButton>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
+            {menuDataList.items
+              .filter((item) => item.menuGroup === row.menuGroup)
+              .map((item) => (
+                <Collapse in={row.menuGroup == "MASTERDATA" ? openMaster : row.menuGroup == "ADMINISTRATOR" ? openAdministrator : ""} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    <ListItemButton
+                      sx={{ pl: 4 }}
+                      onClick={toggleDrawer(false)}
+                      component={Link}
+                      to={item.href}
+                    >
+                      <ListItemIcon>
+                      {GetIcon(item.icon ??"")}
+                      </ListItemIcon>
+                      <ListItemText primary={item.nameEN} />
+                    </ListItemButton>
+                  </List>
+                </Collapse>
+              ))}
+          </div>
         ))}
-      </List> */}
+      </List>
     </Box>
   );
+
+  React.useEffect(() => {
+    const FetchMenu = async () => {
+      getMenuAPI().then(async (x) => {
+        if(x.status == "success"){
+        const menuPage = await convertToMenu(x.data);
+        console.log(menuPage);
+        setMenuDataList(menuPage)
+   
+        }
+      });
+    };
+    FetchMenu();
+  }, []);
 
   return (
     <div>

@@ -2,7 +2,7 @@ import axios from "axios";
 
 const instanceAxios = axios.create({
     //DEV
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: 'http://192.168.95.48:8000',
     headers: {
       'Content-Type': 'application/json',
       'Accept' : 'application/json',
@@ -17,3 +17,4 @@ const setAuthToken = (token: string) => {
 };
 
 export { setAuthToken};
+

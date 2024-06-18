@@ -9,7 +9,7 @@ import {
   // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
-import { Backdrop, Box, Button, Grid } from "@mui/material";
+import { Autocomplete, Backdrop, Box, Button, Grid } from "@mui/material";
 import * as React from "react";
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
@@ -17,17 +17,15 @@ import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { useEffect, useState } from "react"
-import axios from "axios";
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from "sweetalert2";
 import moment from "moment";
 import instanceAxios from "../api/axios/instanceAxios";
+
 
 
 export function ModelGroup() {
@@ -35,78 +33,79 @@ export function ModelGroup() {
     ...loginRequest,
   }
 
-  const [openModalCreate, setopenModalCreate] = React.useState(false)
-  const handleopenModalCreate = () => setopenModalCreate(true)
-  const handlecloseModalCreate = () => setopenModalCreate(false)
-  const [openModalEdit, setopenModalEdit] = React.useState(false)
-  const handleopenModalEdit = () => setopenModalEdit(true)
-  const handlecloseModalEdit = () => setopenModalEdit(false)
-  const [modelGroupNameCreate, setModelGroupNameCreate] = React.useState('')
-  const [modelGroupNameEdit, setModelGroupNameEdit] = React.useState('')
-  const [modelGroupIdEdit, setModelGroupIdEdit] = React.useState('')
+  const [openModalCreateModelGroup, setOpenModalCreateModelGroup] = React.useState(false)
+  const handleOpenModalCreateModelGroup = () => setOpenModalCreateModelGroup(true)
+  const handleCloseModalCreateModelGroup = () => setOpenModalCreateModelGroup(false)
+  const [valueModelGroupName, setValueModelGroupName] = React.useState('')
   const [data, setData] = useState([])
-  const BASE_URL = 'https://665ecd1f1e9017dc16f173a2.mockapi.io'
-  // async function fetchData() {
-  //   try {
-  //     instanceAxios.get()
-      
-  //     const response = await axios.get(` ${BASE_URL}/ModelGroup1`)
-  //     for (let i = 0; i < response.data.length; i++) {
-  //       response.data[i].createdOn = moment(response.data[i].createdOn).format('YYYY-MM-DD hh:mm:ss');
-  //       response.data[i].modifiedOn = moment(response.data[i].createdOn).format('YYYY-MM-DD hh:mm:ss');
-  //     }
-  //     setData(response.data)
-  //   } catch (error) {
-  //     console.log('error', error)
-  //   }
-  // }
+  const [dropDownLineListAutoComplete, setDropDownLineListAutoComplete] = useState([])
+  const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] = React.useState(Object);
+
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
   async function fetchData() {
     try {
-      instanceAxios.get("/Menu/GetMenu?page=1&perpage=1000").then((x) => {
-        console.log(x)
+      const response = await instanceAxios.get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`).then(async (response) => {
+        if (response.data.status == "success") {
+          for (let i = 0; i < response.data.data.modelGroup.length; i++) {
+            if (response.data.data.modelGroup[i].createdOn != null)
+              response.data.data.modelGroup[i].createdOn = moment(response.data.data.modelGroup[i].createdOn).format('YYYY-MM-DD hh:mm');
+            if (response.data.data.modelGroup[i].modifiedOn != null)
+              response.data.data.modelGroup[i].modifiedOn = moment(response.data.data.modelGroup[i].modifiedOn).format('YYYY-MM-DD hh:mm');
+          }
+          setData(response.data.data.modelGroup)
+          setDropDownLineListAutoComplete(response.data.data.linedropdownList)
+          setValueDropDownLineListAutoComplete(response.data.data.linedropdownList[0])
+        }
+        else {
+          toastAlert("error", "Error Call Api GetModelGroup!", 3000)
+        }
+      }, (error) => {
+        toastAlert("error", error.response.data.message, 3000)
       })
-
     } catch (error) {
       console.log('error', error)
     }
   }
 
-
-  useEffect(() => {
-    fetchData()
-
-  }, [])
-
-
-  const handleChangeModelGroupNameCreate = (e: any) => {
+  async function handleChangeValueModelGroupNameCreate(e: any) {
     e.preventDefault()
-    setModelGroupNameCreate(e.target.value)
+    setValueModelGroupName(e.target.value)
   }
 
-  const handleChangeModelGroupNameEdit = (e: any) => {
-    e.preventDefault()
-    setModelGroupNameEdit(e.target.value)
+  async function handleChangeValueDropDownLineListAutoComplete(e: any) {
+    setValueDropDownLineListAutoComplete(e)
   }
 
 
   async function CreateModelGroup() {
     try {
-      await axios.post(` ${BASE_URL}/ModelGroup1`, {
-        modelGroup: modelGroupNameCreate
-      }).then(async (response) => {
-        console.log(response)
-        await fetchData()
-        handlecloseModalCreate()
-        toastAlert("success", "Add Model Group Success!", 3000)
+      const response = await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
+        {
+          name: valueModelGroupName,
+          lineId: valueAutoCompleteLineDropdown['lineId']
+        }
+      ).then(async (response) => {
+        if (response.data.status == "success") {
+          await fetchData()
+          handleCloseModalCreateModelGroup()
+          toastAlert("success", "Create ModelGroup Success!", 3000)
+        }
+        else {
+          toastAlert("error", "Error Call Api CreateModelGroup!", 3000)
+        }
       }, (error) => {
-        console.log(error)
+        toastAlert("error", error.response.data.message, 3000)
       })
     } catch (error) {
       console.log('error', error)
     }
   }
 
-  async function DeleteModelGroup(id: any) {
+  async function deleteModelGroup(id: any) {
     Swal.fire({
       title: "Are you sure confirm?",
       //text: "You won't be able to revert this!",
@@ -118,13 +117,16 @@ export function ModelGroup() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${BASE_URL}/ModelGroup1/${id}`, {
-          }).then(async (response) => {
-            console.log(response)
-            await fetchData()
-            toastAlert("error", "Deleted ModelGroup!", 3000)
+          const response = await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
+            if (response.data.status == "success") {
+              await fetchData()
+              toastAlert("error", "Deleted ModelGroup!", 3000)
+            }
+            else {
+              toastAlert("error", "Error Call Api RemoveModelGroup!", 3000)
+            }
           }, (error) => {
-            console.log(error)
+            toastAlert("error", error.response.data.message, 3000)
           })
         } catch (error) {
           console.log('error', error)
@@ -134,97 +136,72 @@ export function ModelGroup() {
 
   }
 
-  async function HandleModalEdit(id: any, name: any) {
-    setModelGroupNameEdit(name)
-    setModelGroupIdEdit(id)
-    handleopenModalEdit()
-  }
-
-  async function EditModelGroup() {
-    try {
-      await axios.put(`${BASE_URL}/ModelGroup1/${modelGroupIdEdit}`, {
-        modelGroup: modelGroupNameEdit
-      }).then(async (response) => {
-        console.log(response)
-        await fetchData()
-        handlecloseModalEdit()
-        toastAlert("success", "Edit Model Group Success!", 3000)
-      }, (error) => {
-        console.log(error)
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-
 
   const columns: GridColDef[] = [
     {
       field: "action1",
       headerName: "",
-      width: 220,
+      width: 170,
       renderCell: (params: any) => {
         return (
           <>
-
             <Link
-              to={`/masterData/modelgroups/${params.row.modelGroup}/detail/`}
+              to={`/masterData/modelgroups/detail`}
               state={{
-                name: params.row.id,
+                modelGroupId: params.row.modelGroupId,
               }}
             >
               <Button>
                 <VisibilityIcon />
               </Button>
             </Link>
-            <Button onClick={() => HandleModalEdit(params.row.id, params.row.modelGroup)}>
-              <EditIcon />
-            </Button>
 
-            <Button onClick={() => DeleteModelGroup(params.row.id)} >
+            <Button onClick={() => deleteModelGroup(params.row.modelGroupId)} >
               <DeleteIcon />
             </Button></>
         );
       },
     },
     {
-      field: "modelGroup",
-      headerName: "Model Group",
-      width: 150,
+      field: "lineName",
+      headerName: "Line Name",
+      width: 200,
+
+    },
+    {
+      field: "name",
+      headerName: "Model Group Name",
+      width: 200,
 
     },
     {
       field: "createdOn",
       headerName: "Created On",
-      width: 300,
+      width: 200,
 
     },
     {
       field: "createdBy",
       headerName: "Created By",
-      width: 200,
+      width: 280,
 
     },
     {
       field: "modifiedOn",
       headerName: "Modified On",
-      width: 300,
+      width: 280,
 
     },
     {
       field: "modifiedBy",
       headerName: "Modified By",
-      width: 120,
+      width: 300,
 
     },
   ];
 
-
-
   return (
     <>
-
       <MsalAuthenticationTemplate
         interactionType={InteractionType.Redirect}
         authenticationRequest={authRequest}
@@ -243,17 +220,14 @@ export function ModelGroup() {
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={handleopenModalCreate}>
+              <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={handleOpenModalCreateModelGroup}>
                 Create
               </Button>
-              {/* <Button variant="outlined" onClick={CreateModal}>
-                Create
-              </Button> */}
             </Box>
           </Grid>
         </Grid>
 
-        <Box sx={{ height: "100%", width: "100%" }}>
+        <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
           <DataGrid
             sx={{
               boxShadow: 2,
@@ -262,6 +236,7 @@ export function ModelGroup() {
 
             }}
             rows={data}
+            getRowId={(data) => data.modelGroupId}
             rowHeight={40}
             columns={columns}
             initialState={{
@@ -278,8 +253,8 @@ export function ModelGroup() {
         <Modal
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
-          open={openModalCreate}
-          onClose={handlecloseModalCreate}
+          open={openModalCreateModelGroup}
+          onClose={handleCloseModalCreateModelGroup}
           slots={{ backdrop: StyledBackdrop }}
           style={{
             content: {
@@ -292,80 +267,56 @@ export function ModelGroup() {
             },
           }}
         >
-          <ModalContent sx={{ width: 400 }}>
+          <ModalContent sx={{ width: 400, height: "30%" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Model Group
             </h2>
             <Grid container spacing={2}>
               <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Model Group Name"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 400 }}
-                  onChange={handleChangeModelGroupNameCreate}
+              <Box sx={{ height: "35%", width: "100%", marginTop: "20px" }}>
+                  <TextField
+                    label="Model Group Name"
+                    id="outlined-size-small"
+                    defaultValue=""
+                    size="small"
+                    style={{ width: 400 }}
+                    onChange={handleChangeValueModelGroupNameCreate}
 
-                />
-              </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
-                <Box>
-                  <Button variant="outlined" onClick={CreateModelGroup}>
-                    Create
-                  </Button>
+                  />
+                </Box>
+
+                <Box sx={{ height: "50%", width: "100%", marginTop: "20px" }}>
+                  <Autocomplete
+                    onChange={(event, newValue) => {
+                      handleChangeValueDropDownLineListAutoComplete(newValue)
+                    }}
+                    disablePortal
+                    id="combo-box-demo"
+                    value={valueAutoCompleteLineDropdown}
+                    options={dropDownLineListAutoComplete.map((dropDownLineListAutoComplete) => dropDownLineListAutoComplete)}
+                    sx={{ width: 400 }}
+                    getOptionLabel={(options: any) => `${options.name}`}
+                    renderInput={(params) => <TextField {...params} label="Line Name" />}
+                    ListboxProps={
+                      {
+                        style: {
+                          maxHeight: '80px',
+                        }
+                      }
+                    }
+                  />
                 </Box>
               </Grid>
+
+              <Grid item xs={6} md={12} container justifyContent="flex-end" sx={{ marginTop: "20px" }} >
+                <Button variant="outlined" onClick={CreateModelGroup}>
+                  Create
+                </Button>
+              </Grid>
+
             </Grid>
           </ModalContent>
         </Modal>
-
-        {/* edit */}
-        <Modal
-          aria-labelledby="unstyled-modal-title"
-          aria-describedby="unstyled-modal-description"
-          open={openModalEdit}
-          onClose={handlecloseModalEdit}
-          slots={{ backdrop: StyledBackdrop }}
-          style={{
-            content: {
-              top: '50%',
-              left: '50%',
-              right: 'auto',
-              bottom: 'auto',
-              marginRight: '-50%',
-              transform: 'translate(-50%, -50%)',
-            },
-          }}
-        >
-          <ModalContent sx={{ width: 400 }}>
-            <h2 id="unstyled-modal-title" className="modal-title">
-              Edit Model Group
-            </h2>
-            <Grid container spacing={2}>
-              <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Model Group Name"
-                  id="outlined-size-small"
-                  size="small"
-                  defaultValue={modelGroupNameEdit}
-                  style={{ width: 400 }}
-                  onChange={handleChangeModelGroupNameEdit}
-
-                />
-              </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
-                <Box>
-                  <Button variant="outlined" onClick={EditModelGroup}>
-                    Save
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
-          </ModalContent>
-        </Modal>
-
       </MsalAuthenticationTemplate>
     </>
   );

@@ -64,8 +64,7 @@ const columns: GridColDef[] = [
     renderCell: ({ row }: Partial<GridRowParams>) => (
       <Link
         to={{
-          pathname: "/masterData/modelgroups/detail",
-          state: [{ data: row }],
+          pathname: "/masterData/modelgroups/detail"
         }}
       >
         <Button>

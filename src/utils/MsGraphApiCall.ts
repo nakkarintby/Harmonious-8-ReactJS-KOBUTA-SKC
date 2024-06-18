@@ -16,7 +16,7 @@ export async function callMsGraph() {
 
   const headers = new Headers();
   const bearer = `Bearer ${response.accessToken}`;
-  console.log({ bearer });
+  //console.log({ bearer });
   headers.append("Authorization", bearer);
 
   const options = {

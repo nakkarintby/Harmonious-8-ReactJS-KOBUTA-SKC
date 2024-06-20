@@ -6,7 +6,81 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-const InspectionGroupData = () => {
+import React from "react";
+import instanceAxios from "../../api/axios/instanceAxios";
+import moment from "moment";
+
+interface InspectionGroupModel{
+  inspectionGroupName: string,
+  id: number,
+  modelGroup: string,
+  Status: string,
+  createdBy: string,
+  modifiedBy: string,
+  scheduledLineCode : string,
+  scheduledLineName : string,
+  modelGroupName : string , 
+  stationId : number , 
+  stationName : string,
+  lineId: number,
+  lineName : string,
+  version: number,
+  taktTime: string,
+  createdOn: string,
+  modifiedOn: string,
+}
+
+async function GetInspectionGroupApi(){
+  let dataApi:any ;
+  try {
+    await instanceAxios
+      .get(`/InspectionGroup/GetInspectionGroup?page=1&perpage=1000`)
+      .then(async function (response: any) {
+        dataApi = response.data
+        console.log(dataApi)
+      })
+      .catch(function (error: any) {
+        console.log("Err");
+      });
+  } catch (err) {
+    console.log(err);
+  }
+  return dataApi;
+}
+
+export default function InspectionGroupData() {
+  const [dataList , setDataList] = React.useState<InspectionGroupModel[]>([]);
+  
+  React.useEffect(() => {
+    const FetchMenu = async () => {
+      GetInspectionGroupApi().then(async (x) => {
+        if(x.status == "success"){
+          const insGroupData: InspectionGroupModel[] = x.data.map((item: any) => ({
+            id: item.inspectionGroupId,
+            inspectionGroupName: item.name,
+            modelGroup: item.modelGroupId, 
+            status: item.status,
+            createdBy: item.createdBy,
+            modifiedBy: item.modifiedBy,
+            scheduledLineCode: item.scheduledLineCode,
+            stationId: item.stationId,
+            lineId: item.lineId,
+            version: item.version,
+            taktTime: item.taktTime,
+            lineName : item.lineName,
+            modelGroupName : item.modelGroupName,
+            stationName : item.stationName,
+            scheduledLineName : item.scheduledLineName,
+            createdOn: moment(item.createdOn).format("DD-MM-YYYY HH:mm:ss"),
+            modifiedOn: item.modifiedOn == null ? "" : moment(item.modifiedOn).format("DD-MM-YYYY HH:mm:ss"),
+          }));
+        setDataList(insGroupData);
+        }
+      });
+    };
+    FetchMenu();
+  }, []);
+
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <DataGrid
@@ -19,7 +93,7 @@ const InspectionGroupData = () => {
           },
         }}
         rowHeight={40}
-        rows={rows}
+        rows={dataList}
         columns={columns}
         initialState={{
           pagination: {
@@ -29,10 +103,8 @@ const InspectionGroupData = () => {
         pageSizeOptions={[5, 10]}
       />
     </Box>
-  );
-};
-
-export default InspectionGroupData;
+  )
+}
 
 const columns: GridColDef[] = [
   {
@@ -45,10 +117,8 @@ const columns: GridColDef[] = [
     renderCell: ({ row }: Partial<GridRowParams>) => (
       <>
         <Link
-          to={{
-            pathname: "/masterData/inspectiongroups/inspectionitem",
-            state: [{ data: row }],
-          }}
+          to="/masterData/inspectiongroups/inspectionitem"
+          state={{ data: row }}
         >
           <Button>
             <VisibilityIcon />
@@ -57,7 +127,7 @@ const columns: GridColDef[] = [
         <Link
           to={{
             pathname: "/masterData/inspectiongroups/inspectionitem",
-            state: [{ data: row }],
+            state: { data: row },
           }}
         >
           <Button>
@@ -68,7 +138,7 @@ const columns: GridColDef[] = [
     ),
   },
   {
-    field: "inspectionGroup",
+    field: "inspectionGroupName",
     headerName: "Name",
     width: 250,
     headerAlign: "center",
@@ -81,21 +151,28 @@ const columns: GridColDef[] = [
     align: "center",
   },
   {
-    field: "line",
+    field: "scheduledLineName",
+    headerName: "scheduledLine",
+    width: 150,
+    headerAlign: "center",
+    align: "center",
+  },
+  {
+    field: "lineName",
     headerName: "Line",
     width: 150,
     headerAlign: "center",
     align: "center",
   },
   {
-    field: "station",
+    field: "stationName",
     headerName: "Station",
     width: 150,
     headerAlign: "center",
     align: "center",
   },
   {
-    field: "modelGroup",
+    field: "modelGroupName",
     headerName: "Model Group",
     width: 150,
     headerAlign: "center",
@@ -109,7 +186,7 @@ const columns: GridColDef[] = [
     align: "center",
   },
   {
-    field: "Status",
+    field: "status",
     headerName: "Status",
     width: 100,
     headerAlign: "center",
@@ -138,148 +215,5 @@ const columns: GridColDef[] = [
     headerName: "Modified By",
     width: 200,
     headerAlign: "center",
-  },
-];
-
-const rows = [
-  {
-    id: 1,
-    inspectionGroup: "230401 CH - 1 - L5018DT - 150",
-    version: 1,
-    line: "230401 CH",
-    station: 1,
-    modelGroup: "L5018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 2,
-    inspectionGroup: "230401 CH - 2 - L5018DT - 150",
-    version: 1,
-    line: "230401 CH",
-    station: 2,
-    modelGroup: "L5018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 3,
-    inspectionGroup: "230401 CH - 3 - L5018DT - 150",
-    version: 1,
-    line: "230401 CH",
-    station: 3,
-    modelGroup: "L5018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 4,
-    inspectionGroup: "230401 CH - 1 - L5018DT - 240",
-    version: 1,
-    line: "230401 CH",
-    station: 1,
-    modelGroup: "L5018DT",
-    taktTime: 240,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 5,
-    inspectionGroup: "230401 CH - 2 - L5018DT - 240",
-    version: 1,
-    line: "230401 CH",
-    station: 2,
-    modelGroup: "L5018DT",
-    taktTime: 240,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 6,
-    inspectionGroup: "230402 TMC - 1 - L4018DT - 150",
-    version: 1,
-    line: "230402 TMC",
-    station: 1,
-    modelGroup: "L4018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 7,
-    inspectionGroup: "230402 TMC - 2 - L4018DT - 150",
-    version: 1,
-    line: "230402 TMC",
-    station: 2,
-    modelGroup: "L4018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 8,
-    inspectionGroup: "230402 TMC - 3 - L4018DT - 150",
-    version: 1,
-    line: "230402 TMC",
-    station: 3,
-    modelGroup: "L4018DT",
-    taktTime: 150,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 9,
-    inspectionGroup: "230402 TMC - 1 - L4018DT - 240",
-    version: 1,
-    line: "230402 TMC",
-    station: 1,
-    modelGroup: "L4018DT",
-    taktTime: 240,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
-  },
-  {
-    id: 10,
-    inspectionGroup: "230402 TMC - 2 - L4018DT - 240",
-    version: 1,
-    line: "230402 TMC",
-    station: 2,
-    modelGroup: "L4018DT",
-    taktTime: 240,
-    Status: "Active",
-    createdOn: "2024-05-09T00:00:00",
-    createdBy: "HMS",
-    modifiedBy: "",
-    modifiedOn: "",
   },
 ];

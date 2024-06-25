@@ -397,13 +397,13 @@ export function MGDetail() {
             },
           }}
         >
-          <ModalContent sx={{ height: "80%", width: 800 }}>
+          <ModalContent sx={{ height: "80vh", width: "50vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Add Model
             </h2>
             <Grid container spacing={8}>
-              <Grid item xs={6}>
-                <Autocomplete
+              <Grid item xs={7}>
+                <Autocomplete sx={{  width: "100%"  }}
                   onChange={(event, newValue) => {
                     handleChangeValueDropDownModelListAutoComplete(newValue)
                   }}
@@ -411,18 +411,17 @@ export function MGDetail() {
                   id="combo-box-demo"
                   value={valueAutoCompleteModelList}
                   options={dropDownModelListAutoComplete.map((dropDownModelListAutoComplete) => dropDownModelListAutoComplete)}
-                  sx={{ width: 400 }}
                   getOptionLabel={(options: any) => `${options.modelName}`}
                   renderInput={(params) => <TextField {...params} label="Model Name" />}
                 />
               </Grid>
-              <Grid item xs={1.2}>
+              <Grid item xs={1.5}>
                 <Button variant="outlined" onClick={addDropDownModelList} sx={{ height: "100%" }}>
                   Add
                 </Button>
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={1.5}>
                 <Button variant="outlined" onClick={submitModelGroupDetail} sx={{ height: "100%" }}>
                   Submit
                 </Button>
@@ -430,9 +429,9 @@ export function MGDetail() {
               <Grid item xs={12}>
                 {dropDownModelListTable.length != 0 &&
                   <Box sx={{ height: "100%", width: "100%" }}>
-                    <TableContainer component={Paper} style={{ maxWidth: '100%', width: '100%', maxHeight: '100%', height: '500px' }} >
-                      <Table sx={{ minWidth: 700 }} aria-label="customized table" >
-                        <TableHead>
+                    <TableContainer component={Paper} style={{ width: '50vw', height:'50vh' }} >
+                      <Table sx={{ width: "50vw"  }} aria-label="customized table" >
+                        <TableHead >
                           <TableRow>
                             <StyledTableCell>Model Code</StyledTableCell>
                             <StyledTableCell>Model Name </StyledTableCell>
@@ -441,7 +440,7 @@ export function MGDetail() {
                         </TableHead>
                         <TableBody>
                           {dropDownModelListTable.map((dropDownModelListTable) => (
-                            <StyledTableRow key={dropDownModelListTable['modelName']}>
+                            <StyledTableRow key={dropDownModelListTable['modelName']} >
                               <StyledTableCell component="th" scope="row">
                                 {dropDownModelListTable['modelCode']}
                               </StyledTableCell>
@@ -450,7 +449,7 @@ export function MGDetail() {
                                 {dropDownModelListTable['modelName']}
                               </StyledTableCell>
                               <StyledTableCell align="right">
-                                <Button onClick={() => deleteCellTable(dropDownModelListTable)}>
+                                <Button onClick={() => deleteCellTable(dropDownModelListTable)} sx={{ height: "100%", width: "100%" }}>
                                   <DeleteIcon />
                                 </Button></StyledTableCell>
 

@@ -284,7 +284,7 @@ export default function TemporaryDrawer() {
       getMenuAPI().then(async (x) => {
         if(x.status == "success"){
         const menuPage = await convertToMenu(x.data);
-        console.log(menuPage);
+        //console.log(menuPage);
         setMenuDataList(menuPage)
    
         }

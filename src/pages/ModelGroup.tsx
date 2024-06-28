@@ -267,26 +267,24 @@ export function ModelGroup() {
             },
           }}
         >
-          <ModalContent sx={{ width: 400, height: "30%" }}>
+          <ModalContent sx={{ width: "30vw", height: "36vh" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Model Group
             </h2>
-            <Grid container spacing={2}>
-              <Grid item xs={6} md={8}>
-              <Box sx={{ height: "35%", width: "100%", marginTop: "20px" }}>
-                  <TextField
+
+            <Box >
+              <Grid container spacing={2}>
+                <Grid item xs={12} >
+                  <TextField sx={{ width: "100%", height: "12vh" }}
                     label="Model Group Name"
                     id="outlined-size-small"
                     defaultValue=""
-                    size="small"
-                    style={{ width: 400 }}
+                    size="medium"
                     onChange={handleChangeValueModelGroupNameCreate}
-
                   />
-                </Box>
 
-                <Box sx={{ height: "50%", width: "100%", marginTop: "20px" }}>
-                  <Autocomplete
+
+                  <Autocomplete sx={{ width: "100%", height: "12vh" }}
                     onChange={(event, newValue) => {
                       handleChangeValueDropDownLineListAutoComplete(newValue)
                     }}
@@ -294,27 +292,28 @@ export function ModelGroup() {
                     id="combo-box-demo"
                     value={valueAutoCompleteLineDropdown}
                     options={dropDownLineListAutoComplete.map((dropDownLineListAutoComplete) => dropDownLineListAutoComplete)}
-                    sx={{ width: 400 }}
                     getOptionLabel={(options: any) => `${options.name}`}
                     renderInput={(params) => <TextField {...params} label="Line Name" />}
                     ListboxProps={
                       {
                         style: {
-                          maxHeight: '80px',
+                          maxHeight: '100px',
                         }
                       }
                     }
                   />
-                </Box>
-              </Grid>
 
-              <Grid item xs={6} md={12} container justifyContent="flex-end" sx={{ marginTop: "20px" }} >
-                <Button variant="outlined" onClick={CreateModelGroup}>
-                  Create
-                </Button>
-              </Grid>
+                  <Grid item xs={6} md={12} container justifyContent="flex-end"  >
+                    <Button variant="outlined" onClick={CreateModelGroup} sx={{ height: "6vh" }}>
+                      Create
+                    </Button>
+                  </Grid>
 
-            </Grid>
+
+                </Grid>
+
+              </Grid>
+            </Box>
           </ModalContent>
         </Modal>
       </MsalAuthenticationTemplate>

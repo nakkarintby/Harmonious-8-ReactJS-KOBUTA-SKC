@@ -11,6 +11,7 @@ import {
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import {
+  Autocomplete,
   Backdrop,
   Box,
   Button,
@@ -18,30 +19,204 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  TextField,
 } from "@mui/material";
 import * as React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
-import TextField from "@mui/material/TextField";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import DeleteIcon from '@mui/icons-material/Delete';
+import instanceAxios from "../api/axios/instanceAxios";
+import moment from "moment";
+import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
 
 export function Line() {
   const authRequest = {
     ...loginRequest,
   };
+  const [data, setData] = useState([])
+  const [openModalCreateLine, setOpenModalCreateLine] = React.useState(false);
+  const handleOpenModalCreateLine = () => setOpenModalCreateLine(true);
+  const handleCloseModalCreateLine = () => setOpenModalCreateLine(false);
+  const [valueLineName, setValueLineName] = React.useState('')
+  const [dropDownScheduledLineListAutoComplete, setDropDownScheduledLineListAutoComplete] = useState([])
+  const [valueAutoCompletedropDownScheduledLineList, setValueAutoCompletedropDownScheduledLineList] = React.useState(Object);
+  const [valueTaskTime, setValueTaskTime] = React.useState('')
 
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const [scheduleline, setScheduleline] = useState("400000");
+  async function fetchData() {
+    try {
+      const response = await instanceAxios.get(`/Line/GetLine?page=1&perpage=1000`).then(async (response) => {
+        if (response.data.status == "success") {
+          for (let i = 0; i < response.data.data.lineList.length; i++) {
+            if (response.data.data.lineList[i].createdOn != null)
+              response.data.data.lineList[i].createdOn = moment(response.data.data.lineList[i].createdOn).format('YYYY-MM-DD hh:mm');
+            if (response.data.data.lineList[i].modifiedOn != null)
+              response.data.data.lineList[i].modifiedOn = moment(response.data.data.lineList[i].modifiedOn).format('YYYY-MM-DD hh:mm');
+          }
+          setData(response.data.data.lineList)
+          setDropDownScheduledLineListAutoComplete(response.data.data.dropdownScheduledLineList)
+          setValueAutoCompletedropDownScheduledLineList(response.data.data.dropdownScheduledLineList[0])
+        }
+        else {
+          toastAlert("error", "Error Call Api GetLine!", 3000)
+        }
+      }, (error) => {
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
 
-  const handleChange = (event: {
-    target: { value: React.SetStateAction<string> };
-  }) => {
-    setScheduleline(event.target.value);
-  };
+  async function handleChangeValueLineNameCreate(e: any) {
+    e.preventDefault()
+    setValueLineName(e.target.value)
+  }
+
+  async function handleChangeValueAutoCompletedropDownScheduledLineList(e: any) {
+    setValueAutoCompletedropDownScheduledLineList(e)
+  }
+
+  async function handleChangeValueTaskTime(e: any) {
+    e.preventDefault()
+    setValueTaskTime(e.target.value)
+  }
+
+  async function createLine() {
+    try {
+      const response = await instanceAxios.post(`/Line/CreateLine`,
+        {
+          name: valueLineName,
+          scheduledLineCode: valueAutoCompletedropDownScheduledLineList['scheduledLineCode'],
+          taktTime: valueTaskTime
+        }
+      ).then(async (response) => {
+        if (response.data.status == "success") {
+          await fetchData()
+          handleCloseModalCreateLine()
+          toastAlert("success", "Create Line Success!", 3000)
+        }
+        else {
+          toastAlert("error", "Error Call Api CreateLine!", 3000)
+        }
+      }, (error) => {
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  async function deleteLine(id: any) {
+    Swal.fire({
+      title: "Are you sure confirm?",
+      //text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, confirm it!"
+    }).then(async (result: any) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await instanceAxios.put(`/Line/RemoveLine?lineId=${id}`).then(async (response) => {
+            if (response.data.status == "success") {
+              await fetchData()
+              toastAlert("error", "Deleted Line!", 3000)
+            }
+            else {
+              toastAlert("error", "Error Call Api RemoveLine!", 3000)
+            }
+          }, (error) => {
+            toastAlert("error", error.response.data.message, 3000)
+          })
+        } catch (error) {
+          console.log('error', error)
+        }
+      }
+    });
+
+  }
+
+  const columns: GridColDef[] = [
+    {
+      field: "action1",
+      headerName: "",
+      width: 170,
+      renderCell: (params: any) => {
+        return (
+          <>
+            <Link
+              to={`/masterData/line/station`}
+              state={{
+                lineId: params.row.lineId,
+                scheduledLineCode: params.row.scheduledLineCode
+              }}
+            >
+              <Button>
+                <VisibilityIcon />
+              </Button>
+            </Link>
+
+            <Button  >
+              <DeleteIcon onClick={() => deleteLine(params.row.lineId)} />
+            </Button></>
+        );
+      },
+    },
+    {
+      field: "name",
+      headerName: "LineName",
+      width: 140,
+
+    },
+    {
+      field: "scheduledLineCode",
+      headerName: "scheduledLineCode",
+      width: 200,
+
+    },
+    {
+      field: "taktTime",
+      headerName: "taktTime",
+      width: 140,
+
+    },
+    {
+      field: "createdOn",
+      headerName: "Created On",
+      width: 200,
+
+    },
+    {
+      field: "createdBy",
+      headerName: "Created By",
+      width: 280,
+
+    },
+    {
+      field: "modifiedOn",
+      headerName: "Modified On",
+      width: 280,
+
+    },
+    {
+      field: "modifiedBy",
+      headerName: "Modified By",
+      width: 300,
+
+    },
+  ];
 
   return (
     <>
@@ -54,97 +229,108 @@ export function Line() {
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
-              <ActiveLastBreadcrumb prm1="masterData" prm2="line" prm3="" />
+              <ActiveLastBreadcrumb
+                prm1="masterData"
+                prm2="line"
+                prm3=""
+              />
             </Box>
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" onClick={handleOpen}>
+              <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={handleOpenModalCreateLine}>
                 Create
               </Button>
             </Box>
           </Grid>
         </Grid>
 
-        <LineData />
+        <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
+          <DataGrid
+            sx={{
+              boxShadow: 2,
+              border: 2,
+              borderColor: "primary.light",
+
+            }}
+            rows={data}
+            getRowId={(data) => data.lineId}
+            rowHeight={40}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 10 },
+              },
+            }}
+
+            pageSizeOptions={[5, 10]}
+          />
+        </Box>
 
         <Modal
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
-          open={open}
-          onClose={handleClose}
+          open={openModalCreateLine}
+          onClose={handleCloseModalCreateLine}
           slots={{ backdrop: StyledBackdrop }}
         >
-          <ModalContent sx={{ width: 600 }}>
+          <ModalContent sx={{ width: "30vw", height: "52vh" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Line
             </h2>
-            <Grid container spacing={2}>
-              {/* <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Line ID"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 600 }}
-                />
-              </Grid> */}
+            <Box>
+              <Grid container spacing={2}>
+                <Grid item xs={12} >
 
-              <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Line Name"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 600 }}
-                />
+                  <TextField sx={{ width: "100%", height: "12vh" }}
+                    label="Line Name"
+                    id="outlined-size-small"
+                    defaultValue=""
+                    size="medium"
+                    onChange={handleChangeValueLineNameCreate}
+                  />
+
+                  <Autocomplete sx={{ width: "100%", height: "12vh" }}
+                    onChange={(event, newValue) => {
+                      handleChangeValueAutoCompletedropDownScheduledLineList(newValue)
+                    }}
+                    disablePortal
+                    id="combo-box-demo"
+                    value={valueAutoCompletedropDownScheduledLineList}
+                    options={dropDownScheduledLineListAutoComplete.map((dropDownScheduledLineListAutoComplete) => dropDownScheduledLineListAutoComplete)}
+                    getOptionLabel={(options: any) => `${options.name}`}
+                    renderInput={(params) => <TextField {...params} label="Schedule Line" />}
+                    ListboxProps={
+                      {
+                        style: {
+                          maxHeight: '150px',
+                        }
+                      }
+                    }
+                  />
+
+                  <TextField sx={{ width: "100%", height: "12vh" }}
+                    label="Task Time"
+                    id="outlined-size-small"
+                    defaultValue=""
+                    size="medium"
+                    onChange={handleChangeValueTaskTime}
+                  />
+
+                  <Grid item xs={6} md={12} container justifyContent="flex-end"  >
+                    <Button variant="outlined" onClick={createLine} sx={{ height: "6vh" }}>
+                      Create
+                    </Button>
+                  </Grid>
+
+
+                </Grid>
+
               </Grid>
-              <Grid item xs={6} md={8}>
-                <InputLabel id="demo-simple-select-label">
-                  Schedule Line
-                </InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={scheduleline}
-                  label="Schedule Line"
-                  onChange={handleChange}
-                  size="small"
-                  style={{ width: 600 }}
-                >
-                  <MenuItem value={300000}>SH</MenuItem>
-                  <MenuItem value={400000}>TRACTOR</MenuItem>
-                  <MenuItem value={500000}>COMBINE</MenuItem>
-                  <MenuItem value={700000}>Rotary</MenuItem>
-                  <MenuItem value={800000}>B TRACTOR</MenuItem>
-                  <MenuItem value={990000}>TTL Dozer</MenuItem>
-                  <MenuItem value={990002}>Line Cell</MenuItem>
-                  <MenuItem value={990004}>Line KIT-SET</MenuItem>
-                </Select>
-              </Grid>
-              <Grid item xs={6} md={8}>
-                {" "}
-                <TextField
-                  label="Takt Time"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  size="small"
-                  style={{ width: 600 }}
-                />
-              </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
-                <Box>
-                  <Button variant="outlined" onClick={handleOpen}>
-                    Create
-                  </Button>
-                </Box>
-              </Grid>
-            </Grid>
+            </Box>
           </ModalContent>
         </Modal>
-      </MsalAuthenticationTemplate>
+      </MsalAuthenticationTemplate >
     </>
   );
 }

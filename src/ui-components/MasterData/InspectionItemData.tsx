@@ -10,7 +10,6 @@ import {
   Backdrop,
   Box,
   Button,
-  CircularProgress,
   FormControl,
   FormControlLabel,
   Grid,
@@ -18,10 +17,8 @@ import {
   MenuItem,
   Select,
   Switch,
-  Typography,
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
 import instanceAxios from "../../api/axios/instanceAxios";
 import React from "react";
 import { TextField } from "@mui/material";
@@ -31,7 +28,9 @@ import { styled, css } from "@mui/system";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import toastAlert from "../SweetAlert2/toastAlert";
 import moment from "moment";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Swal from "sweetalert2";
+import * as XLSX from 'xlsx';
 
 interface InspectionItem {
   id: number;
@@ -40,6 +39,7 @@ interface InspectionItem {
   topic: string;
   remark: string;
   type: string;
+  typeName: string;
   min: string;
   max: string;
   target: string;
@@ -51,6 +51,18 @@ interface InspectionItem {
   createdBy: string;
   modifiedOn: string;
   modifiedBy: string;
+}
+
+interface QRCodeModel {
+  id: number | null;
+  value: string | null;
+  text: string | null;
+  cell: string | null;
+}
+
+interface DDLModel {
+  label: string;
+  value: string;
 }
 
 async function GetInsItemAPI(insItemID: number) {
@@ -87,10 +99,44 @@ async function UpdateInsItemAPI(body: any) {
   }
 }
 
-async function  DeletedInsItemAPI(insItemId : number) {
+async function CreateInsItemAPI(body: any) {
   try {
     await instanceAxios
-      .put(`/InspectionItem/UpdateInspectionItem`, body)
+      .post(`/InspectionItem/CreateInspectionItem`, body)
+      .then(async function (response: any) {
+        toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
+      })
+      .catch(function (error: any) {
+        toastAlert(`error`, `Admin`, 5000);
+      });
+  } catch (error) {
+    toastAlert(`error`, `Admin`, 5000);
+  }
+}
+
+async function ValidateQRCodeAPI(qrcode: any[]) {
+  let dataAPI : any
+  try {
+    await instanceAxios
+      .post(`/qrCodeCheck/ValidateImportQrCode`, qrcode)
+      .then(async function (response: any) {
+        console.log(response)
+        dataAPI = response.data
+        // toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
+      })
+      .catch(function (error: any) {
+        toastAlert(`error`, `Admin`, 5000);
+      });
+  } catch (err) {
+    toastAlert(`error`, `${err}`, 5000);
+  }
+  return dataAPI ;
+}
+
+async function DeletedInsItemAPI(insItemId: number) {
+  try {
+    await instanceAxios
+      .put(`/InspectionItem/RemoveInspectionItem?inspectionItemId=${insItemId}`)
       .then(async function (response: any) {
         toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
@@ -102,22 +148,54 @@ async function  DeletedInsItemAPI(insItemId : number) {
   }
 }
 
-interface DDLModel {
-  lable: string;
-  value: string;
+async function GetQRCodeItemAPI(insItemId:number) {
+  let dataAPI : any;
+  console.log(insItemId)
+  try {
+    await instanceAxios
+      .get(`/qrCodeCheck/SelectQRCodeByInspectionItemId?inspectionItemId=${insItemId}`)
+      .then(async function (response: any) {
+        dataAPI = response.data;
+      })
+      .catch(function (error: any) {
+        toastAlert(`error`, `Admin`, 5000);
+      });
+  } catch (err) {
+    toastAlert(`error`, `${err}`, 5000);
+  }
+
+  return dataAPI
+}
+
+async function GetConstantByGrpAPI(grp: string) {
+  let dataApi: any;
+  try {
+    await instanceAxios
+      .get(`/Constant/GetConstantByGRP?grp=${grp}`)
+      .then(async function (response: any) {
+        dataApi = response.data;
+      })
+      .catch(function (error: any) {
+        console.log("Err");
+      });
+  } catch (err) {
+    console.log(err);
+  }
+  return dataApi;
 }
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
-  InsType: DDLModel[];
+  OpenBackDrop: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const { dataGroupId, InsType } = props;
-  const [openBackDrop, setOpenBackDrop] = React.useState(true);
+  const { dataGroupId, OpenBackDrop } = props;
+  const [insTypeDDL, setInsTypeDDL] = React.useState<DDLModel[]>([]);
   const [dataPageList, setDataPageList] = React.useState<InspectionItem[]>([]);
   const [open, setOpen] = React.useState(false);
+  const [lableModal, setLabelModal] = React.useState<string>("");
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-  
+
   const [insItemId, setInsItemId] = React.useState<number>(0);
   const [insType, setInsType] = React.useState<string>("1");
   const [insItemMin, setInsItemMin] = React.useState<string>("");
@@ -132,6 +210,9 @@ export default function InspectionItemData(props: {
   const [showMeasurement, setShowMeasurement] = React.useState(false);
   const [showQRCodeList, setShowQRCodeList] = React.useState(false);
   const [showRecord, setShowRecord] = React.useState(false);
+  const [fileName, setFileName] = React.useState<string>("");
+  const [isAdd, setIsAdd] = React.useState(true);
+
   const handleChangeInspectionType = (event: {
     target: { value: React.SetStateAction<string> };
   }) => {
@@ -140,6 +221,10 @@ export default function InspectionItemData(props: {
       setShowMeasurement(true);
       setShowQRCodeList(false);
       setShowRecord(false);
+      setQRCodeList([])
+      setInsItemQRText("")
+      setInsItemQRValue("")
+      setFileName("");
     } else {
       setShowMeasurement(false);
       setInsItemMin("");
@@ -152,6 +237,10 @@ export default function InspectionItemData(props: {
       setShowRecord(true);
       setShowMeasurement(false);
       setShowQRCodeList(false);
+      setQRCodeList([])
+      setInsItemQRText("")
+      setInsItemQRValue("")
+      setFileName("");
     } else {
       setShowRecord(false);
     }
@@ -163,34 +252,54 @@ export default function InspectionItemData(props: {
     }
   };
 
-  function GetInsItemPage(){
-    GetInsItemAPI(dataGroupId).then((x) => {
+  const [insItemQRValue , setInsItemQRValue] = React.useState("");
+  const [insItemQRText , setInsItemQRText] = React.useState("");
+  const [qrCodeList, setQRCodeList] = React.useState<QRCodeModel[]>([]);
+
+  async function GetInsItemPage() {
+    await GetConstantByGrpAPI("DD_INSGRP").then(async (x) => {
       if (x.status == "success") {
-        const insItemsData: InspectionItem[] = x.data.map((item: any) => ({
-          id: item.inspectionItemId,
-          inspectionGroupId: item.inspectionGroupId,
-          sequence: item.sequence,
-          topic: item.topic,
-          type: item.type,
-          min: item.min,
-          max: item.max,
-          target: item.target,
-          unit: item.unit,
-          remark: item.remark,
-          isRequired: item.isRequired,
-          isPinCode: item.isPinCode,
-          createdOn: moment(item.createdOn).format("DD-MM-YYYY HH:mm:ss"),
-          createdBy: item.createdBy,
-          modifiedOn: item.modifiedOn ? moment(item.modifiedOn).format("DD-MM-YYYY HH:mm:ss") : "",
-          modifiedBy: item.modifiedBy,
+        const typeDDLModel: DDLModel[] = x.data.map((item: any) => ({
+          label: item.text,
+          value: item.code,
         }));
-        setDataPageList(insItemsData);
-        setOpenBackDrop(false)
+        await GetInsItemAPI(dataGroupId).then((x) => {
+          if (x.status == "success") {
+            const insItemsData: InspectionItem[] = x.data.map((item: any) => ({
+              id: item.inspectionItemId,
+              inspectionGroupId: item.inspectionGroupId,
+              sequence: item.sequence,
+              topic: item.topic,
+              type: item.type,
+              typeName:
+                _.find(typeDDLModel, { value: item.type?.toString() })?.label ??
+                "",
+              min: item.min,
+              max: item.max,
+              target: item.target,
+              unit: item.unit,
+              remark: item.remark,
+              isRequired: item.isRequired,
+              isPinCode: item.isPinCode,
+              createdOn: moment(item.createdOn).format("DD-MM-YYYY HH:mm:ss"),
+              createdBy: item.createdBy,
+              modifiedOn: item.modifiedOn
+                ? moment(item.modifiedOn).format("DD-MM-YYYY HH:mm:ss")
+                : "",
+              modifiedBy: item.modifiedBy,
+            }));
+            setDataPageList(insItemsData);
+            OpenBackDrop(false);
+          }
+        });
+        await setInsTypeDDL(typeDDLModel);
       }
     });
   }
 
   function SetUpDataEdit(Id: any) {
+    setIsAdd(false);
+    setDisabledBtn(true);
     const dataSetUp = _.find(dataPageList, { id: Id });
     setInsItemId(Id);
     setInsItemSeq(dataSetUp.sequence);
@@ -204,6 +313,50 @@ export default function InspectionItemData(props: {
     setInsItemPin(dataSetUp.isPinCode);
     setInsItemUnit(dataSetUp.unit);
     SetUpInsType(dataSetUp.type);
+    setQRCodeList([])
+    setInsItemQRText("")
+    setInsItemQRValue("")
+    setFileName("");
+    if(String(dataSetUp.type) == "4"){
+      GetQRCodeItemAPI(Id).then((x)=>{
+        if(x.status == "success"){
+          const formattedData = _.map(x.data, (item, index) => ({
+            id: item.qrCodeCheckId,
+            cell: "", 
+            value: item.value,
+            text: item.text,
+          }));
+          setQRCodeList(formattedData);
+        }
+      });
+    }
+  
+  }
+
+  function SetUpDataCreate() {
+    setIsAdd(true);
+    const lastSequence = _.maxBy(dataPageList, 'sequence').sequence;
+    let  nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10
+    if(lastSequence == nextMultipleOfTen){
+      nextMultipleOfTen  += 10;
+    }
+    
+    setInsItemSeq(nextMultipleOfTen);
+    setInsItemTopic("");
+    setInsType("1");
+    setInsItemRemark("");
+    setInsItemReq(false);
+    setInsItemMin("");
+    setInsItemMax("");
+    setInsItemTarget("");
+    setInsItemPin(false);
+    setInsItemUnit("");
+    SetUpInsType("1");
+    setQRCodeList([])
+    setInsItemQRText("")
+    setInsItemQRValue("")
+    setFileName("");
+    setDisabledBtn(true);
   }
 
   function SetUpInsType(val: string) {
@@ -294,19 +447,113 @@ export default function InspectionItemData(props: {
           type: insType,
           isPinCode: insItemPin,
           remark: insItemRemark,
-          qrItemValue: [],
+          qrItemValues: qrCodeList,
         };
         break;
       default:
         body = null; // Handle other cases if needed
         break;
     }
-    console.log(body)
+
     await UpdateInsItemAPI(body);
+    GetInsItemPage();
   }
 
+  async function CreateInsItem() {
+    const min =
+      insItemMin !== null && insItemMin.length > 0
+        ? parseFloat(insItemMin).toFixed(3)
+        : null;
+    const max =
+      insItemMax !== null && insItemMax.length > 0
+        ? parseFloat(insItemMax).toFixed(3)
+        : null;
+    const target =
+      insItemTarget !== null && insItemTarget.length > 0
+        ? parseFloat(insItemTarget).toFixed(3)
+        : null;
+    let body;
+    switch (insType) {
+      case "1":
+        body = {
+          topic: insItemTopic,
+          inspectionGroupId: dataGroupId,
+          sequence: insItemSeq,
+          type: insType,
+          remark: insItemRemark,
+        };
+        break;
+      case "2":
+        body = {
+          topic: insItemTopic,
+          inspectionGroupId: dataGroupId,
+          sequence: insItemSeq,
+          type: insType,
+          min: min,
+          max: max,
+          target: target,
+          unit: insItemUnit,
+          remark: insItemRemark,
+        };
+        break;
+      case "3":
+        body = {
+          topic: insItemTopic,
+          inspectionGroupId: dataGroupId,
+          sequence: insItemSeq,
+          type: insType,
+          isRequired: insItemReq,
+          remark: insItemRemark,
+        };
+        break;
+      case "4":
+        body = {
+          topic: insItemTopic,
+          inspectionGroupId: dataGroupId,
+          sequence: insItemSeq,
+          type: insType,
+          isPinCode: insItemPin,
+          remark: insItemRemark,
+          qrItemValues: qrCodeList,
+        };
+        break;
+      default:
+        body = null; // Handle other cases if needed
+        break;
+    }
+    await CreateInsItemAPI(body);
+    GetInsItemPage();
+  }
 
+  async function DeletedInsItem(insItemId: number) {
+    await DeletedInsItemAPI(insItemId).then(() => {
+      GetInsItemPage();
+    });
+  }
+  const [errorQRCodeValue, setErrorQRCodeValue] = React.useState(false);
+  const [errorQRCodeText, setErrorQRCodeText] = React.useState(false);
 
+  async function AddQRCodeInsItem() {
+    
+    if (insItemQRValue.trim() === '' || insItemQRText.trim() === '') {
+      return;
+    }
+
+    const isValueDuplicate = qrCodeList.some(item => item.value === insItemQRValue);
+    const isTextDuplicate = qrCodeList.some(item => item.text === insItemQRText);
+
+    if (isValueDuplicate || isTextDuplicate){
+      setErrorQRCodeValue(isValueDuplicate);
+      setErrorQRCodeText(isTextDuplicate);
+    }else{
+      const newItem = { id: Date.now() , cell: "WEB", value: insItemQRValue, text: insItemQRText };
+    setQRCodeList([...qrCodeList, newItem]);
+    setInsItemQRValue(''); 
+    setInsItemQRText('');
+    }
+    
+   
+  }
   const columns: GridColDef[] = [
     {
       field: "action",
@@ -319,13 +566,28 @@ export default function InspectionItemData(props: {
         <>
           <Button
             onClick={() => {
+              setLabelModal("Edit Inspection Group Item");
               handleOpen();
               SetUpDataEdit(row.id);
             }}
           >
             <EditIcon />
           </Button>
-          <Button>
+          <Button onClick={() => {
+            Swal.fire({
+              title: "Are you sure?",
+              text: `${row.topic}`,
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                DeletedInsItem(row.id)
+              }
+            });
+          }}>
             <DeleteIcon />
           </Button>
         </>
@@ -345,7 +607,7 @@ export default function InspectionItemData(props: {
       headerAlign: "center",
     },
     {
-      field: "type",
+      field: "typeName",
       headerName: "Type",
       width: 150,
       headerAlign: "center",
@@ -377,6 +639,89 @@ export default function InspectionItemData(props: {
     },
   ];
 
+  const columnsQR: GridColDef[] = [
+    {
+      field: "action",
+      headerName: "",
+      headerAlign: "center",
+      align: "left",
+      width: 50,
+      sortable: false,
+      renderCell: ({ row }: Partial<GridRowParams>) => (
+        <>
+          <Button onClick={() => {
+            DeleteQRCodeItem(row.value)
+          }}>
+            <DeleteIcon />
+          </Button>
+        </>
+      ),
+    },
+    {
+      field: "cell",
+      headerName: "Type",
+      width: 100,
+      headerAlign: "center",
+      align: "center",
+    },
+    {
+      field: "value",
+      headerName: "Value",
+      width: 200,
+      headerAlign: "center",
+      align: "left",
+    },
+    {
+      field: "text",
+      headerName: "Text",
+      headerAlign: "left",
+      width: 200,
+      
+    }
+  ];
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    setFileName(file.name);
+ 
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+   
+    jsonData.slice(1).map((row, index) => {
+      const cellAddressA = XLSX.utils.encode_cell({ r: index + 1, c: 0 });
+      const cellAddressB = XLSX.utils.encode_cell({ r: index + 1, c: 1 });
+      setQRCodeList((prevList) => [...prevList, {id : Date.now() , cell : cellAddressA , value : worksheet[cellAddressA]?.v ,  text : worksheet[cellAddressB]?.v }]);
+    });
+
+  };
+
+  const handleButtonSubmitClick = async () => {
+    OpenBackDrop(true);
+    setOpen(false);
+    if (isAdd) {
+      CreateInsItem();
+    } else {
+      UpdateData();
+    }
+    GetInsItemPage();
+  };
+
+  const [disabledBtn , setDisabledBtn] = React.useState(true);
+
+  function ValidateQRCode(){
+     ValidateQRCodeAPI(qrCodeList).then((x)=>{
+      if(x.status == "success"){
+        setDisabledBtn(false)
+      }
+     });
+  }
+
+  function DeleteQRCodeItem(qrValue : string){
+    setQRCodeList((prevList) => prevList.filter(item => item.value !== qrValue));
+  }
+
   React.useEffect(() => {
     const FetchMenu = async () => {
       GetInsItemPage();
@@ -384,17 +729,13 @@ export default function InspectionItemData(props: {
     FetchMenu();
   }, []);
 
+
+  const isAddButtonDisabled = insItemQRValue.trim() === '' || insItemQRText.trim() === '';
+  const isSaveDisabled = insItemTopic.trim() === '' 
   return (
     <>
-      <Backdrop
-        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={openBackDrop}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
       <div>
-     
-        <Accordion>
+        <Accordion defaultExpanded>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="panel2-content"
@@ -403,40 +744,61 @@ export default function InspectionItemData(props: {
             Items
           </AccordionSummary>
           <AccordionDetails>
-            <Box sx={{ height: "100%", width: "100%" }}>
-              <DataGrid
-                sx={{
-                  boxShadow: 2,
-                  border: 2,
-                  borderColor: "primary.light",
-                  "& .MuiDataGrid-cell:hover": {
-                    color: "primary.main",
-                  },
-                }}
-                rows={dataPageList}
-                rowHeight={40}
-                columns={columns}
-                initialState={{
-                  pagination: {
-                    paginationModel: { page: 0, pageSize: 20 },
-                  },
-                }}
-                pageSizeOptions={[5, 10]}
-              />
-            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Box>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setLabelModal("Create Inspection Group Item");
+                      SetUpDataCreate();
+                      handleOpen();
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Box sx={{ height: "100%", width: "100%" }}>
+                  <DataGrid
+                    sx={{
+                      boxShadow: 2,
+                      border: 2,
+                      borderColor: "primary.light",
+                      "& .MuiDataGrid-cell:hover": {
+                        color: "primary.main",
+                      },
+                    }}
+                    rows={dataPageList}
+                    rowHeight={40}
+                    columns={columns}
+                    initialState={{
+                      pagination: {
+                        paginationModel: { page: 0, pageSize: 20 },
+                      },
+                    }}
+                    pageSizeOptions={[5, 10]}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
           </AccordionDetails>
         </Accordion>
       </div>
+
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"
         open={open}
-        onClose={handleClose}
+     
+        disableBackdropClick
+        disableEscapeKeyDown
         slots={{ backdrop: StyledBackdrop }}
       >
-        <ModalContent sx={{ width: 400 }}>
+        <ModalContent sx={{ width: "40vw"}}>
           <h2 id="unstyled-modal-title" className="modal-title">
-            Edit Inspection Group Item
+            {lableModal}
           </h2>
           <Grid container spacing={2}>
             <Grid item xs={6} md={12}>
@@ -445,7 +807,7 @@ export default function InspectionItemData(props: {
                 id="outlined-size-small"
                 size="small"
                 defaultValue={insItemSeq}
-                style={{ width: 400 }}
+                style={{ width: "100%" }}
                 onChange={(e) => {
                   setInsItemSeq(e.target.value);
                 }}
@@ -457,27 +819,28 @@ export default function InspectionItemData(props: {
                 id="outlined-size-small"
                 defaultValue={insItemTopic}
                 size="small"
-                style={{ width: 400 }}
+                style={{ width: "100%" }}
                 onChange={(e) => {
                   setInsItemTopic(e.target.value);
+              
                 }}
               />
             </Grid>
-            <Grid item xs={6} md={12}>
+            <Grid item xs={12} md={12}>
               <TextField
                 label="Remark"
                 id="outlined-size-small"
                 defaultValue={insItemRemark}
                 size="small"
-                style={{ width: 400 }}
+                style={{ width: "100%" }}
                 onChange={(e) => {
                   setInsItemRemark(e.target.value);
                 }}
               />
             </Grid>
 
-            <Grid item xs={6} md={12}>
-              <FormControl>
+            <Grid item xs={12} md={12}>
+              <FormControl fullWidth>
                 <InputLabel id="demo-simple-select-helper-label">
                   Inspection Type
                 </InputLabel>
@@ -488,12 +851,11 @@ export default function InspectionItemData(props: {
                   label="InspectionType"
                   onChange={handleChangeInspectionType}
                   size="small"
-                  style={{ width: 400 }}
                 >
-                  {_.map(InsType, function (i: DDLModel) {
+                  {_.map(insTypeDDL, function (i: DDLModel) {
                     return (
                       <MenuItem key={i.value} value={i.value}>
-                        {i.lable}
+                        {i.label}
                       </MenuItem>
                     );
                   })}
@@ -507,7 +869,7 @@ export default function InspectionItemData(props: {
                   id="outlined-size-small"
                   defaultValue={insItemMin}
                   size="small"
-                  style={{ width: 120 }}
+                  style={{ width: "100%" }}
                   onChange={(e) => {
                     setInsItemMin(e.target.value);
                   }}
@@ -522,7 +884,7 @@ export default function InspectionItemData(props: {
                   id="outlined-size-small"
                   defaultValue={insItemMax}
                   size="small"
-                  style={{ width: 120 }}
+                  style={{ width: "100%" }}
                   onChange={(e) => {
                     setInsItemMax(e.target.value);
                   }}
@@ -536,7 +898,7 @@ export default function InspectionItemData(props: {
                   id="outlined-size-small"
                   defaultValue={insItemTarget}
                   size="small"
-                  style={{ width: 120 }}
+                  style={{ width: "100%" }}
                   onChange={(e) => {
                     setInsItemTarget(e.target.value);
                   }}
@@ -550,7 +912,7 @@ export default function InspectionItemData(props: {
                   id="outlined-size-small"
                   defaultValue={insItemUnit}
                   size="small"
-                  style={{ width: 400 }}
+                  style={{ width: "100%" }}
                   onChange={(e) => {
                     setInsItemUnit(e.target.value);
                   }}
@@ -574,16 +936,19 @@ export default function InspectionItemData(props: {
                 <Grid item xs={6} md={6}>
                   <Button
                     component="label"
-                    role={undefined}
                     variant="contained"
                     tabIndex={-1}
                     startIcon={<CloudUploadIcon />}
+                    onChange={handleFileChange}
                   >
                     Upload file
                     <VisuallyHiddenInput type="file" />
                   </Button>
                 </Grid>
                 <Grid item xs={6} md={6}>
+                  {fileName}
+                </Grid>
+                <Grid item xs={6} md={12}>
                   <FormControlLabel
                     control={<Switch />}
                     checked={insItemPin}
@@ -593,6 +958,61 @@ export default function InspectionItemData(props: {
                     }}
                   />
                 </Grid>
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    label="Value"
+                    id="outlined-size-small"
+                    size="small"
+                    value={insItemQRValue}
+                    error={errorQRCodeValue}
+                    helperText={errorQRCodeValue ? 'Value already exists' : ''}
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      setInsItemQRValue(e.target.value);
+                      setErrorQRCodeValue(false); 
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    label="Text"
+                    id="outlined-size-small"
+                    size="small"
+                    style={{ width: "100%" }}
+                    value={insItemQRText}
+                    error={errorQRCodeText}
+                    helperText={errorQRCodeText ? 'Text already exists' : ''}
+                    onChange={(e) => {
+                      setInsItemQRText(e.target.value);
+                      setErrorQRCodeText(false);
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={6} md={4}>
+                  <Button
+                    component="label"
+                    variant="contained"
+                    tabIndex={-1}
+                    style={{ width: "100%" }}
+                    disabled={isAddButtonDisabled}
+                    onClick={() => {
+                      AddQRCodeInsItem();
+                    }}
+                  >
+                    ADD QR Code
+                  </Button>
+                </Grid>
+                <Grid item xs={6} md={12} container justifyContent="flex-end">
+                    <Button
+                      component="label"
+                      variant="contained"
+                      tabIndex={-1}
+                      startIcon={<CloudUploadIcon />}
+                      onClick={ValidateQRCode}
+                    >
+                      Validate Data
+                    </Button>
+                  </Grid>
               </>
             )}
             {showQRCodeList && (
@@ -606,30 +1026,28 @@ export default function InspectionItemData(props: {
                       color: "primary.main",
                     },
                   }}
-                  rows={rows}
-                  rowHeight={40}
-                  columns={columns}
+                  rows={qrCodeList}
+                  columns={columnsQR}
                   initialState={{
                     pagination: {
-                      paginationModel: { page: 0, pageSize: 5 },
+                      paginationModel: {
+                        pageSize: 5,
+                      },
                     },
                   }}
-                  pageSizeOptions={[5, 10]}
+                  autoHeight 
                 />
               </Grid>
             )}
+
+         
             <Grid item xs={6} md={12} container justifyContent="flex-end">
-              <Box>
-                <Button
-                  variant="outlined"
-                  onClick={async () => {
-                    setOpenBackDrop(true);
-                    setOpen(false);
-                    await UpdateData().then((x) => {});
-                    GetInsItemPage();
-                  }}
-                >
-                  Edit
+            <Box display="flex" gap={2}>
+                <Button variant="outlined" onClick={handleClose}>
+                  Close
+                </Button>
+                <Button variant="contained" onClick={handleButtonSubmitClick} disabled={disabledBtn && isSaveDisabled}>
+                  {isAdd ? "Create" : "Save"}
                 </Button>
               </Box>
             </Grid>
@@ -640,12 +1058,7 @@ export default function InspectionItemData(props: {
   );
 }
 
-const rows = [
-  { id: 1, qrcode: "TC430-49543" },
-  { id: 2, qrcode: "TC832-49462" },
-  { id: 3, qrcode: "3C319-98291" },
-  { id: 4, qrcode: "TC402-98413" },
-];
+
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -661,10 +1074,9 @@ const VisuallyHiddenInput = styled("input")({
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
-
   align-items: center;
   justify-content: center;
 `;
@@ -685,7 +1097,7 @@ const ModalContent = styled("div")(
     display: flex;
     flex-direction: column;
     gap: 8px;
-    overflow: hidden;
+    overflow: auto;
     background-color: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
     border-radius: 8px;
     border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
@@ -693,6 +1105,8 @@ const ModalContent = styled("div")(
       ${theme.palette.mode === "dark" ? "rgb(0 0 0 / 0.5)" : "rgb(0 0 0 / 0.2)"};
     padding: 24px;
     color: ${theme.palette.mode === "dark" ? grey[50] : grey[900]};
+    max-height: 90vh;
+    max-width: 90vw;
 
     & .modal-title {
       margin: 0;

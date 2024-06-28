@@ -2,7 +2,7 @@ import axios from "axios";
 
 const instanceAxios = axios.create({
     //DEV
-    baseURL: 'http://192.168.95.48:8000',
+    baseURL: 'https://d742apsi01-wa02skc.azurewebsites.net',
     headers: {
       'Content-Type': 'application/json',
       'Accept' : 'application/json',

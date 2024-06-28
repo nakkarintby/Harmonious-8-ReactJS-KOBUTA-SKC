@@ -10,6 +10,7 @@ import {
   Backdrop,
   Box,
   Button,
+  CircularProgress,
   Grid,
 } from "@mui/material";
 import * as React from "react";
@@ -19,6 +20,7 @@ import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
 import instanceAxios from "../api/axios/instanceAxios";
 import Swal from "sweetalert2";
+import _ from "lodash";
 
 interface DDLModel {
   label: string;
@@ -94,10 +96,6 @@ async function GetStationAPI(lineId: number) {
   return dataApi;
 }
 
-
-
-
-
 export function InspectionGroup() {
   const authRequest = {
     ...loginRequest,
@@ -107,29 +105,40 @@ export function InspectionGroup() {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-
   const [selectedInsGroupName, setInsGroupName] = React.useState<string>("");
-  const [sheduledLineDDL, setShudeledLineDDL] = React.useState<DDLModel[]>([]);
+  const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
+    []
+  );
+  const [lineDDL, setLineDDL] = React.useState<DDLModel[]>([]);
+  const [stationDDL, setStationDDL] = React.useState<DDLModel[]>([]);
+  const [modelGroupDDL, setModelGroupDDL] = React.useState<DDLModel[]>([]);
   const [selectedScheduledLine, setSelectedScheduledLine] =
     React.useState<string>("");
-  const [lineDDL, setLineDDL] = React.useState<DDLModel[]>([]);
   const [selectedLine, setSelectedLine] = React.useState<number>(0);
-  const [stationDDL, setStationDDL] = React.useState<DDLModel[]>([]);
   const [selectedStation, setSelectedStation] = React.useState<number>(0);
-  const [modelGroupDDL, setsetModelGroupDDL] = React.useState<DDLModel[]>([]);
-  const [selectedmodelGroupDDL, setSelectedModelGroupDDL] = React.useState<number>(0);
+  const [selectedmodelGroupDDL, setSelectedModelGroupDDL] =
+    React.useState<number>(0);
   const [selectedTrackTime, setSelectedTrackTime] = React.useState<string>("");
+
+  const [loadingDDL, setLoadingDDL] = React.useState(false);
+  const [loadingLineDDL, setLoadingLineDDL] = React.useState(false);
+  const [loadingStationDDL, setLoadingStationDDL] = React.useState(false);
+  const [loadingModelGroupDDL, setLoadingModelGroupDDL] = React.useState(false);
 
   function GetModelGroupDDL(LineId: number) {
     GetModelGroupAPI().then((x) => {
       if (x.status == "success") {
-        const ddlModelGroup: DDLModel[] = x.data.modelGroup.map(
-          (item: any) => ({
+        const ddlModelGroup = _.chain(x.data.modelGroup)
+          .filter((item) => item.lineId === LineId) // เงื่อนไข filter ด้วย LineId
+          .map((item) => ({
             label: `${item.name}`,
             value: item.modelGroupId,
-          })
-        );
-        setsetModelGroupDDL(ddlModelGroup);
+          }))
+          .value();
+        setModelGroupDDL(ddlModelGroup);
+        setLoadingModelGroupDDL(false);
+      } else {
+        setLoadingModelGroupDDL(false);
       }
     });
   }
@@ -142,6 +151,9 @@ export function InspectionGroup() {
           value: item.value,
         }));
         await setLineDDL(ddlLine);
+        setLoadingLineDDL(false);
+      } else {
+        setLoadingLineDDL(false);
       }
     });
   }
@@ -155,11 +167,21 @@ export function InspectionGroup() {
           value: item.stationId,
         }));
         await setStationDDL(ddlStation);
+        setLoadingStationDDL(false);
+      } else {
+        setLoadingStationDDL(false);
       }
     });
   }
 
-  async function CreateInsGroup(name : string , scheduledLineCode : string , lineId : number , stationId : number , modelGroupId : number ,taktTime : string ){
+  async function CreateInsGroup(
+    name: string,
+    scheduledLineCode: string,
+    lineId: number,
+    stationId: number,
+    modelGroupId: number,
+    taktTime: string
+  ) {
     let body = {
       name,
       scheduledLineCode,
@@ -168,15 +190,17 @@ export function InspectionGroup() {
       modelGroupId,
       taktTime,
     };
-    await instanceAxios.post("/InspectionGroup/CreateInspectionGroup", body).then((x) => {
-      if(x.data.status == "success"){
-        Swal.fire({
-          title: "Good job!",
-          text: "You clicked the button!",
-          icon: "success"
-        });
-      }
-    })
+    await instanceAxios
+      .post("/InspectionGroup/CreateInspectionGroup", body)
+      .then((x) => {
+        if (x.data.status == "success") {
+          Swal.fire({
+            title: "Good job!",
+            text: "You clicked the button!",
+            icon: "success",
+          });
+        }
+      });
   }
   const handleOpenLine = async (selectedScheduledLine: string) => {
     await GetLineDDL(selectedScheduledLine);
@@ -189,24 +213,21 @@ export function InspectionGroup() {
     await GetModelGroupDDL(lineId);
   };
 
+  async function GetScheduledLineDDL() {
+    await GetScheduledLineAPI().then(async (x) => {
+      if (x.status == "success") {
+        const ddlSheduLine: DDLModel[] = x.data.map((item: any) => ({
+          label: `${item.scheduledLineCode} : ${item.name}`,
+          value: item.scheduledLineCode,
+        }));
 
-  React.useEffect(() => {
-    const FetchMenu = async () => {
-      GetScheduledLineAPI().then(async (x) => {
-        if (x.status == "success") {
-          const ddlSheduLine: DDLModel[] = x.data.map((item: any) => ({
-            label: `${item.scheduledLineCode} : ${item.name}`,
-            value: item.scheduledLineCode,
-          }));
-          setShudeledLineDDL(ddlSheduLine);
-        }
-      });
-    };
-    FetchMenu();
-  }, []);
-
-
-  
+        setScheduledLineDDL(ddlSheduLine);
+        setLoadingDDL(false);
+      } else {
+        setLoadingDDL(false);
+      }
+    });
+  }
 
   return (
     <>
@@ -241,7 +262,9 @@ export function InspectionGroup() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={open}
-          onClose={handleClose}
+        
+          disableBackdropClick
+          disableEscapeKeyDown
           slots={{ backdrop: StyledBackdrop }}
         >
           <ModalContent sx={{ width: 400 }}>
@@ -256,8 +279,8 @@ export function InspectionGroup() {
                   defaultValue=""
                   size="small"
                   style={{ width: 400 }}
-                  onChange={(e) =>{
-                    setInsGroupName(e.target.value)
+                  onChange={(e) => {
+                    setInsGroupName(e.target.value);
                   }}
                 />
               </Grid>
@@ -265,12 +288,36 @@ export function InspectionGroup() {
                 <Autocomplete
                   id="scheduledLine-box-demo"
                   size="small"
-                  options={sheduledLineDDL}
-                  onChange={async (event, value) => {
-                    await setSelectedScheduledLine(value?.value);
+                  onOpen={() => {
+                    setLoadingDDL(true);
+                    GetScheduledLineDDL();
                   }}
+                  onClose={() => setLoadingDDL(false)}
+                  options={scheduledLineDDL}
+                  loading={loadingDDL}
+                  onChange={(event, value) =>
+                    setSelectedScheduledLine(value?.value)
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  getOptionLabel={(option) => option.label}
                   renderInput={(params) => (
-                    <TextField {...params} label="scheduledLine" />
+                    <TextField
+                      {...params}
+                      label="ScheduledLine"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingDDL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
                 />
               </Grid>
@@ -279,14 +326,33 @@ export function InspectionGroup() {
                   id="Line-box-demo"
                   size="small"
                   onOpen={() => {
-                    handleOpenLine(selectedScheduledLine);
+                    setLoadingLineDDL(true);
+                    handleOpenLine(selectedScheduledLine ?? "");
                   }}
+                  onClose={() => setLoadingLineDDL(false)}
                   options={lineDDL}
-                  onChange={async (event, value) => {
-                    await setSelectedLine(value?.value);
-                  }}
+                  loading={loadingLineDDL}
+                  onChange={(event, value) => setSelectedLine(value?.value)}
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  getOptionLabel={(option) => option.label}
                   renderInput={(params) => (
-                    <TextField {...params} label="Line" />
+                    <TextField
+                      {...params}
+                      label="Line"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingLineDDL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
                 />
               </Grid>
@@ -295,15 +361,36 @@ export function InspectionGroup() {
                   id="ModelGroup-box-demo"
                   size="small"
                   onOpen={() => {
-                    handleOpenModelGroup(selectedLine);
+                    setLoadingModelGroupDDL(true);
+                    handleOpenModelGroup(selectedLine as number);
                   }}
+                  onClose={() => setLoadingModelGroupDDL(false)}
                   options={modelGroupDDL}
+                  loading={loadingModelGroupDDL}
+                  onChange={(event, value) =>
+                    setSelectedModelGroupDDL(value?.value)
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  getOptionLabel={(option) => option.label}
                   renderInput={(params) => (
-                    <TextField {...params} label="ModelGroup" />
+                    <TextField
+                      {...params}
+                      label="Model Group"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingModelGroupDDL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
-                  onChange={(e, v) => {
-                    setSelectedModelGroupDDL(v?.value);
-                  }}
                 />
               </Grid>
               <Grid item xs={6} md={12}>
@@ -311,19 +398,36 @@ export function InspectionGroup() {
                   id="Station-box-demo"
                   size="small"
                   onOpen={() => {
-                    handleOpenStation(selectedLine);
+                    setLoadingStationDDL(true);
+                    handleOpenStation(selectedLine as number);
                   }}
-                  onChange={(e, v) => {
-                    alert(v?.value)
-                    setSelectedStation(v?.value);
-                  }}
+                  onClose={() => setLoadingStationDDL(false)}
                   options={stationDDL}
+                  loading={loadingStationDDL}
+                  onChange={(event, value) => setSelectedStation(value?.value)}
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  getOptionLabel={(option) => option.label}
                   renderInput={(params) => (
-                    <TextField {...params} label="Station" />
+                    <TextField
+                      {...params}
+                      label="Station"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingStationDDL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
                 />
               </Grid>
-
               <Grid item xs={6} md={12}>
                 <TextField
                   label="Takt Time"
@@ -331,19 +435,28 @@ export function InspectionGroup() {
                   defaultValue=""
                   size="small"
                   style={{ width: 400 }}
-                  onChange={(e)=>{
-                    setSelectedTrackTime(e.target.value)
+                  onChange={(e) => {
+                    setSelectedTrackTime(e.target.value);
                   }}
                 />
               </Grid>
               <Grid item xs={6} md={12} container justifyContent="flex-end">
-                <Box>
+                <Box display="flex" gap={2}>
+                  <Button variant="outlined" onClick={handleClose}>
+                    Close
+                  </Button>
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     onClick={() => {
-                      CreateInsGroup(selectedInsGroupName , selectedScheduledLine ,selectedLine ,  selectedStation ,selectedmodelGroupDDL  , selectedTrackTime  )
+                      CreateInsGroup(
+                        selectedInsGroupName,
+                        selectedScheduledLine,
+                        selectedLine,
+                        selectedStation,
+                        selectedmodelGroupDDL,
+                        selectedTrackTime
+                      );
                       handleClose();
-                      /// ReData 
                     }}
                   >
                     Create

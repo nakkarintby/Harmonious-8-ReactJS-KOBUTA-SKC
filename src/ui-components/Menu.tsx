@@ -222,8 +222,9 @@ export default function TemporaryDrawer() {
         }
       >
         {menuDataList?.headers.map((row) => (
-          <div key={row.menuId}>
+          <div key={row.nameEN}>
             <ListItemButton
+              key={row.menuId}
               onClick={() => {
                 if (row.menuGroup === "MASTERDATA") {
                   handleClick();
@@ -284,9 +285,7 @@ export default function TemporaryDrawer() {
       getMenuAPI().then(async (x) => {
         if(x.status == "success"){
         const menuPage = await convertToMenu(x.data);
-        //console.log(menuPage);
         setMenuDataList(menuPage)
-   
         }
       });
     };

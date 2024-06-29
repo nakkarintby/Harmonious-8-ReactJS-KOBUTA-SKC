@@ -1,10 +1,4 @@
-// import * as React from "react";
-import { GridRowParams, GridRenderCellParams } from "@mui/x-data-grid";
-import Button from "@mui/material/Button";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import { Checkbox } from "@mui/material";
 
@@ -47,22 +41,22 @@ const columns: GridColDef[] = [
   {
     field: "canDisplay",
     headerName: "Display",
-    renderCell: (params) => <Checkbox checked={params.rows?.confirmed} />,
+    renderCell: (params) => <Checkbox checked={params.row?.confirmed} />,
   },
   {
     field: "canCreate",
     headerName: "Create",
-    renderCell: (params) => <Checkbox checked={params.rows?.confirmed} />,
+    renderCell: (params) => <Checkbox checked={params.row?.confirmed} />,
   },
   {
     field: "canUpdate",
     headerName: "Update",
-    renderCell: (params) => <Checkbox checked={params.rows?.confirmed} />,
+    renderCell: (params) => <Checkbox checked={params.row?.confirmed} />,
   },
   {
     field: "canDelete",
     headerName: "Delete",
-    renderCell: (params) => <Checkbox checked={params.rows?.confirmed} />,
+    renderCell: (params) => <Checkbox checked={params.row?.confirmed} />,
   },
 ];
 

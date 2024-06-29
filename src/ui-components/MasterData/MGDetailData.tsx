@@ -41,12 +41,13 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     renderCell: ({ row }: Partial<GridRowParams>) => (
-      <Link
-        to={{
-          pathname: "/mgdetail",
-          state: [{ data: row }],
-        }}
-      >
+      // <Link
+      //   to={{
+      //     pathname: "/mgdetail",
+      //     state: [{ data: row }],
+      //   }}
+      // >
+      <Link to="/mgdetail" state={{ data: row }}>
         <Button>
           <DeleteIcon />
         </Button>

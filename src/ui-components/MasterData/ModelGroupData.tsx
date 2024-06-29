@@ -62,11 +62,15 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     renderCell: ({ row }: Partial<GridRowParams>) => (
+      // <Link
+      //   to={{
+      //     pathname: "/masterData/modelgroups/detail"
+      //   }}
+      // >
       <Link
-        to={{
-          pathname: "/masterData/modelgroups/detail"
-        }}
-      >
+      to="/masterData/modelgroups/detail"
+      state={{ data: row }}
+    >
         <Button>
           <VisibilityIcon />
         </Button>

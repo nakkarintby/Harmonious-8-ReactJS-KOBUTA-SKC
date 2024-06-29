@@ -13,7 +13,7 @@ export default function toastAlert(icons : string  ,msg : string  , timer : numb
         }
       });
       Toast.fire({
-        icon: icons,
+        icon: icons == "success" ? "success" : "error",
         title: msg 
       });
 }

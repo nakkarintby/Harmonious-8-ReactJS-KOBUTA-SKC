@@ -40,12 +40,16 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     renderCell: ({ row }: Partial<GridRowParams>) => (
+      // <Link
+      //   to={{
+      //     pathname: "/masterData/scheduleLine/model",
+      //     state: [{ data: row }],
+      //   }}
+      // >
       <Link
-        to={{
-          pathname: "/masterData/scheduleLine/model",
-          state: [{ data: row }],
-        }}
-      >
+      to="/masterData/scheduleLine/model"
+      state={{ data: row }}
+    >
         <Button>
           <VisibilityIcon />
         </Button>

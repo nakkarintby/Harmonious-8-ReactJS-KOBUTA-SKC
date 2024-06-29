@@ -1,7 +1,7 @@
 {
   "name": "skc-e-checksheet",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -31,19 +31,14 @@
     "styled-components": "^6.1.11",
     "sweetalert2": "^11.6.13",
     "sweetalert2-react-content": "^5.0.7",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
+    "@types/lodash": "^4.17.6",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.2"
   },
-  "devDependencies": {
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "sass": "^1.77.4",
-    "typescript": "^5.2.2",
-    "vite": "^5.2.0"
+  "engines": {
+    "node": "v20.11.0"
   }
 }

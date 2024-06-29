@@ -1,13 +1,10 @@
-import LDetailData from "../ui-components/MasterData/LDetailData";
+
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { Loading } from "../ui-components/Loading";
 import {
-  // InteractionStatus,
   InteractionType,
-  // InteractionRequiredAuthError,
-  // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import {
@@ -17,41 +14,36 @@ import {
   Button,
   Fade,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Switch,
-  TableCell,
-  TableRow,
-  tableCellClasses,
+  Switch
 } from "@mui/material";
 import * as React from "react";
-
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
-import MuiAccordion, { AccordionProps, AccordionSlots } from '@mui/material/Accordion';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
+import MuiAccordion, {
+  AccordionProps,
+  AccordionSlots,
+} from "@mui/material/Accordion";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
-} from '@mui/material/AccordionSummary';
-import MuiAccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import SaveIcon from '@mui/icons-material/Save';
+} from "@mui/material/AccordionSummary";
+import MuiAccordionDetails from "@mui/material/AccordionDetails";
+import Typography from "@mui/material/Typography";
+import SaveIcon from "@mui/icons-material/Save";
 import Swal from "sweetalert2";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import AddBoxIcon from '@mui/icons-material/AddBox';
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
 export function Station() {
   const authRequest = {
@@ -60,326 +52,355 @@ export function Station() {
 
   let location = useLocation();
   const [expanded, setExpanded] = React.useState(true);
-  const [valueLineId, setValueLineId] = React.useState(null)
-  const [valueScheduledLineCode, setValueScheduledLineCode] = React.useState(null)
-  const [valueLineName, setValueLineName] = React.useState(null)
-  const [valueTaskTime, setValueTaskTime] = React.useState(null)
-  const [dropDownScheduledLineListAutoComplete, setDropDownScheduledLineListAutoComplete] = useState([])
-  const [valueAutoCompletedropDownScheduledLineList, setValueAutoCompletedropDownScheduledLineList] = React.useState(Object);
-  const [stationList, setStationList] = useState([])
-  const [openModalCreate, setopenModalCreate] = React.useState(false)
-  const handleopenModalCreate = () => setopenModalCreate(true)
-  const handlecloseModalCreate = () => setopenModalCreate(false)
-  const [openModalEdit, setopenModalEdit] = React.useState(false)
-  const handleopenModalEdit = () => setopenModalEdit(true)
-  const handlecloseModalEdit = () => setopenModalEdit(false)
-  const [valueStationName, setValueStationName] = React.useState(null)
-  const [dropDownStationListAutoComplete, setDropDownStationListAutoComplete] = useState([])
-  const [valueAutoCompletedropDownStationListAutoComplete, setValueAutoCompletedropDownStationListAutoComplete] = React.useState(Object);
-  const [valueSequence, setValueSequence] = React.useState(null)
-  const [valueRefMFG, setValueRefMFG] = React.useState(null)
-  const [valueRefMFGFinish, setValueRefMFGFinish] = React.useState(null)
-  const [valueStationId, setValueStationId] = React.useState(null)
+  const [valueLineId, setValueLineId] = React.useState(null);
+  const [valueScheduledLineCode, setValueScheduledLineCode] =
+    React.useState(null);
+  const [valueLineName, setValueLineName] = React.useState(null);
+  const [valueTaskTime, setValueTaskTime] = React.useState(null);
+  const [
+    dropDownScheduledLineListAutoComplete,
+    setDropDownScheduledLineListAutoComplete,
+  ] = useState([]);
+  const [
+    valueAutoCompletedropDownScheduledLineList,
+    setValueAutoCompletedropDownScheduledLineList,
+  ] = React.useState(Object);
+  const [stationList, setStationList] = useState([]);
+  const [openModalCreate, setopenModalCreate] = React.useState(false);
+  const handleopenModalCreate = () => setopenModalCreate(true);
+  const handlecloseModalCreate = () => setopenModalCreate(false);
+  const [openModalEdit, setopenModalEdit] = React.useState(false);
+  const [openModalLineEdit, setopenModalLineEdit] = React.useState(false);
+  const handleopenModalLineEdit = () => setopenModalLineEdit(true);
+  const handlecloseModalLineEdit = () => setopenModalLineEdit(false);
+  const handleopenModalEdit = () => setopenModalEdit(true);
+  const handlecloseModalEdit = () => setopenModalEdit(false);
+  const [valueStationName, setValueStationName] = React.useState(null);
+  const [dropDownStationListAutoComplete, setDropDownStationListAutoComplete] =
+    useState([]);
+  const [
+    valueAutoCompletedropDownStationListAutoComplete,
+    setValueAutoCompletedropDownStationListAutoComplete,
+  ] = React.useState(Object);
+  const [valueSequence, setValueSequence] = React.useState<Number>(0);
+  const [valueRefMFG, setValueRefMFG] = React.useState(null);
+  const [valueRefMFGFinish, setValueRefMFGFinish] = React.useState(null);
+  const [valueStationId, setValueStationId] = React.useState(null);
 
-  const [showSequence, setShowSequence] = React.useState(false)
-  const [showFirstStationSwitch, setShowFirstStationSwitch] = React.useState(false)
-  const [showFinishStationSwitch, setShowFinishStationSwitch] = React.useState(false)
-  const [showRefFirst, setShowRefFirst] = React.useState(false)
-  const [showRefFinish, setShowRefFinish] = React.useState(false)
-  const [ischeckedFirstStation, setIscheckedFirstStation] = React.useState(false)
-  const [ischeckedFinishStation, setIscheckedFinishStation] = React.useState(false)
+  const [showSequence, setShowSequence] = React.useState(false);
+  const [showFirstStationSwitch, setShowFirstStationSwitch] =
+    React.useState(false);
+  const [showFinishStationSwitch, setShowFinishStationSwitch] =
+    React.useState(false);
+  const [showRefFirst, setShowRefFirst] = React.useState(false);
+  const [showRefFinish, setShowRefFinish] = React.useState(false);
+  const [ischeckedFirstStation, setIscheckedFirstStation] =
+    React.useState(false);
+  const [ischeckedFinishStation, setIscheckedFinishStation] =
+    React.useState(false);
 
   useEffect(() => {
-    fetchDataHeader()
-    fetchDataDetail()
-    fetchDataDropDownStationListAutoComplete()
-  }, [])
-
+    fetchDataHeader();
+    fetchDataDetail();
+    fetchDataDropDownStationListAutoComplete();
+  }, []);
 
   async function fetchDataHeader() {
     try {
-      const response = await instanceAxios.get(`/Line/GetLine?page=1&perpage=1000`).then(async (response) => {
-        if (response.data.status == "success") {
-          //Set Header
-          setValueLineId(location.state.lineId)
-          setValueScheduledLineCode(location.state.scheduledLineCode)
-          setValueLineName(response.data.data.lineList.filter((item: any) => item['lineId'] === location.state.lineId)[0]['name'])
-          setValueTaskTime(response.data.data.lineList.filter((item: any) => item['lineId'] === location.state.lineId)[0]['taktTime'])
-          setDropDownScheduledLineListAutoComplete(response.data.data.dropdownScheduledLineList)
-          setValueAutoCompletedropDownScheduledLineList(response.data.data.dropdownScheduledLineList.filter((item: any) => item['scheduledLineCode'] === (response.data.data.lineList.filter((item: any) => item['lineId'] === location.state.lineId))[0]['scheduledLineCode'])[0])
-        }
-        else {
-          toastAlert("error", "Error Call Api GetLine!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+      await instanceAxios
+        .get(`/Line/GetLine?page=1&perpage=1000`)
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              //Set Header
+              setValueLineId(location.state.lineId);
+              setValueScheduledLineCode(location.state.scheduledLineCode);
+              setValueLineName(
+                response.data.data.lineList.filter(
+                  (item: any) => item["lineId"] === location.state.lineId
+                )[0]["name"]
+              );
+              setValueTaskTime(
+                response.data.data.lineList.filter(
+                  (item: any) => item["lineId"] === location.state.lineId
+                )[0]["taktTime"]
+              );
+              setDropDownScheduledLineListAutoComplete(
+                response.data.data.dropdownScheduledLineList
+              );
+              setValueAutoCompletedropDownScheduledLineList(
+                response.data.data.dropdownScheduledLineList.filter(
+                  (item: any) =>
+                    item["scheduledLineCode"] ===
+                    response.data.data.lineList.filter(
+                      (item: any) => item["lineId"] === location.state.lineId
+                    )[0]["scheduledLineCode"]
+                )[0]
+              );
+            } else {
+              toastAlert("error", "Error Call Api GetLine!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
   }
 
   async function fetchDataDetail() {
     try {
-      const response = await instanceAxios.get(`/Station/GetStationByLineId?lineId=${location.state.lineId}`).then(async (response) => {
-        if (response.data.status == "success") {
-          //Set Detail
-          setStationList(response.data.data)
-        }
-        else {
-          toastAlert("error", "Error Call Api GetStationByLineId!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+      await instanceAxios
+        .get(`/Station/GetStationByLineId?lineId=${location.state.lineId}`)
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              //Set Detail
+              setStationList(response.data.data);
+            } else {
+              toastAlert("error", "Error Call Api GetStationByLineId!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
   }
 
   async function fetchDataDropDownStationListAutoComplete() {
-    setShowSequence(true)
-    setShowFirstStationSwitch(true)
-    setShowFinishStationSwitch(true)
-    setShowRefFirst(true)
-    setShowRefFinish(true)
+    setShowSequence(true);
+    setShowFirstStationSwitch(true);
+    setShowFinishStationSwitch(true);
+    setShowRefFirst(true);
+    setShowRefFinish(true);
 
     //fetch detail data
     try {
-      const response = await instanceAxios.get(`/Constant/GetConstantByGRP?grp=DD_STATION`).then(async (response) => {
-        if (response.data.status == "success") {
-          setDropDownStationListAutoComplete(response.data.data)
-          setValueAutoCompletedropDownStationListAutoComplete(response.data.data[0])
-        }
-        else {
-          toastAlert("error", "Error Call Api GetConstantByGRP!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+      await instanceAxios
+        .get(`/Constant/GetConstantByGRP?grp=DD_STATION`)
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              setDropDownStationListAutoComplete(response.data.data);
+              setValueAutoCompletedropDownStationListAutoComplete(
+                response.data.data[0]
+              );
+            } else {
+              toastAlert("error", "Error Call Api GetConstantByGRP!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
   }
-
 
   async function updateLine() {
     try {
-      const response = await instanceAxios.put(`/Line/UpdateLine`,
-        {
+       await instanceAxios
+        .put(`/Line/UpdateLine`, {
           lineId: valueLineId,
           name: valueLineName,
-          scheduledLineCode: valueAutoCompletedropDownScheduledLineList['scheduledLineCode'],
-          taktTime: valueTaskTime
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchDataHeader()
-          toastAlert("success", "Create Line Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api CreateLine!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+          scheduledLineCode:
+            valueAutoCompletedropDownScheduledLineList["scheduledLineCode"],
+          taktTime: valueTaskTime,
+        })
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              await fetchDataHeader();
+              toastAlert("success", "Create Line Success!", 5000);
+            } else {
+              toastAlert("error", "Error Call Api CreateLine!", 5000);
+            }
+            setopenModalLineEdit(false)
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
   }
-
-
 
   async function handleExpansion() {
     setExpanded((prevExpanded) => !prevExpanded);
-  };
-
-  async function handleChangeValueLineName(e: any) {
-    e.preventDefault()
-    setValueLineName(e.target.value)
   }
 
-  async function handleChangeValueAutoCompletedropDownScheduledLineList(e: any) {
-    setValueAutoCompletedropDownScheduledLineList(e)
+  async function handleChangeValueLineName(e: any) {
+    e.preventDefault();
+    setValueLineName(e.target.value);
+  }
+
+  async function handleChangeValueAutoCompletedropDownScheduledLineList(
+    e: any
+  ) {
+    setValueAutoCompletedropDownScheduledLineList(e);
   }
 
   async function handleChangeValueTaskTime(e: any) {
-    e.preventDefault()
-    setValueTaskTime(e.target.value)
+    e.preventDefault();
+    setValueTaskTime(e.target.value);
   }
 
-
   async function handleChangeValueStationName(e: any) {
-    e.preventDefault()
-    setValueStationName(e.target.value)
+    e.preventDefault();
+    setValueStationName(e.target.value);
   }
 
   async function handleChangeValueAutoCompletedropDownStationList(e: any) {
-    if (e['text'] == 'Auto Station') {
-      setShowSequence(true)
-      setValueSequence(null)
-      setShowFirstStationSwitch(true)
-      setIscheckedFinishStation(false)
-      setShowFinishStationSwitch(true)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(true)
-      setValueRefMFG(null)
-      setShowRefFinish(true)
-      setValueRefMFGFinish(null)
+    
+    if (e["text"] == "Auto Station") {
+      setShowSequence(true);
+      
+      setShowFirstStationSwitch(true);
+      setIscheckedFinishStation(false);
+      setShowFinishStationSwitch(true);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(true);
+      setValueRefMFG(null);
+      setShowRefFinish(true);
+      setValueRefMFGFinish(null);
+    } else if (e["text"] == "Manual Station") {
+      setShowSequence(false);
+   
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(true);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(true);
+      setValueRefMFG(null);
+      setShowRefFinish(true);
+      setValueRefMFGFinish(null);
+    } else if (e["text"] == "Rework Station") {
+      setShowSequence(false);
+      
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(false);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(false);
+      setValueRefMFG(null);
+      setShowRefFinish(false);
+      setValueRefMFGFinish(null);
+    } else if (e["text"] == "Special Station") {
+      setShowSequence(false);
+      
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(false);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(false);
+      setValueRefMFG(null);
+      setShowRefFinish(false);
+      setValueRefMFGFinish(null);
     }
-    else if (e['text'] == 'Manual Station') {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(true)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(true)
-      setValueRefMFGFinish(null)
-    }
-    else if (e['text'] == 'Rework Station') {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(false)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(false)
-      setValueRefMFGFinish(null)
-    }
-
-    else if (e['text'] == 'Special Station') {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(false)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(false)
-      setValueRefMFGFinish(null)
-    }
-    setValueAutoCompletedropDownStationListAutoComplete(e)
+    setValueAutoCompletedropDownStationListAutoComplete(e);
   }
 
   async function handleChangeValueSequence(e: any) {
-    e.preventDefault()
-    setValueSequence(e.target.value)
+    e.preventDefault();
+    setValueSequence(e.target.value);
   }
 
-
   async function handleChangeShowFirstStationSwitch(e: any) {
-    setIscheckedFirstStation(e.target.checked)
+    setIscheckedFirstStation(e.target.checked);
   }
 
   async function handleChangeValueMFG(e: any) {
-    e.preventDefault()
-    setValueRefMFG(e.target.value)
+    e.preventDefault();
+    setValueRefMFG(e.target.value);
   }
 
-
   async function handleChangeShowFinishStationSwitch(e: any) {
-    setIscheckedFinishStation(e.target.checked)
+    setIscheckedFinishStation(e.target.checked);
   }
 
   async function handleChangeValueMFGFinish(e: any) {
-    setValueRefMFGFinish(e.target.value)
+    setValueRefMFGFinish(e.target.value);
   }
 
   async function createStation() {
-    console.log(valueStationName)
-    console.log(valueLineId)
-    console.log(valueScheduledLineCode)
-    console.log(valueSequence)
-    console.log(valueAutoCompletedropDownStationListAutoComplete['code'])
-    console.log(ischeckedFirstStation)
-    console.log(ischeckedFinishStation)
-    console.log(valueRefMFG)
-    console.log(valueRefMFGFinish)
-
+    const sequence = valueSequence;
+    const type = parseInt(valueAutoCompletedropDownStationListAutoComplete["code"], 10);
     try {
-      const response = await instanceAxios.post(`/Station/CreateStation`,
-        {
+       await instanceAxios
+        .post(`/Station/CreateStation`, {
           name: valueStationName,
           lineId: valueLineId,
           scheduledLineCode: valueScheduledLineCode,
-          sequence: valueSequence,
-          type: valueAutoCompletedropDownStationListAutoComplete['code'],
+          sequence: sequence,
+          type: type,
           isFirstStation: ischeckedFirstStation,
           isFinishedStation: ischeckedFinishStation,
           refMFG: valueRefMFG,
-          refFinishedMFG: valueRefMFGFinish,
-          refStation: '1',
-
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchDataDetail()
-          handlecloseModalCreate()
-          toastAlert("success", "Create Station Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api CreateStation!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+          refFinishedMFG: valueRefMFGFinish ?? "",
+          refStation: "1",
+        })
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              await fetchDataDetail();
+              handlecloseModalCreate();
+              toastAlert("success", "Create Station Success!", 5000);
+            } else {
+              toastAlert("error", "Error Call Api CreateStation!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
-
   }
 
   async function editStation() {
-    console.log(valueStationName)
-    console.log(valueLineId)
-    console.log(valueScheduledLineCode)
-    console.log(valueSequence)
-    console.log(valueAutoCompletedropDownStationListAutoComplete['code'])
-    console.log(ischeckedFirstStation)
-    console.log(ischeckedFinishStation)
-    console.log(valueRefMFG)
-    console.log(valueRefMFGFinish)
-    console.log(valueStationId)
+
 
     try {
-      const response = await instanceAxios.put(`/Station/UpdateStation`,
-        {
+      await instanceAxios
+        .put(`/Station/UpdateStation`, {
           name: valueStationName,
           lineId: valueLineId,
           scheduledLineCode: valueScheduledLineCode,
           sequence: valueSequence,
-          type: valueAutoCompletedropDownStationListAutoComplete['code'],
+          type: valueAutoCompletedropDownStationListAutoComplete["code"],
           isFirstStation: ischeckedFirstStation,
           isFinishedStation: ischeckedFinishStation,
           refMFG: valueRefMFG,
           refFinishedMFG: valueRefMFGFinish,
-          refStation: '1',
-          stationId: valueStationId
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchDataDetail()
-          handlecloseModalEdit()
-          toastAlert("success", "Update Station Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api UpdateStation!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
+          refStation: "1",
+          stationId: valueStationId,
+        })
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              await fetchDataDetail();
+              handlecloseModalEdit();
+              toastAlert("success", "Update Station Success!", 5000);
+            } else {
+              toastAlert("error", "Error Call Api UpdateStation!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
     }
-
   }
-
 
   async function deleteStation(id: any) {
     Swal.fire({
@@ -389,103 +410,105 @@ export function Station() {
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, confirm it!"
+      confirmButtonText: "Yes, confirm it!",
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-          const response = await instanceAxios.put(`/Station/RemoveStation?stationId=${id}`).then(async (response) => {
-            if (response.data.status == "success") {
-              await fetchDataDetail()
-              toastAlert("error", "Deleted Station!", 3000)
-            }
-            else {
-              toastAlert("error", "Error Call Api RemoveStation!", 3000)
-            }
-          }, (error) => {
-            toastAlert("error", error.response.data.message, 3000)
-          })
+           await instanceAxios
+            .put(`/Station/RemoveStation?stationId=${id}`)
+            .then(
+              async (response) => {
+                if (response.data.status == "success") {
+                  await fetchDataDetail();
+                  toastAlert("error", "Deleted Station!", 5000);
+                } else {
+                  toastAlert("error", "Error Call Api RemoveStation!", 5000);
+                }
+              },
+              (error) => {
+                toastAlert("error", error.response.data.message, 5000);
+              }
+            );
         } catch (error) {
-          console.log('error', error)
+          console.log("error", error);
         }
       }
     });
-
   }
   async function setValueModalEdit(rows: any) {
-    setValueStationId(rows['stationId'])
-    setValueStationName(rows['name'])
-    console.log(rows)
-    if (rows['type'] == 1) {
-      setShowSequence(true)
-      setValueSequence(rows['sequence'])
-      setShowFirstStationSwitch(true)
-      setIscheckedFirstStation(rows['isFirstStation'])
-      setShowFinishStationSwitch(true)
-      setIscheckedFinishStation(rows['isFinishedStation'])
-      setShowRefFirst(true)
-      setValueRefMFG(rows['refMFG'])
-      setShowRefFinish(true)
-      setValueRefMFGFinish(rows['refFinishedMFG'])
+    setValueStationId(rows["stationId"]);
+    setValueStationName(rows["name"]);
+    setValueSequence(rows["sequence"]);
+    if (rows["type"] == 1) {
+      setShowSequence(true);
+      setShowFirstStationSwitch(true);
+      setIscheckedFirstStation(rows["isFirstStation"]);
+      setShowFinishStationSwitch(true);
+      setIscheckedFinishStation(rows["isFinishedStation"]);
+      setShowRefFirst(true);
+      setValueRefMFG(rows["refMFG"]);
+      setShowRefFinish(true);
+      setValueRefMFGFinish(rows["refFinishedMFG"]);
+    } else if (rows["type"] == 2) {
+      setShowSequence(false);
+     
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(true);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(true);
+      setValueRefMFG(null);
+      setShowRefFinish(true);
+      setValueRefMFGFinish(null);
+    } else if (rows["type"] == 3) {
+      setShowSequence(false);
+    
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(false);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(false);
+      setValueRefMFG(null);
+      setShowRefFinish(false);
+      setValueRefMFGFinish(null);
+    } else if (rows["type"] == 4) {
+      setShowSequence(false);
+    
+      setShowFirstStationSwitch(false);
+      setIscheckedFirstStation(false);
+      setShowFinishStationSwitch(false);
+      setIscheckedFinishStation(false);
+      setShowRefFirst(false);
+      setValueRefMFG(null);
+      setShowRefFinish(false);
+      setValueRefMFGFinish(null);
     }
-    else if (rows['type'] == 2) {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(true)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(true)
-      setValueRefMFGFinish(null)
-    }
-    else if (rows['type'] == 3) {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(false)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(false)
-      setValueRefMFGFinish(null)
-    }
-
-    else if (rows['type'] == 4) {
-      setShowSequence(false)
-      setValueSequence(null)
-      setShowFirstStationSwitch(false)
-      setIscheckedFirstStation(false)
-      setShowFinishStationSwitch(false)
-      setIscheckedFinishStation(false)
-      setShowRefFirst(false)
-      setValueRefMFG(null)
-      setShowRefFinish(false)
-      setValueRefMFGFinish(null)
-    }
-    setValueAutoCompletedropDownStationListAutoComplete(dropDownStationListAutoComplete.filter((item: any) => item['code'] === rows['type'] + '')[0])
-    handleopenModalEdit()
+    setValueAutoCompletedropDownStationListAutoComplete(
+      dropDownStationListAutoComplete.filter(
+        (item: any) => item["code"] === rows["type"] + ""
+      )[0]
+    );
+    handleopenModalEdit();
   }
 
+  async function setValueModalCreate() {
+    setValueStationName(null);
+    setShowSequence(true);
+    setShowFirstStationSwitch(true);
+    setShowFinishStationSwitch(true);
+    setShowRefFirst(true);
+    setShowRefFinish(true);
 
-  async function setValueModalCreate(rows: any) {
-    setValueStationName(null)
-    setShowSequence(true)
-    setShowFirstStationSwitch(true)
-    setShowFinishStationSwitch(true)
-    setShowRefFirst(true)
-    setShowRefFinish(true)
-
-    setValueSequence(null)
-    setIscheckedFirstStation(false)
-    setIscheckedFinishStation(false)
-    setValueRefMFG(null)
-    setValueRefMFGFinish(null)
-    setValueAutoCompletedropDownStationListAutoComplete(dropDownStationListAutoComplete[0])
-    handleopenModalCreate()
+   
+    setIscheckedFirstStation(false);
+    setIscheckedFinishStation(false);
+    setValueRefMFG(null);
+    setValueRefMFGFinish(null);
+    setValueAutoCompletedropDownStationListAutoComplete(
+      dropDownStationListAutoComplete[0]
+    );
+    handleopenModalCreate();
   }
-
 
   const columns: GridColDef[] = [
     {
@@ -497,15 +520,14 @@ export function Station() {
       renderCell: (params: any) => {
         return (
           <>
-            <Button >
+            <Button>
               <EditIcon onClick={() => setValueModalEdit(params.row)} />
             </Button>
 
-            <Button >
+            <Button>
               <DeleteIcon onClick={() => deleteStation(params.row.stationId)} />
             </Button>
           </>
-
         );
       },
     },
@@ -563,7 +585,7 @@ export function Station() {
       field: "modifiedBy",
       headerName: "modifiedBy",
       width: 200,
-    }
+    },
   ];
 
   return (
@@ -591,11 +613,13 @@ export function Station() {
             defaultExpanded={true}
             expanded={expanded}
             onChange={handleExpansion}
-            slots={{ transition: Fade as AccordionSlots['transition'] }}
+            slots={{ transition: Fade as AccordionSlots["transition"] }}
             slotProps={{ transition: { timeout: 400 } }}
             sx={{
-              '& .MuiAccordion-region': { height: expanded ? 'auto' : 0 },
-              '& .MuiAccordionDetails-root': { display: expanded ? 'block' : 'none' },
+              "& .MuiAccordion-region": { height: expanded ? "auto" : 0 },
+              "& .MuiAccordionDetails-root": {
+                display: expanded ? "block" : "none",
+              },
             }}
           >
             <AccordionSummary
@@ -603,74 +627,66 @@ export function Station() {
               aria-controls="panel1-content"
               id="panel1-header"
             >
-              <Typography>Header</Typography>
+              <Typography>Line</Typography>
             </AccordionSummary>
 
             <AccordionDetails>
-              <Typography>
-                <Box sx={{ height: "100%", width: "100%" }}>
-                  <Grid item xs={6} md={12} container justifyContent="flex-end">
-                    <Box>
-                      <Button variant="outlined" endIcon={<SaveIcon />} onClick={updateLine}   >
-                        Save
-                      </Button>
-                    </Box>
-                  </Grid>
-                </Box>
-                <Box sx={{ height: "100%", width: "100%", marginTop: "20px" }}>
-                  <TextField
-                    label="Line Name"
-                    id="outlined-size-small"
-                    defaultValue=""
-                    value={valueLineName ? valueLineName : ''}
-                    size="small"
-                    style={{ width: 400 }}
-                    onChange={handleChangeValueLineName}
-
-                  />
-                </Box>
-
-                <Box sx={{ height: "30%", width: "100%", marginTop: "20px" }}>
-                  <Autocomplete
-                    onChange={(event, newValue) => {
-                      handleChangeValueAutoCompletedropDownScheduledLineList(newValue)
-                    }}
-                    disablePortal
-                    id="combo-box-demo"
-                    value={valueAutoCompletedropDownScheduledLineList}
-                    options={dropDownScheduledLineListAutoComplete.map((dropDownScheduledLineListAutoComplete) => dropDownScheduledLineListAutoComplete)}
-                    sx={{ width: 400 }}
-                    getOptionLabel={(options: any) => `${options.name}`}
-                    renderInput={(params) => <TextField {...params} label="Schedule Line" />}
-                    ListboxProps={
-                      {
-                        style: {
-                          maxHeight: '150px',
-                        }
-                      }
-                    }
-                  />
-                </Box>
-
-                <Box sx={{ height: "100%", width: "100%", marginTop: "20px", marginBottom: "20px" }}>
-                  <TextField
-                    label="Task Time"
-                    id="outlined-size-small"
-                    defaultValue=""
-                    value={valueTaskTime ? valueTaskTime : ''}
-                    size="small"
-                    style={{ width: 400 }}
-                    onChange={handleChangeValueTaskTime}
-
-                  />
-                </Box>
-              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={6} md={12} container justifyContent="flex-end">
+                  <Box>
+                    <Button
+                      variant="outlined"
+                      endIcon={<SaveIcon />}
+                      // onClick={updateLine}
+                      onClick={handleopenModalLineEdit}
+                    >
+                      Edit
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={4} container>
+                  <Box display="flex" alignItems="center">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      style={{ marginRight: 8 }}
+                    >
+                      Line Name:
+                    </Typography>
+                    <Typography variant="body1">{valueLineName}</Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={4} container>
+                  <Box display="flex" alignItems="center">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      style={{ marginRight: 8 }}
+                    >
+                      Schedule Line:
+                    </Typography>
+                    <Typography variant="body1">
+                      {valueAutoCompletedropDownScheduledLineList.name}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={4} container>
+                  <Box display="flex" alignItems="center">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      style={{ marginRight: 8 }}
+                    >
+                      Task Time:
+                    </Typography>
+                    <Typography variant="body1">{valueTaskTime}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </AccordionDetails>
           </Accordion>
 
-          <Accordion
-            defaultExpanded={true}
-          >
+          <Accordion defaultExpanded={true}>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel2-content"
@@ -680,10 +696,16 @@ export function Station() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                <Box sx={{ height: "100%", width: "100%", marginBottom: "20px" }}>
+                <Box
+                  sx={{ height: "100%", width: "100%", marginBottom: "20px" }}
+                >
                   <Grid item xs={6} md={12} container justifyContent="flex-end">
                     <Box>
-                      <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={setValueModalCreate}  >
+                      <Button
+                        variant="outlined"
+                        endIcon={<AddBoxIcon />}
+                        onClick={setValueModalCreate}
+                      >
                         Create
                       </Button>
                     </Box>
@@ -694,7 +716,7 @@ export function Station() {
                   <DataGrid
                     autoHeight
                     sx={{
-                      '--DataGrid-overlayHeight': '300px',
+                      "--DataGrid-overlayHeight": "300px",
                       boxShadow: 2,
                       border: 2,
                       borderColor: "primary.light",
@@ -714,7 +736,6 @@ export function Station() {
                     pageSizeOptions={[5, 10]}
                   />
                 </Box>
-
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -725,80 +746,89 @@ export function Station() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={openModalCreate}
-          onClose={handlecloseModalCreate}
           slots={{ backdrop: StyledBackdrop }}
         >
-          <ModalContent sx={{ width: "50vw", height: "70vh" }}>
+          <ModalContent sx={{ width: "50vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Station
             </h2>
             <Grid container spacing={2}>
-
               <Grid item xs={12}>
-                <TextField sx={{ width: "100%", height: "12vh" }}
+                <TextField
+                  sx={{ width: "100%" }}
                   label="Station Name"
                   id="outlined-size-small"
                   defaultValue=""
-                  value={valueStationName ? valueStationName : ''}
-                  size="medium"
+                  value={valueStationName ? valueStationName : ""}
+                  size="small"
                   onChange={handleChangeValueStationName}
                 />
               </Grid>
 
-
               <Grid item xs={6} md={6}>
-                <Autocomplete sx={{ width: "100%", height: "12vh" }}
-                  onChange={(event, newValue) => {
-                    handleChangeValueAutoCompletedropDownStationList(newValue)
+                <Autocomplete
+                  sx={{ width: "100%" }}
+                  size="small"
+                  onChange={(_, newValue) => {
+                    handleChangeValueAutoCompletedropDownStationList(newValue);
                   }}
                   disablePortal
                   id="combo-box-demo"
                   value={valueAutoCompletedropDownStationListAutoComplete}
-                  options={dropDownStationListAutoComplete.map((dropDownStationListAutoComplete) => dropDownStationListAutoComplete)}
+                  options={dropDownStationListAutoComplete.map(
+                    (dropDownStationListAutoComplete) =>
+                      dropDownStationListAutoComplete
+                  )}
                   getOptionLabel={(options: any) => `${options.text}`}
-                  renderInput={(params) => <TextField {...params} label="Station Type" />}
-                  ListboxProps={
-                    {
-                      style: {
-                        maxHeight: '150px',
-                      }
-                    }
-                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Station Type" />
+                  )}
+                  ListboxProps={{
+                    style: {
+                      maxHeight: "150px",
+                    },
+                  }}
                 />
-
               </Grid>
               <Grid item xs={6} md={6}>
                 {showSequence && (
-                  <TextField sx={{ width: "100%", height: "12vh" }}
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Sequence"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueSequence ? valueSequence : ''}
-                    size="medium"
+                    value={valueSequence ? valueSequence : ""}
+                    size="small"
                     onChange={handleChangeValueSequence}
-
                   />
                 )}
               </Grid>
 
-
               <Grid item xs={6} md={6}>
                 {showFirstStationSwitch && (
-                  <FormGroup sx={{ width: "100%", height: "12vh" }}>
-                    <FormControlLabel control={<Switch checked={ischeckedFirstStation}
-                      onChange={handleChangeShowFirstStationSwitch} />} label="First Station" />
+                  <FormGroup sx={{ width: "100%" }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={ischeckedFirstStation}
+                          onChange={handleChangeShowFirstStationSwitch}
+                        />
+                      }
+                      label="First Station"
+                    />
                   </FormGroup>
                 )}
               </Grid>
 
               <Grid item xs={6} md={6}>
                 {showRefFirst && (
-                  <TextField sx={{ width: "100%", height: "12vh" }}
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Ref. MFG (First Station)"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueRefMFG ? valueRefMFG : ''}
-                    size="medium"
+                    value={valueRefMFG ? valueRefMFG : ""}
+                    size="small"
                     onChange={handleChangeValueMFG}
                   />
                 )}
@@ -806,33 +836,133 @@ export function Station() {
 
               <Grid item xs={6} md={6}>
                 {showFinishStationSwitch && (
-                  <FormGroup sx={{ width: "100%", height: "12vh" }}>
-                    <FormControlLabel control={<Switch checked={ischeckedFinishStation}
-                      onChange={handleChangeShowFinishStationSwitch} />} label="Finish Station" />
+                  <FormGroup sx={{ width: "100%" }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={ischeckedFinishStation}
+                          onChange={handleChangeShowFinishStationSwitch}
+                        />
+                      }
+                      label="Finish Station"
+                    />
                   </FormGroup>
                 )}
               </Grid>
-              <Grid item xs={6} md={6}>
-                {showRefFinish && (
-                  <TextField sx={{ width: "100%", height: "12vh" }}
+
+              {showRefFinish && (
+                <Grid item xs={6} md={6}>
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Ref. MFG (Finish Station)"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueRefMFGFinish ? valueRefMFGFinish : ''}
-                    size="medium"
+                    value={valueRefMFGFinish ? valueRefMFGFinish : ""}
+                    size="small"
                     onChange={handleChangeValueMFGFinish}
                   />
-                )}
-              </Grid>
+                </Grid>
+              )}
 
-              <Grid item xs={6} md={12} container justifyContent="flex-end" >
-                <Button variant="outlined" onClick={createStation} sx={{ height: "6vh" }}>
-                  Create
-                </Button>
+              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      handlecloseModalCreate();
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button variant="contained" onClick={createStation}>
+                    Create
+                  </Button>
+                </Box>
               </Grid>
-
             </Grid>
+          </ModalContent>
+        </Modal>
 
+        {/* Line edit */}
+        <Modal
+          aria-labelledby="unstyled-modal-title"
+          aria-describedby="unstyled-modal-description"
+          open={openModalLineEdit}
+          onClose={handlecloseModalLineEdit}
+          slots={{ backdrop: StyledBackdrop }}
+        >
+          <ModalContent sx={{ width: "50vw" }}>
+            <h2 id="unstyled-modal-title" className="modal-title">
+              Edit Line
+            </h2>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Line Name"
+                  id="outlined-size-small"
+                  defaultValue=""
+                  value={valueLineName ? valueLineName : ""}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={handleChangeValueLineName}
+                />
+              </Grid>
+
+              <Grid item xs={6} md={12}>
+                <Autocomplete
+                  onChange={(_, newValue) => {
+                    handleChangeValueAutoCompletedropDownScheduledLineList(
+                      newValue
+                    );
+                  }}
+                  size="small"
+                  disablePortal
+                  id="combo-box-demo"
+                  value={valueAutoCompletedropDownScheduledLineList}
+                  options={dropDownScheduledLineListAutoComplete.map(
+                    (dropDownScheduledLineListAutoComplete) =>
+                      dropDownScheduledLineListAutoComplete
+                  )}
+                  sx={{ width: "100%" }}
+                  getOptionLabel={(options: any) => `${options.name}`}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Schedule Line" />
+                  )}
+                  ListboxProps={{
+                    style: {
+                      maxHeight: "150px",
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  label="Task Time"
+                  id="outlined-size-small"
+                  defaultValue=""
+                  value={valueTaskTime ? valueTaskTime : ""}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={handleChangeValueTaskTime}
+                />
+              </Grid>
+
+              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      handlecloseModalLineEdit();
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button variant="contained" onClick={updateLine}>
+                    Save
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
           </ModalContent>
         </Modal>
 
@@ -841,80 +971,90 @@ export function Station() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={openModalEdit}
-          onClose={handlecloseModalEdit}
+          // onClose={handlecloseModalEdit}
           slots={{ backdrop: StyledBackdrop }}
         >
-          <ModalContent sx={{ width: "50vw", height: "70vh" }}>
+          <ModalContent sx={{ width: "50vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Edit Station
             </h2>
             <Grid container spacing={2}>
-
               <Grid item xs={12}>
-              <TextField sx={{ width: "100%", height: "12vh" }}
+                <TextField
+                  sx={{ width: "100%" }}
                   label="Station Name"
                   id="outlined-size-small"
                   defaultValue=""
-                  value={valueStationName ? valueStationName : ''}
-                  size="medium"
+                  value={valueStationName ? valueStationName : ""}
+                  size="small"
                   onChange={handleChangeValueStationName}
                 />
               </Grid>
 
-
               <Grid item xs={6} md={6}>
-                <Autocomplete sx={{ width: "100%", height: "12vh" }}
-                  onChange={(event, newValue) => {
-                    handleChangeValueAutoCompletedropDownStationList(newValue)
+                <Autocomplete
+                  sx={{ width: "100%" }}
+                  onChange={(_, newValue) => {
+                    handleChangeValueAutoCompletedropDownStationList(newValue);
                   }}
                   disablePortal
+                  size="small"
                   id="combo-box-demo"
                   value={valueAutoCompletedropDownStationListAutoComplete}
-                  options={dropDownStationListAutoComplete.map((dropDownStationListAutoComplete) => dropDownStationListAutoComplete)}
+                  options={dropDownStationListAutoComplete.map(
+                    (dropDownStationListAutoComplete) =>
+                      dropDownStationListAutoComplete
+                  )}
                   getOptionLabel={(options: any) => `${options.text}`}
-                  renderInput={(params) => <TextField {...params} label="Station Type" />}
-                  ListboxProps={
-                    {
-                      style: {
-                        maxHeight: '150px',
-                      }
-                    }
-                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Station Type" />
+                  )}
+                  ListboxProps={{
+                    style: {
+                      maxHeight: "100px",
+                    },
+                  }}
                 />
-
               </Grid>
               <Grid item xs={6} md={6}>
                 {showSequence && (
-                    <TextField  sx={{ width: "100%", height: "12vh" }}
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Sequence"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueSequence ? valueSequence : ''}
-                    size="medium"
+                    value={valueSequence ? valueSequence : ""}
+                    size="small"
                     onChange={handleChangeValueSequence}
-     
                   />
                 )}
               </Grid>
 
-
               <Grid item xs={6} md={6}>
                 {showFirstStationSwitch && (
-                <FormGroup sx={{ width: "100%", height: "12vh" }}>
-                    <FormControlLabel control={<Switch checked={ischeckedFirstStation}
-                      onChange={handleChangeShowFirstStationSwitch} />} label="First Station" />
+                  <FormGroup sx={{ width: "100%" }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={ischeckedFirstStation}
+                          onChange={handleChangeShowFirstStationSwitch}
+                        />
+                      }
+                      label="First Station"
+                    />
                   </FormGroup>
                 )}
               </Grid>
 
               <Grid item xs={6} md={6}>
                 {showRefFirst && (
-                <TextField sx={{ width: "100%", height: "12vh" }}
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Ref. MFG (First Station)"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueRefMFG ? valueRefMFG : ''}
-                    size="medium"
+                    value={valueRefMFG ? valueRefMFG : ""}
+                    size="small"
                     onChange={handleChangeValueMFG}
                   />
                 )}
@@ -922,61 +1062,77 @@ export function Station() {
 
               <Grid item xs={6} md={6}>
                 {showFinishStationSwitch && (
-                     <FormGroup sx={{ width: "100%", height: "12vh" }}>
-                    <FormControlLabel control={<Switch checked={ischeckedFinishStation}
-                      onChange={handleChangeShowFinishStationSwitch} />} label="Finish Station" />
+                  <FormGroup sx={{ width: "100%" }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={ischeckedFinishStation}
+                          onChange={handleChangeShowFinishStationSwitch}
+                        />
+                      }
+                      label="Finish Station"
+                    />
                   </FormGroup>
                 )}
               </Grid>
               <Grid item xs={6} md={6}>
                 {showRefFinish && (
-                    <TextField sx={{ width: "100%", height: "12vh" }}
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Ref. MFG (Finish Station)"
                     id="outlined-size-small"
                     defaultValue=""
-                    value={valueRefMFGFinish ? valueRefMFGFinish : ''}
-                    size="medium"
+                    value={valueRefMFGFinish ? valueRefMFGFinish : ""}
+                    size="small"
                     onChange={handleChangeValueMFGFinish}
                   />
                 )}
               </Grid>
 
-              <Grid item xs={6} md={12} container justifyContent="flex-end" >
-                <Button variant="outlined" onClick={editStation}  sx={{ height: "6vh" }}>
-                  Save
-                </Button>
+              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      handlecloseModalEdit();
+                    }}
+                  >
+                    Close
+                  </Button>
+                  <Button variant="contained" onClick={editStation}>
+                    Save
+                  </Button>
+                </Box>
               </Grid>
-
             </Grid>
-
           </ModalContent>
         </Modal>
-      </MsalAuthenticationTemplate >
+      </MsalAuthenticationTemplate>
     </>
   );
 }
 
-const StyledGridOverlay = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-  '& .ant-empty-img-1': {
-    fill: theme.palette.mode === 'light' ? '#aeb8c2' : '#262626',
+const StyledGridOverlay = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
+  "& .ant-empty-img-1": {
+    fill: theme.palette.mode === "light" ? "#aeb8c2" : "#262626",
   },
-  '& .ant-empty-img-2': {
-    fill: theme.palette.mode === 'light' ? '#f5f5f7' : '#595959',
+  "& .ant-empty-img-2": {
+    fill: theme.palette.mode === "light" ? "#f5f5f7" : "#595959",
   },
-  '& .ant-empty-img-3': {
-    fill: theme.palette.mode === 'light' ? '#dce0e6' : '#434343',
+  "& .ant-empty-img-3": {
+    fill: theme.palette.mode === "light" ? "#dce0e6" : "#434343",
   },
-  '& .ant-empty-img-4': {
-    fill: theme.palette.mode === 'light' ? '#fff' : '#1c1c1c',
+  "& .ant-empty-img-4": {
+    fill: theme.palette.mode === "light" ? "#fff" : "#1c1c1c",
   },
-  '& .ant-empty-img-5': {
-    fillOpacity: theme.palette.mode === 'light' ? '0.8' : '0.08',
-    fill: theme.palette.mode === 'light' ? '#f5f5f5' : '#fff',
+  "& .ant-empty-img-5": {
+    fillOpacity: theme.palette.mode === "light" ? "0.8" : "0.08",
+    fill: theme.palette.mode === "light" ? "#f5f5f5" : "#fff",
   },
 }));
 
@@ -1028,8 +1184,6 @@ function CustomNoRowsOverlay() {
   );
 }
 
-
-
 const Modal = styled(BaseModal)`
   position: fixed;
   z-index: 1300;
@@ -1080,59 +1234,38 @@ const ModalContent = styled("div")(
   `
 );
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    //backgroundColor: theme.palette.common.black,
-    backgroundColor: "rgb(24,132,124)",
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
-}));
-
 const Accordion = styled((props: AccordionProps) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
 ))(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
-  '&:not(:last-child)': {
+  "&:not(:last-child)": {
     borderBottom: 0,
   },
-  '&::before': {
-    display: 'none',
+  "&::before": {
+    display: "none",
   },
 }));
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
   <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}
     {...props}
   />
 ))(({ theme }) => ({
   backgroundColor:
-    theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, .05)'
-      : 'rgba(0, 0, 0, .03)',
-  flexDirection: 'row-reverse',
-  '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-    transform: 'rotate(90deg)',
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, .05)"
+      : "rgba(0, 0, 0, .03)",
+  flexDirection: "row-reverse",
+  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+    transform: "rotate(90deg)",
   },
-  '& .MuiAccordionSummary-content': {
+  "& .MuiAccordionSummary-content": {
     marginLeft: theme.spacing(1),
   },
 }));
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderTop: '1px solid rgba(0, 0, 0, .125)',
+  borderTop: "1px solid rgba(0, 0, 0, .125)",
 }));

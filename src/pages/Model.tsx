@@ -1,4 +1,3 @@
-import ModelData from "../ui-components/MasterData/ModelData";
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
@@ -30,7 +29,7 @@ export function Model() {
 
   async function fetchData() {
     try {
-      const response = await instanceAxios.get(`/Model/GetModel?page=1&perpage=1000`).then(async (response) => {
+      await instanceAxios.get(`/Model/GetModel?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.length; i++) {
             response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm');

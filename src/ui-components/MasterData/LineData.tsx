@@ -44,22 +44,30 @@ const columns: GridColDef[] = [
     width: 150,
     renderCell: ({ row }: Partial<GridRowParams>) => (
       <>
-        <Link
+       <Link
+          to="/masterData/line/station"
+          state={{ data: row }}
+        >
+        {/* <Link
           to={{
             pathname: "/masterData/line/station",
             state: [{ data: row }],
           }}
-        >
+        > */}
           <Button>
             <VisibilityIcon />
           </Button>
         </Link>
         <Link
+          to="/masterData/line/station"
+          state={{ data: row }}
+        >
+        {/* <Link
           to={{
             pathname: "/masterData/line/station",
             state: [{ data: row }],
-          }}
-        >
+          }}  >*/}
+        
           <Button>
             <DeleteIcon />
           </Button>

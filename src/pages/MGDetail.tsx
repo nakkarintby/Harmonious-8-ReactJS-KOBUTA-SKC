@@ -3,38 +3,48 @@ import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { Loading } from "../ui-components/Loading";
 import {
-  // InteractionStatus,
   InteractionType,
-  // InteractionRequiredAuthError,
-  // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { useLocation } from "react-router";
-import { GridRowParams } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
-import { styled } from '@mui/material/styles';
+import { styled } from "@mui/material/styles";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
-import { Backdrop, Fade, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, css, tableCellClasses } from "@mui/material";
-import AddBoxIcon from '@mui/icons-material/AddBox';
+import {
+  Backdrop,
+  ButtonGroup,
+  Fade,
+  Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  tableCellClasses,
+} from "@mui/material";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 import React from "react";
 import TextField from "@mui/material/TextField";
-import { grey } from "@mui/material/colors";
 import { Modal as BaseModal } from "@mui/base/Modal";
-import Autocomplete from '@mui/material/Autocomplete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
-import MuiAccordion, { AccordionProps, AccordionSlots } from '@mui/material/Accordion';
+import Autocomplete from "@mui/material/Autocomplete";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
+import MuiAccordion, {
+  AccordionProps,
+  AccordionSlots,
+} from "@mui/material/Accordion";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
-} from '@mui/material/AccordionSummary';
-import MuiAccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import SaveIcon from '@mui/icons-material/Save';
+} from "@mui/material/AccordionSummary";
+import MuiAccordionDetails from "@mui/material/AccordionDetails";
+import Typography from "@mui/material/Typography";
 import Swal from "sweetalert2";
 
 export function MGDetail() {
@@ -42,97 +52,132 @@ export function MGDetail() {
     ...loginRequest,
   };
   let location = useLocation();
-  const [modelList, setModelList] = useState([])
-  const [modelGroupDetail, setModelGroupDetail] = useState(Object)
-  const [dropDownModelList, setDropDownModelList] = useState([])
-  const [dropDownLineList, setDropDownLineList] = useState([])
+
+  const [modelList, setModelList] = useState([]);
 
   const [valueModelGroupId, setValueModelGroupId] = React.useState(null);
-  const [valueModelGroupNameEdit, setValueModelGroupNameEdit] = React.useState(null);
+  const [valueModelGroupNameEdit, setValueModelGroupNameEdit] =
+    React.useState(null);
 
-  const [openModalCreate, setopenModalCreate] = React.useState(false)
-  const handleopenModalCreate = () => setopenModalCreate(true)
-  const handlecloseModalCreate = () => setopenModalCreate(false)
+  const [openModalCreate, setopenModalCreate] = React.useState(false);
+  const [openModalModelGroupEdit, setOpenModalModelGroupEdit] =
+    React.useState(false);
+  const handleopenModalCreate = () => {
+    setopenModalCreate(true);
+    setDropDownModelListTable([]);
+    setValueAutoCompleteModelList(null);
+  };
+  const handlecloseModalCreate = () => {
+    setopenModalCreate(false);
+    setDropDownModelListTable([]);
+    setValueAutoCompleteModelList(null);
+  };
+  const handleopenModalModelGroup = () => setOpenModalModelGroupEdit(true);
+  const handlecloseModalModelGroup = () => setOpenModalModelGroupEdit(false);
   const [expanded, setExpanded] = React.useState(true);
-  const [dropDownModelListAutoComplete, setDropDownModelListAutoComplete] = useState([])
-  const [dropDownModelListTable, setDropDownModelListTable] = useState([])
-  const [valueAutoCompleteModelList, setValueAutoCompleteModelList] = React.useState(Object);
-  const [dropDownLineListAutoComplete, setDropDownLineListAutoComplete] = useState([])
-  const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] = React.useState(Object);
-
+  const [dropDownModelListAutoComplete, setDropDownModelListAutoComplete] =
+    useState([]);
+  const [dropDownModelListTable, setDropDownModelListTable] = useState([]);
+  const [valueAutoCompleteModelList, setValueAutoCompleteModelList] =
+    React.useState(Object);
+  const [dropDownLineListAutoComplete, setDropDownLineListAutoComplete] =
+    useState([]);
+  const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] =
+    React.useState(Object);
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   async function fetchData() {
     try {
-      const response = await instanceAxios.get(`/ModelGroupMapping/SelectItemByModelGroupId?modelGroupId=${location.state.modelGroupId}`).then(async (response) => {
-        if (response.data.status == "success") {
-          //Set All List
-          setModelList(response.data.data.modelList)
-          setModelGroupDetail(response.data.data.modelGroupDetail)
-          setDropDownModelList(response.data.data.dropDownModelList)
-          setDropDownLineList(response.data.data.dropDownLineList)
+      await instanceAxios
+        .get(
+          `/ModelGroupMapping/SelectItemByModelGroupId?modelGroupId=${location.state.modelGroupId}`
+        )
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              //Set All List
+              setModelList(response.data.data.modelList);
 
-          //Set Header
-          setValueModelGroupId(location.state.modelGroupId)
-          setValueModelGroupNameEdit(response.data.data.modelGroupDetail['name'])
-          setDropDownLineListAutoComplete(response.data.data.dropDownLineList)
-          setValueDropDownLineListAutoComplete(response.data.data.dropDownLineList.filter((item: any) => item['lineId'] === response.data.data.modelGroupDetail['lineId'])[0])
+              //Set Header
+              setValueModelGroupId(location.state.modelGroupId);
+              setValueModelGroupNameEdit(
+                response.data.data.modelGroupDetail["name"]
+              );
+              setDropDownLineListAutoComplete(
+                response.data.data.dropDownLineList
+              );
+              setValueDropDownLineListAutoComplete(
+                response.data.data.dropDownLineList.filter(
+                  (item: any) =>
+                    item["lineId"] ===
+                    response.data.data.modelGroupDetail["lineId"]
+                )[0]
+              );
 
-          //Set Detail
-          setDropDownModelListAutoComplete(response.data.data.dropDownModelList)
-          setValueAutoCompleteModelList(response.data.data.dropDownModelList[0])
-
-
-        }
-        else {
-          toastAlert("error", "Error Call Api SelectItemByModelGroupId!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
-    } catch (error) {
-      console.log('error', error)
+              //Set Detail
+              setDropDownModelListAutoComplete(
+                response.data.data.dropDownModelList
+              );
+              setValueAutoCompleteModelList(
+                response.data.data.dropDownModelList[0]
+              );
+            } else {
+              toastAlert(
+                "error",
+                "Error Call Api SelectItemByModelGroupId!",
+                5000
+              );
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
+    } catch (error : any) {
+      toastAlert("error", error, 5000);
     }
   }
 
   async function handleExpansion() {
     setExpanded((prevExpanded) => !prevExpanded);
-  };
+  }
 
   async function handleChangeValueModelGroupNameEdit(e: any) {
-    e.preventDefault()
-    setValueModelGroupNameEdit(e.target.value)
-
+    e.preventDefault();
+    setValueModelGroupNameEdit(e.target.value);
   }
 
   async function handleChangeValueDropDownLineListAutoComplete(e: any) {
-    setValueDropDownLineListAutoComplete(e)
+    setValueDropDownLineListAutoComplete(e);
   }
 
   async function saveHeader() {
     try {
-      const response = await instanceAxios.put(`ModelGroup/UpdateModelGroup`,
-        {
+      await instanceAxios
+        .put(`ModelGroup/UpdateModelGroup`, {
           modelGroupId: valueModelGroupId,
           name: valueModelGroupNameEdit,
-          lineId: valueAutoCompleteLineDropdown['lineId'],
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchData()
-          toastAlert("success", "Edit Model Group Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api UpdateModelGroup!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
-    } catch (error) {
-      console.log('error', error)
+          lineId: valueAutoCompleteLineDropdown["lineId"],
+        })
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              await fetchData();
+              toastAlert("success", "Edit Model Group Success!", 5000);
+              setOpenModalModelGroupEdit(false);
+            } else {
+              toastAlert("error", "Error Call Api UpdateModelGroup!", 5000);
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
+    } catch (error : any) {
+      toastAlert("error", error, 5000);
     }
   }
 
@@ -144,79 +189,98 @@ export function MGDetail() {
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, confirm it!"
+      confirmButtonText: "Yes, confirm it!",
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-          const response = await instanceAxios.put(`/ModelGroupMapping/RemoveModelGroupMapping?modelGroupMappingId=${id}`).then(async (response) => {
-            if (response.data.status == "success") {
-              await fetchData()
-              toastAlert("error", response.data.message, 3000)
-            }
-            else {
-              toastAlert("error", "Error Call Api RemoveModelGroupMapping!", 3000)
-            }
-          }, (error) => {
-            toastAlert("error", error.response.data.message, 3000)
-          })
-        } catch (error) {
-          console.log('error', error)
+           await instanceAxios
+            .put(
+              `/ModelGroupMapping/RemoveModelGroupMapping?modelGroupMappingId=${id}`
+            )
+            .then(
+              async (response) => {
+                if (response.data.status == "success") {
+                  await fetchData();
+                  toastAlert("error", response.data.message, 5000);
+                } else {
+                  toastAlert(
+                    "error",
+                    "Error Call Api RemoveModelGroupMapping!",
+                    5000
+                  );
+                }
+              },
+              (error) => {
+                toastAlert("error", error.response.data.message, 5000);
+              }
+            );
+        } catch (error : any) {
+          toastAlert("error", error, 5000);
         }
       }
     });
-
   }
-
 
   async function submitModelGroupDetail() {
-
     try {
-      const response = await instanceAxios.post(`/ModelGroupMapping/CreateItemByModelCodeList`,
-        {
+       await instanceAxios
+        .post(`/ModelGroupMapping/CreateItemByModelCodeList`, {
           modelGroupId: valueModelGroupId,
-          modelCode: dropDownModelListTable.map((dropDownModelListTable) => dropDownModelListTable['modelCode'])
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchData()
-          handlecloseModalCreate()
-          toastAlert("success", "Add ModelGroupMapping Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api CreateItemByModelCodeList!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
-    } catch (error) {
-      console.log('error', error)
+          modelCode: dropDownModelListTable.map(
+            (dropDownModelListTable) => dropDownModelListTable["modelCode"]
+          ),
+        })
+        .then(
+          async (response) => {
+            if (response.data.status == "success") {
+              await fetchData();
+              handlecloseModalCreate();
+              toastAlert("success", "Add ModelGroupMapping Success!", 5000);
+            } else {
+              toastAlert(
+                "error",
+                "Error Call Api CreateItemByModelCodeList!",
+                5000
+              );
+            }
+          },
+          (error) => {
+            toastAlert("error", error.response.data.message, 5000);
+          }
+        );
+    } catch (error : any) {
+      toastAlert("error", error, 5000);
     }
   }
-
-
-
   async function deleteCellTable(e: any) {
-    setDropDownModelListTable(dropDownModelListTable.filter(item => item['modelName'] !== e['modelName']))
+    setDropDownModelListTable(
+      dropDownModelListTable.filter(
+        (item) => item["modelName"] !== e["modelName"]
+      )
+    );
     setDropDownModelListAutoComplete(dropDownModelListAutoComplete.concat(e));
   }
 
   async function handleChangeValueDropDownModelListAutoComplete(e: any) {
-    setValueAutoCompleteModelList(e)
-  }
-  async function setValueDropDownModelListAutoComplete(e: any) {
-    setValueAutoCompleteModelList(e)
+    setValueAutoCompleteModelList(e);
   }
 
   async function addDropDownModelList() {
-   //check null and duplicate key
-    if(valueAutoCompleteModelList == null){
-      toastAlert("error", "Please Select Data From Dropdown!", 3000)
+    //check null and duplicate key
+    if (valueAutoCompleteModelList == null) {
+      toastAlert("error", "Please Select Data From Dropdown!", 5000);
       return;
     }
-    
-    setDropDownModelListTable(dropDownModelListTable.concat(valueAutoCompleteModelList))
-    setDropDownModelListAutoComplete(dropDownModelListAutoComplete.filter(item => item !== valueAutoCompleteModelList))
-    setValueAutoCompleteModelList(null)
+
+    setDropDownModelListTable(
+      dropDownModelListTable.concat(valueAutoCompleteModelList)
+    );
+    setDropDownModelListAutoComplete(
+      dropDownModelListAutoComplete.filter(
+        (item) => item !== valueAutoCompleteModelList
+      )
+    );
+    setValueAutoCompleteModelList(null);
   }
 
   const columns: GridColDef[] = [
@@ -228,9 +292,14 @@ export function MGDetail() {
       renderCell: (params: any) => {
         return (
           <>
-            <Button onClick={() => deleteModelGroupMapping(params.row.modelGroupMappingId)} >
+            <Button
+              onClick={() =>
+                deleteModelGroupMapping(params.row.modelGroupMappingId)
+              }
+            >
               <DeleteIcon />
-            </Button></>
+            </Button>
+          </>
         );
       },
     },
@@ -247,6 +316,7 @@ export function MGDetail() {
       headerAlign: "center",
     },
   ];
+
   return (
     <>
       <MsalAuthenticationTemplate
@@ -255,7 +325,6 @@ export function MGDetail() {
         errorComponent={ErrorComponent}
         loadingComponent={Loading}
       >
-
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
@@ -273,11 +342,13 @@ export function MGDetail() {
             defaultExpanded={true}
             expanded={expanded}
             onChange={handleExpansion}
-            slots={{ transition: Fade as AccordionSlots['transition'] }}
+            slots={{ transition: Fade as AccordionSlots["transition"] }}
             slotProps={{ transition: { timeout: 400 } }}
             sx={{
-              '& .MuiAccordion-region': { height: expanded ? 'auto' : 0 },
-              '& .MuiAccordionDetails-root': { display: expanded ? 'block' : 'none' },
+              "& .MuiAccordion-region": { height: expanded ? "auto" : 0 },
+              "& .MuiAccordionDetails-root": {
+                display: expanded ? "block" : "none",
+              },
             }}
           >
             <AccordionSummary
@@ -285,51 +356,54 @@ export function MGDetail() {
               aria-controls="panel1-content"
               id="panel1-header"
             >
-              <Typography>Header</Typography>
+              <Typography sx={{ flexShrink: 0 }}>Model Group</Typography>
             </AccordionSummary>
-
             <AccordionDetails>
-              <Typography>
-                <Box sx={{ height: "100%", width: "100%" }}>
-                  <Grid item xs={6} md={12} container justifyContent="flex-end">
-                    <Box>
-                      <Button variant="outlined" endIcon={<SaveIcon />} onClick={saveHeader}  >
-                        Save
-                      </Button>
-                    </Box>
-                  </Grid>
-                </Box>
-                <Box sx={{ height: "100%", width: "100%" }}>
-                  <TextField
-                    label="Model Group Name"
-                    id="outlined-size-small"
-                    value={valueModelGroupNameEdit ? valueModelGroupNameEdit : ''}
-                    size="small"
-                    style={{ width: 400 }}
-                    onChange={handleChangeValueModelGroupNameEdit}
-                  />
-                </Box>
-                <Box sx={{ height: "100%", width: "100%", marginTop: "30px", marginBottom: "20px" }}>
-                  <Autocomplete
-                    onChange={(event, newValue) => {
-                      handleChangeValueDropDownLineListAutoComplete(newValue)
-                    }}
-                    disablePortal
-                    id="combo-box-demo"
-                    value={valueAutoCompleteLineDropdown}
-                    options={dropDownLineListAutoComplete.map((dropDownLineListAutoComplete) => dropDownLineListAutoComplete)}
-                    sx={{ width: 400 }}
-                    getOptionLabel={(options: any) => `${options.name}`}
-                    renderInput={(params) => <TextField {...params} label="Line Name" />}
-                  />
-                </Box>
-              </Typography>
+              <Grid container spacing={1}>
+                <Grid item xs={12} md={12} container justifyContent="flex-end">
+                  <Box>
+                    <Button
+                      variant="outlined"
+                      onClick={handleopenModalModelGroup}
+                    >
+                      Edit
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box display="flex" alignItems="center">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      style={{ marginRight: 8 }}
+                    >
+                      Model Group Name:
+                    </Typography>
+                    <Typography variant="body1">
+                      {valueModelGroupNameEdit}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box display="flex" alignItems="center">
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      style={{ marginRight: 8 }}
+                    >
+                      Line:
+                    </Typography>
+                    <Typography variant="body1">
+                      {valueAutoCompleteLineDropdown.name}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </AccordionDetails>
           </Accordion>
 
-          <Accordion
-            defaultExpanded={true}
-          >
+          <Accordion defaultExpanded={true}>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
               aria-controls="panel2-content"
@@ -339,10 +413,16 @@ export function MGDetail() {
             </AccordionSummary>
             <AccordionDetails>
               <Typography>
-                <Box sx={{ height: "100%", width: "100%", marginBottom: "20px" }}>
+                <Box
+                  sx={{ height: "100%", width: "100%", marginBottom: "20px" }}
+                >
                   <Grid item xs={6} md={12} container justifyContent="flex-end">
                     <Box>
-                      <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={handleopenModalCreate} >
+                      <Button
+                        variant="outlined"
+                        endIcon={<AddBoxIcon />}
+                        onClick={handleopenModalCreate}
+                      >
                         Create
                       </Button>
                     </Box>
@@ -353,7 +433,7 @@ export function MGDetail() {
                   <DataGrid
                     autoHeight
                     sx={{
-                      '--DataGrid-overlayHeight': '300px',
+                      "--DataGrid-overlayHeight": "300px",
                       boxShadow: 2,
                       border: 2,
                       borderColor: "primary.light",
@@ -373,7 +453,6 @@ export function MGDetail() {
                     pageSizeOptions={[5, 10]}
                   />
                 </Box>
-
               </Typography>
             </AccordionDetails>
           </Accordion>
@@ -384,114 +463,191 @@ export function MGDetail() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={openModalCreate}
-          onClose={handlecloseModalCreate}
           slots={{ backdrop: StyledBackdrop }}
-          style={{
-            content: {
-              top: '50%',
-              left: '50%',
-              right: 'auto',
-              bottom: 'auto',
-              marginRight: '-50%',
-              transform: 'translate(-50%, -50%)',
-            },
-          }}
+          disableBackdropClick
+          disableEscapeKeyDown
         >
-          <ModalContent sx={{ height: "80vh", width: "50vw" }}>
+          <ModalContent sx={{ width: '30vw' }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Add Model
             </h2>
             <Grid container spacing={8}>
-              <Grid item xs={7}>
-                <Autocomplete sx={{  width: "100%"  }}
-                  onChange={(event, newValue) => {
-                    handleChangeValueDropDownModelListAutoComplete(newValue)
+              <Grid item xs={12} md={8}>
+                <Autocomplete
+                  sx={{ width: "100%" }}
+                  onChange={(_, newValue) => {
+                    handleChangeValueDropDownModelListAutoComplete(newValue);
                   }}
                   disablePortal
                   id="combo-box-demo"
                   value={valueAutoCompleteModelList}
-                  options={dropDownModelListAutoComplete.map((dropDownModelListAutoComplete) => dropDownModelListAutoComplete)}
+                  options={dropDownModelListAutoComplete.map(
+                    (dropDownModelListAutoComplete) =>
+                      dropDownModelListAutoComplete
+                  )}
                   getOptionLabel={(options: any) => `${options.modelName}`}
-                  renderInput={(params) => <TextField {...params} label="Model Name" />}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Model Name" />
+                  )}
                 />
               </Grid>
-              <Grid item xs={1.5}>
-                <Button variant="outlined" onClick={addDropDownModelList} sx={{ height: "100%" }}>
-                  Add
-                </Button>
+              <Grid item xs={12} md={4}>
+                <ButtonGroup
+                  variant="contained"
+                  aria-label="Basic button group"
+                >
+                  <Button variant="outlined" onClick={addDropDownModelList}>
+                    Add
+                  </Button>
+                  <Button variant="outlined" onClick={submitModelGroupDetail}>
+                    Submit
+                  </Button>
+                </ButtonGroup>
               </Grid>
-
-              <Grid item xs={1.5}>
-                <Button variant="outlined" onClick={submitModelGroupDetail} sx={{ height: "100%" }}>
-                  Submit
-                </Button>
-              </Grid>
-              <Grid item xs={12}>
-                {dropDownModelListTable.length != 0 &&
-                  <Box sx={{ height: "100%", width: "100%" }}>
-                    <TableContainer component={Paper} style={{ width: '50vw', height:'50vh' }} >
-                      <Table sx={{ width: "50vw"  }} aria-label="customized table" >
-                        <TableHead >
-                          <TableRow>
-                            <StyledTableCell>Model Code</StyledTableCell>
-                            <StyledTableCell>Model Name </StyledTableCell>
-                            <StyledTableCell></StyledTableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {dropDownModelListTable.map((dropDownModelListTable) => (
-                            <StyledTableRow key={dropDownModelListTable['modelName']} >
+              <Grid item xs={12} md={12}>
+                <Box>
+                  <TableContainer
+                    component={Paper}
+                    style={{ width: "100%", maxHeight: "200px" }}
+                  >
+                    <Table sx={{ width: "100%" }} aria-label="customized table">
+                      <TableHead>
+                        <TableRow>
+                          <StyledTableCell>Model Code</StyledTableCell>
+                          <StyledTableCell>Model Name </StyledTableCell>
+                          <StyledTableCell></StyledTableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {dropDownModelListTable.map(
+                          (dropDownModelListTable) => (
+                            <StyledTableRow
+                              key={dropDownModelListTable["modelName"]}
+                            >
                               <StyledTableCell component="th" scope="row">
-                                {dropDownModelListTable['modelCode']}
+                                {dropDownModelListTable["modelCode"]}
                               </StyledTableCell>
 
                               <StyledTableCell component="th" scope="row">
-                                {dropDownModelListTable['modelName']}
+                                {dropDownModelListTable["modelName"]}
                               </StyledTableCell>
                               <StyledTableCell align="right">
-                                <Button onClick={() => deleteCellTable(dropDownModelListTable)} sx={{ height: "100%", width: "100%" }}>
-                                  <DeleteIcon />
-                                </Button></StyledTableCell>
-
+                                <Button>
+                                  <DeleteIcon
+                                    onClick={() =>
+                                      deleteCellTable(dropDownModelListTable)
+                                    }
+                                  />
+                                </Button>
+                              </StyledTableCell>
                             </StyledTableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                }
+                          )
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <Box display="flex" justifyContent="flex-end" gap={2}>
+                  <Button variant="outlined" onClick={handlecloseModalCreate}>
+                    Close
+                  </Button>
+                </Box>
               </Grid>
             </Grid>
           </ModalContent>
         </Modal>
-
-      </MsalAuthenticationTemplate >
+        {/* edit */}
+        <Modal
+          aria-labelledby="unstyled-modal-title"
+          aria-describedby="unstyled-modal-description"
+          open={openModalModelGroupEdit}
+          slots={{ backdrop: StyledBackdrop }}
+        >
+          <ModalContent>
+            <h2 id="unstyled-modal-title" className="modal-title">
+              Edit Model Group
+            </h2>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Model Group Name"
+                  id="outlined-size-small"
+                  value={valueModelGroupNameEdit ? valueModelGroupNameEdit : ""}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={handleChangeValueModelGroupNameEdit}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Autocomplete
+                  onChange={(_, newValue) => {
+                    handleChangeValueDropDownLineListAutoComplete(newValue);
+                  }}
+                  disablePortal
+                  id="combo-box-demo"
+                  value={valueAutoCompleteLineDropdown}
+                  options={dropDownLineListAutoComplete.map(
+                    (dropDownLineListAutoComplete) =>
+                      dropDownLineListAutoComplete
+                  )}
+                  sx={{ width: "100%" }}
+                  size="small"
+                  getOptionLabel={(options: any) => `${options.name}`}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Line Name" />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Grid item xs={6} md={12} container justifyContent="flex-end">
+                  <Box display="flex" gap={2}>
+                    <Button
+                      variant="outlined"
+                      onClick={handlecloseModalModelGroup}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={saveHeader}
+                      size="small"
+                    >
+                      SAVE
+                    </Button>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Grid>
+          </ModalContent>
+        </Modal>
+      </MsalAuthenticationTemplate>
     </>
   );
 }
 
-
-const StyledGridOverlay = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-  '& .ant-empty-img-1': {
-    fill: theme.palette.mode === 'light' ? '#aeb8c2' : '#262626',
+const StyledGridOverlay = styled("div")(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
+  "& .ant-empty-img-1": {
+    fill: theme.palette.mode === "light" ? "#aeb8c2" : "#262626",
   },
-  '& .ant-empty-img-2': {
-    fill: theme.palette.mode === 'light' ? '#f5f5f7' : '#595959',
+  "& .ant-empty-img-2": {
+    fill: theme.palette.mode === "light" ? "#f5f5f7" : "#595959",
   },
-  '& .ant-empty-img-3': {
-    fill: theme.palette.mode === 'light' ? '#dce0e6' : '#434343',
+  "& .ant-empty-img-3": {
+    fill: theme.palette.mode === "light" ? "#dce0e6" : "#434343",
   },
-  '& .ant-empty-img-4': {
-    fill: theme.palette.mode === 'light' ? '#fff' : '#1c1c1c',
+  "& .ant-empty-img-4": {
+    fill: theme.palette.mode === "light" ? "#fff" : "#1c1c1c",
   },
-  '& .ant-empty-img-5': {
-    fillOpacity: theme.palette.mode === 'light' ? '0.8' : '0.08',
-    fill: theme.palette.mode === 'light' ? '#f5f5f5' : '#fff',
+  "& .ant-empty-img-5": {
+    fillOpacity: theme.palette.mode === "light" ? "0.8" : "0.08",
+    fill: theme.palette.mode === "light" ? "#f5f5f5" : "#fff",
   },
 }));
 
@@ -543,8 +699,6 @@ function CustomNoRowsOverlay() {
   );
 }
 
-
-
 const Modal = styled(BaseModal)`
   position: fixed;
   z-index: 1300;
@@ -561,40 +715,51 @@ const StyledBackdrop = styled(Backdrop)`
   -webkit-tap-highlight-color: transparent;
 `;
 
-const ModalContent = styled("div")(
-  ({ theme }) => css`
-    font-family: "IBM Plex Sans", sans-serif;
-    font-weight: 500;
-    text-align: start;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: hidden;
-    background-color: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
-    border-radius: 8px;
-    border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
-    box-shadow: 0 4px 12px
-      ${theme.palette.mode === "dark" ? "rgb(0 0 0 / 0.5)" : "rgb(0 0 0 / 0.2)"};
-    padding: 24px;
-    color: ${theme.palette.mode === "dark" ? grey[50] : grey[900]};
-
-    & .modal-title {
-      margin: 0;
-      line-height: 1.5rem;
-      margin-bottom: 8px;
-    }
-
-    & .modal-description {
-      margin: 0;
-      line-height: 1.5rem;
-      font-weight: 400;
-      color: ${theme.palette.mode === "dark" ? grey[400] : grey[800]};
-      margin-bottom: 4px;
-    }
-  `
-);
-
+const ModalContent = styled("div")(({ theme }) => ({
+  fontFamily: "IBM Plex Sans, sans-serif",
+  fontWeight: 500,
+  textAlign: "start",
+  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+  overflow: "hidden",
+  backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
+  borderRadius: 8,
+  border: `1px solid ${theme.palette.mode === "dark" ? "#666" : "#ccc"}`,
+  boxShadow: `0 4px 12px ${
+    theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
+  }`,
+  padding: 24,
+  color: theme.palette.mode === "dark" ? "#fff" : "#000",
+  maxWidth: "90%",
+  width: "100%",
+  "@media (max-width: 600px)": {
+    padding: 16,
+    maxWidth: "100%",
+  },
+  "@media (min-width: 600px)": {
+    maxWidth: "80%",
+  },
+  "@media (min-width: 960px)": {
+    maxWidth: "60%",
+  },
+  "@media (min-width: 1280px)": {
+    maxWidth: "50%",
+  },
+  "& .modal-title": {
+    margin: 0,
+    lineHeight: "1.5rem",
+    marginBottom: 8,
+  },
+  "& .modal-description": {
+    margin: 0,
+    lineHeight: "1.5rem",
+    fontWeight: 400,
+    color: theme.palette.mode === "dark" ? "#ccc" : "#666",
+    marginBottom: 4,
+  },
+}));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -608,11 +773,11 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
+  "&:nth-of-type(odd)": {
     backgroundColor: theme.palette.action.hover,
   },
   // hide last border
-  '&:last-child td, &:last-child th': {
+  "&:last-child td, &:last-child th": {
     border: 0,
   },
 }));
@@ -621,34 +786,34 @@ const Accordion = styled((props: AccordionProps) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
 ))(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
-  '&:not(:last-child)': {
+  "&:not(:last-child)": {
     borderBottom: 0,
   },
-  '&::before': {
-    display: 'none',
+  "&::before": {
+    display: "none",
   },
 }));
 
 const AccordionSummary = styled((props: AccordionSummaryProps) => (
   <MuiAccordionSummary
-    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: '0.9rem' }} />}
+    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}
     {...props}
   />
 ))(({ theme }) => ({
   backgroundColor:
-    theme.palette.mode === 'dark'
-      ? 'rgba(255, 255, 255, .05)'
-      : 'rgba(0, 0, 0, .03)',
-  flexDirection: 'row-reverse',
-  '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-    transform: 'rotate(90deg)',
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, .05)"
+      : "rgba(0, 0, 0, .03)",
+  flexDirection: "row-reverse",
+  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+    transform: "rotate(90deg)",
   },
-  '& .MuiAccordionSummary-content': {
+  "& .MuiAccordionSummary-content": {
     marginLeft: theme.spacing(1),
   },
 }));
 
 const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderTop: '1px solid rgba(0, 0, 0, .125)',
+  borderTop: "1px solid rgba(0, 0, 0, .125)",
 }));

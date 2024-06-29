@@ -1,5 +1,5 @@
 // import * as React from "react";
-import { GridRowParams } from "@mui/x-data-grid";
+// import { GridRowParams } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import Button from "@mui/material/Button";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -104,7 +104,9 @@ const columns: GridColDef[] = [
     field: "action",
     headerName: "",
     headerAlign: "center",
-    renderCell: ({ row }: Partial<GridRowParams>) => (
+    renderCell: () => (
+    // renderCell: ({ row }: Partial<GridRowParams>) => (
+      
       <Button
         onClick={() => {
           EditModal("3000", "codexx", "xxxx");

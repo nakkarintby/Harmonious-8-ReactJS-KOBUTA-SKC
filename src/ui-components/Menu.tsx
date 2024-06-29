@@ -3,26 +3,26 @@ import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Button from "@mui/material/Button";
 import List from "@mui/material/List";
-// import ListItem from "@mui/material/ListItem";
+
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-// import InboxIcon from "@mui/icons-material/MoveToInbox";
-// import MailIcon from "@mui/icons-material/Mail";
+
 import MenuIcon from "@mui/icons-material/Menu";
-// import Divider from "@mui/material/Divider";
-import { Link, defer } from "react-router-dom";
+
+import { Link } from "react-router-dom";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import ListSubheader from "@mui/material/ListSubheader";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
-// import DraftsIcon from "@mui/icons-material/Drafts";
+
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import Collapse from "@mui/material/Collapse";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import StorageIcon from "@mui/icons-material/Storage";
 import instanceAxios from "../api/axios/instanceAxios";
+import toastAlert from "./SweetAlert2/toastAlert";
 
 
 interface Header {
@@ -162,7 +162,7 @@ async function getMenuAPI() {
         dataApi = response.data
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -258,7 +258,7 @@ export default function TemporaryDrawer() {
             {menuDataList.items
               .filter((item) => item.menuGroup === row.menuGroup)
               .map((item) => (
-                <Collapse in={row.menuGroup == "MASTERDATA" ? openMaster : row.menuGroup == "ADMINISTRATOR" ? openAdministrator : ""} timeout="auto" unmountOnExit>
+                <Collapse in={row.menuGroup == "MASTERDATA" ? openMaster : row.menuGroup == "ADMINISTRATOR" ? openAdministrator : false} timeout="auto" unmountOnExit>
                   <List component="div" disablePadding>
                     <ListItemButton
                       sx={{ pl: 4 }}

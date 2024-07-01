@@ -76,7 +76,7 @@ async function GetInsItemAPI(insItemID: number) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -92,7 +92,7 @@ async function UpdateInsItemAPI(body: any) {
         toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
       .catch(function (error: any) {
-        toastAlert(`error`, `Admin`, 5000);
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     toastAlert(`error`, `${err}`, 5000);
@@ -107,7 +107,7 @@ async function CreateInsItemAPI(body: any) {
         toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
       .catch(function (error: any) {
-        toastAlert(`error`, `Admin`, 5000);
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (error) {
     toastAlert(`error`, `Admin`, 5000);
@@ -125,7 +125,7 @@ async function ValidateQRCodeAPI(qrcode: any[]) {
         // toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
       .catch(function (error: any) {
-        toastAlert(`error`, `Admin`, 5000);
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     toastAlert(`error`, `${err}`, 5000);
@@ -141,7 +141,7 @@ async function DeletedInsItemAPI(insItemId: number) {
         toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
       .catch(function (error: any) {
-        toastAlert(`error`, `Admin`, 5000);
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     toastAlert(`error`, `${err}`, 5000);
@@ -158,7 +158,7 @@ async function GetQRCodeItemAPI(insItemId:number) {
         dataAPI = response.data;
       })
       .catch(function (error: any) {
-        toastAlert(`error`, `Admin`, 5000);
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     toastAlert(`error`, `${err}`, 5000);
@@ -176,7 +176,7 @@ async function GetConstantByGrpAPI(grp: string) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -302,25 +302,25 @@ export default function InspectionItemData(props: {
     setDisabledBtn(true);
     const dataSetUp = _.find(dataPageList, { id: Id });
     setInsItemId(Id);
-    setInsItemSeq(dataSetUp.sequence);
-    setInsItemTopic(dataSetUp.topic);
-    setInsType(String(dataSetUp.type));
-    setInsItemRemark(dataSetUp.remark);
-    setInsItemReq(dataSetUp.isRequired);
-    setInsItemMin(dataSetUp.min);
-    setInsItemMax(dataSetUp.max);
-    setInsItemTarget(dataSetUp.target);
-    setInsItemPin(dataSetUp.isPinCode);
-    setInsItemUnit(dataSetUp.unit);
-    SetUpInsType(dataSetUp.type);
+    setInsItemSeq(dataSetUp?.sequence ?? 0);
+    setInsItemTopic(dataSetUp?.topic ?? "");
+    setInsType(String(dataSetUp?.type ?? ""));
+    setInsItemRemark(dataSetUp?.remark ?? "");
+    setInsItemReq(dataSetUp?.isRequired ?? false);
+    setInsItemMin(dataSetUp?.min ?? "0.00");
+    setInsItemMax(dataSetUp?.max ?? "0.00");
+    setInsItemTarget(dataSetUp?.target ?? "0.00");
+    setInsItemPin(dataSetUp?.isPinCode ?? false);
+    setInsItemUnit(dataSetUp?.unit ?? "");
+    SetUpInsType(dataSetUp?.type ?? "0");
     setQRCodeList([])
     setInsItemQRText("")
     setInsItemQRValue("")
     setFileName("");
-    if(String(dataSetUp.type) == "4"){
+    if(String(dataSetUp?.type) == "4"){
       GetQRCodeItemAPI(Id).then((x)=>{
         if(x.status == "success"){
-          const formattedData = _.map(x.data, (item, index) => ({
+          const formattedData = _.map(x.data, (item) => ({
             id: item.qrCodeCheckId,
             cell: "", 
             value: item.value,
@@ -335,7 +335,7 @@ export default function InspectionItemData(props: {
 
   function SetUpDataCreate() {
     setIsAdd(true);
-    const lastSequence = _.maxBy(dataPageList, 'sequence').sequence;
+    const lastSequence = _.maxBy(dataPageList, 'sequence')?.sequence ?? 0;
     let  nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10
     if(lastSequence == nextMultipleOfTen){
       nextMultipleOfTen  += 10;
@@ -680,7 +680,7 @@ export default function InspectionItemData(props: {
     }
   ];
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = async (event : any) => {
     const file = event.target.files[0];
     setFileName(file.name);
  
@@ -689,7 +689,7 @@ export default function InspectionItemData(props: {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
    
-    jsonData.slice(1).map((row, index) => {
+    jsonData.slice(1).map((_row, index) => {
       const cellAddressA = XLSX.utils.encode_cell({ r: index + 1, c: 0 });
       const cellAddressB = XLSX.utils.encode_cell({ r: index + 1, c: 1 });
       setQRCodeList((prevList) => [...prevList, {id : Date.now() , cell : cellAddressA , value : worksheet[cellAddressA]?.v ,  text : worksheet[cellAddressB]?.v }]);
@@ -809,7 +809,7 @@ export default function InspectionItemData(props: {
                 defaultValue={insItemSeq}
                 style={{ width: "100%" }}
                 onChange={(e) => {
-                  setInsItemSeq(e.target.value);
+                  setInsItemSeq(Number(e.target.value));
                 }}
               />
             </Grid>
@@ -925,7 +925,7 @@ export default function InspectionItemData(props: {
                   control={<Switch />}
                   checked={insItemReq}
                   label="Required"
-                  onChange={(event, value) => {
+                  onChange={(_, value) => {
                     setInsItemReq(value);
                   }}
                 />
@@ -953,7 +953,7 @@ export default function InspectionItemData(props: {
                     control={<Switch />}
                     checked={insItemPin}
                     label="PinCode"
-                    onChange={(event, value) => {
+                    onChange={(_, value) => {
                       setInsItemPin(value);
                     }}
                   />

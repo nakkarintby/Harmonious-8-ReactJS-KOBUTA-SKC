@@ -9,6 +9,7 @@ import Box from "@mui/material/Box";
 import React from "react";
 import instanceAxios from "../../api/axios/instanceAxios";
 import moment from "moment";
+import toastAlert from "../SweetAlert2/toastAlert";
 
 interface InspectionGroupModel{
   inspectionGroupName: string,
@@ -37,10 +38,9 @@ async function GetInspectionGroupApi(){
       .get(`/InspectionGroup/GetInspectionGroup?page=1&perpage=1000`)
       .then(async function (response: any) {
         dataApi = response.data
-        console.log(dataApi)
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error.response.data.message, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -125,10 +125,8 @@ const columns: GridColDef[] = [
           </Button>
         </Link>
         <Link
-          to={{
-            pathname: "/masterData/inspectiongroups/inspectionitem",
-            state: { data: row },
-          }}
+          to="/masterData/inspectiongroups/inspectionitem"
+          state={{ data: row }}
         >
           <Button>
             <DeleteIcon />

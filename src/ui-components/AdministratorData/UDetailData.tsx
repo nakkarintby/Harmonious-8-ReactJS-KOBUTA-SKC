@@ -1,8 +1,7 @@
 // import * as React from "react";
-import { GridRowParams } from "@mui/x-data-grid";
+// import { GridRowParams } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -42,12 +41,12 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     width: 100,
-    renderCell: ({ row }: Partial<GridRowParams>) => (
+    renderCell: () => (
       <>
         <Link
           to={{
             pathname: "/ldetail",
-            state: [{ data: row }],
+            // state: [{ data: row }],
           }}
         >
           <Button>

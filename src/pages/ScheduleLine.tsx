@@ -1,17 +1,14 @@
-import ScheduleLineData from "../ui-components/MasterData/ScheduleLineData";
+
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { Loading } from "../ui-components/Loading";
 import {
-  // InteractionStatus,
   InteractionType,
-  // InteractionRequiredAuthError,
-  // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { Box, Button, Grid } from "@mui/material";
-import { DataGrid, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import instanceAxios from "../api/axios/instanceAxios";
 import moment from "moment";
 import { useEffect, useState } from "react";
@@ -32,7 +29,7 @@ export function ScheduleLine() {
 
   async function fetchData() {
     try {
-      const response = await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
+      await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.length; i++) {
             response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm');
@@ -98,7 +95,7 @@ const columns: GridColDef[] = [
     field: "action1",
     headerName: "",
     width: 120,
-    renderCell: (params: any) => {
+    renderCell: () => {
       return (
         <>
           <Link

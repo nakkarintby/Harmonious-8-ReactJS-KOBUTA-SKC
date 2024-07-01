@@ -1,7 +1,7 @@
 // import * as React from "react";
-import { GridRowParams } from "@mui/x-data-grid";
+
 import Button from "@mui/material/Button";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
@@ -42,28 +42,29 @@ const columns: GridColDef[] = [
     align: "left",
     width: 150,
     sortable: false,
-    renderCell: ({ row }: Partial<GridRowParams>) => (
+    renderCell: () => (
+    // renderCell: ({ row }: Partial<GridRowParams>) => (
       <>
-        <Link
-          to={{
-            pathname: "/systemrole/detail",
-            state: [{ data: row }],
-          }}
-        >
+        {/* <Link
+          // to={{
+          //   pathname: "/systemrole/detail",
+          //   state: [{ data: row }],
+          // }}
+        > */}
           <Button>
             <VisibilityIcon />
           </Button>
-        </Link>
-        <Link
+        {/* </Link> */}
+        {/* <Link
           to={{
             pathname: "/systemrole/detail",
             state: [{ data: row }],
           }}
-        >
+        > */}
           <Button>
             <DeleteIcon />
           </Button>
-        </Link>
+        {/* </Link> */}
       </>
     ),
   },

@@ -48,7 +48,7 @@ export function ModelGroup() {
 
   async function fetchData() {
     try {
-      const response = await instanceAxios.get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`).then(async (response) => {
+      await instanceAxios.get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.modelGroup.length; i++) {
             if (response.data.data.modelGroup[i].createdOn != null)
@@ -83,7 +83,7 @@ export function ModelGroup() {
 
   async function CreateModelGroup() {
     try {
-      const response = await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
+      await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
         {
           name: valueModelGroupName,
           lineId: valueAutoCompleteLineDropdown['lineId']
@@ -117,7 +117,7 @@ export function ModelGroup() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-          const response = await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
+          await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
             if (response.data.status == "success") {
               await fetchData()
               toastAlert("error", "Deleted ModelGroup!", 3000)
@@ -220,7 +220,11 @@ export function ModelGroup() {
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" endIcon={<AddBoxIcon />} onClick={handleOpenModalCreateModelGroup}>
+              <Button
+                variant="outlined"
+                endIcon={<AddBoxIcon />}
+                onClick={handleOpenModalCreateModelGroup}
+              >
                 Create
               </Button>
             </Box>
@@ -233,7 +237,6 @@ export function ModelGroup() {
               boxShadow: 2,
               border: 2,
               borderColor: "primary.light",
-
             }}
             rows={data}
             getRowId={(data) => data.modelGroupId}
@@ -244,7 +247,6 @@ export function ModelGroup() {
                 paginationModel: { page: 0, pageSize: 10 },
               },
             }}
-
             pageSizeOptions={[5, 10]}
           />
         </Box>
@@ -254,64 +256,72 @@ export function ModelGroup() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={openModalCreateModelGroup}
-          onClose={handleCloseModalCreateModelGroup}
+          // onClose={handleCloseModalCreateModelGroup}
+          disableBackdropClick
+          disableEscapeKeyDown
           slots={{ backdrop: StyledBackdrop }}
-          style={{
-            content: {
-              top: '50%',
-              left: '50%',
-              right: 'auto',
-              bottom: 'auto',
-              marginRight: '-50%',
-              transform: 'translate(-50%, -50%)',
-            },
-          }}
         >
-          <ModalContent sx={{ width: "30vw", height: "36vh" }}>
+          <ModalContent sx={{ width: "30vw"}}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Model Group
             </h2>
 
-            <Box >
+            <Box>
               <Grid container spacing={2}>
-                <Grid item xs={12} >
-                  <TextField sx={{ width: "100%", height: "12vh" }}
+                <Grid item xs={6} md={12}>
+                  <TextField
+                    sx={{ width: "100%" }}
                     label="Model Group Name"
                     id="outlined-size-small"
                     defaultValue=""
-                    size="medium"
+                    size="small"
                     onChange={handleChangeValueModelGroupNameCreate}
                   />
-
-
-                  <Autocomplete sx={{ width: "100%", height: "12vh" }}
-                    onChange={(event, newValue) => {
-                      handleChangeValueDropDownLineListAutoComplete(newValue)
+                </Grid>
+                <Grid item xs={6} md={12}>
+                  <Autocomplete
+                    sx={{ width: "100%"}}
+                     size="small"
+                    onChange={(_, newValue) => {
+                      handleChangeValueDropDownLineListAutoComplete(newValue);
                     }}
                     disablePortal
                     id="combo-box-demo"
                     value={valueAutoCompleteLineDropdown}
-                    options={dropDownLineListAutoComplete.map((dropDownLineListAutoComplete) => dropDownLineListAutoComplete)}
+                    options={dropDownLineListAutoComplete.map(
+                      (dropDownLineListAutoComplete) =>
+                        dropDownLineListAutoComplete
+                    )}
                     getOptionLabel={(options: any) => `${options.name}`}
-                    renderInput={(params) => <TextField {...params} label="Line Name" />}
-                    ListboxProps={
-                      {
-                        style: {
-                          maxHeight: '100px',
-                        }
-                      }
-                    }
+                    renderInput={(params) => (
+                      <TextField {...params} label="Line Name" />
+                    )}
+                    ListboxProps={{
+                      style: {
+                        maxHeight: "10vw",
+                      },
+                    }}
                   />
-
-                  <Grid item xs={6} md={12} container justifyContent="flex-end"  >
-                    <Button variant="outlined" onClick={CreateModelGroup} sx={{ height: "6vh" }}>
-                      Create
-                    </Button>
-                  </Grid>
-
-
                 </Grid>
-
+                <Grid item xs={12}>
+                  <Grid item xs={6} md={12} container justifyContent="flex-end">
+                    <Box display="flex" gap={2}>
+                      <Button
+                        variant="outlined"
+                        onClick={handleCloseModalCreateModelGroup}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={CreateModelGroup}
+                        size="small"
+                      >
+                        Create
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
               </Grid>
             </Box>
           </ModalContent>
@@ -326,6 +336,7 @@ const Modal = styled(BaseModal)`
   z-index: 1300;
   inset: 0;
   display: flex;
+
   align-items: center;
   justify-content: center;
 `;
@@ -336,7 +347,6 @@ const StyledBackdrop = styled(Backdrop)`
   background-color: rgb(0 0 0 / 0.5);
   -webkit-tap-highlight-color: transparent;
 `;
-
 const ModalContent = styled("div")(
   ({ theme }) => css`
     font-family: "IBM Plex Sans", sans-serif;

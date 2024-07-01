@@ -20,7 +20,8 @@ import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
 import instanceAxios from "../api/axios/instanceAxios";
 import Swal from "sweetalert2";
-import _ from "lodash";
+import _ from 'lodash';
+import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 
 interface DDLModel {
   label: string;
@@ -35,10 +36,10 @@ async function GetScheduledLineAPI() {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error ,5000)
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err ,5000)
   }
   return dataApi;
 }
@@ -52,10 +53,10 @@ async function GetModelGroupAPI() {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error ,5000)
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err ,5000)
   }
   return dataApi;
 }
@@ -71,10 +72,10 @@ async function GetLineAPI(scheduledLineCode: string) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error ,5000)
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err ,5000)
   }
   return dataApi;
 }
@@ -88,10 +89,10 @@ async function GetStationAPI(lineId: number) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error ,5000)
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err ,5000)
   }
   return dataApi;
 }
@@ -267,7 +268,7 @@ export function InspectionGroup() {
           disableEscapeKeyDown
           slots={{ backdrop: StyledBackdrop }}
         >
-          <ModalContent sx={{ width: 400 }}>
+          <ModalContent sx={{ width: "30vw"}}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Inspection Group
             </h2>
@@ -295,8 +296,8 @@ export function InspectionGroup() {
                   onClose={() => setLoadingDDL(false)}
                   options={scheduledLineDDL}
                   loading={loadingDDL}
-                  onChange={(event, value) =>
-                    setSelectedScheduledLine(value?.value)
+                  onChange={(_, value) =>
+                    setSelectedScheduledLine(value?.value ?? "0")
                   }
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -332,7 +333,7 @@ export function InspectionGroup() {
                   onClose={() => setLoadingLineDDL(false)}
                   options={lineDDL}
                   loading={loadingLineDDL}
-                  onChange={(event, value) => setSelectedLine(value?.value)}
+                  onChange={(_, value) => setSelectedLine(Number(value?.value ?? 0))}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -367,8 +368,8 @@ export function InspectionGroup() {
                   onClose={() => setLoadingModelGroupDDL(false)}
                   options={modelGroupDDL}
                   loading={loadingModelGroupDDL}
-                  onChange={(event, value) =>
-                    setSelectedModelGroupDDL(value?.value)
+                  onChange={(_, value) =>
+                    setSelectedModelGroupDDL(Number(value?.value ?? 0))
                   }
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -404,7 +405,7 @@ export function InspectionGroup() {
                   onClose={() => setLoadingStationDDL(false)}
                   options={stationDDL}
                   loading={loadingStationDDL}
-                  onChange={(event, value) => setSelectedStation(value?.value)}
+                  onChange={(_, value) => setSelectedStation(Number(value?.value ?? 0))}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }

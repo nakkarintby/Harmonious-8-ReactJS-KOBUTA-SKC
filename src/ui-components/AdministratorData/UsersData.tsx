@@ -1,5 +1,5 @@
 // import * as React from "react";
-import { GridRowParams } from "@mui/x-data-grid";
+// import { GridRowParams } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -41,12 +41,12 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     width: 150,
-    renderCell: ({ row }: Partial<GridRowParams>) => (
+    renderCell: () => (
       <>
         <Link
           to={{
             pathname: "/users/detail",
-            state: [{ data: row }],
+            // state: [{ data: row }],
           }}
         >
           <Button>
@@ -56,7 +56,7 @@ const columns: GridColDef[] = [
         <Link
           to={{
             pathname: "/users/detail",
-            state: [{ data: row }],
+            // state: [{ data: row }],
           }}
         >
           <Button>

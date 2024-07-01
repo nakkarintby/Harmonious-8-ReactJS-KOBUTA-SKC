@@ -43,10 +43,10 @@ async function GetInsGroupAPI(InsId: number) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error, 5000);
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err, 5000);
   }
   return dataApi;
 }
@@ -60,7 +60,7 @@ async function GetScheduledLineAPI() {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -77,7 +77,7 @@ async function GetModelGroupAPI() {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+         toastAlert("error", error, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -93,8 +93,8 @@ async function SaveInsGroupAPI(body: any) {
       .then(async function (response: any) {
         return (dataApi = response.data);
       });
-  } catch (err) {
-    console.log(err);
+  } catch (err : any) {
+    toastAlert("error", err, 5000);
   }
   return dataApi;
 }
@@ -110,7 +110,7 @@ async function GetLineAPI(scheduledLineCode: string) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -127,7 +127,7 @@ async function GetStationAPI(lineId: number) {
         dataApi = response.data;
       })
       .catch(function (error: any) {
-        console.log("Err");
+        toastAlert("error", error, 5000);
       });
   } catch (err) {
     console.log(err);
@@ -182,7 +182,7 @@ export function InspectionItem() {
   const [loadingStationDDL, setLoadingStationDDL] = useState(false);
   const [loadingModelGroupDDL, setLoadingModelGroupDDL] = useState(false);
 
-  const [insGroupId, setInsGroupId] = React.useState(data.id);
+  const insGroupId = data.id;
 
   function GetModelGroupDDL(LineId: number) {
     GetModelGroupAPI().then((x) => {
@@ -489,8 +489,8 @@ export function InspectionItem() {
                   }}
                   options={scheduledLineDDL}
                   loading={loadingDDL}
-                  onChange={(event, value) =>
-                    setSelectedScheduledLine(value?.value)
+                  onChange={(_, value) =>
+                    setSelectedScheduledLine(value?.value ?? "")
                   }
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -530,7 +530,7 @@ export function InspectionItem() {
                   }}
                   options={lineDDL}
                   loading={loadingLineDDL}
-                  onChange={(event, value) => setSelectedLine(value?.value)}
+                  onChange={(_, value) => setSelectedLine(Number(value?.value))}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -569,8 +569,8 @@ export function InspectionItem() {
                   }}
                   options={modelGroupDDL}
                   loading={loadingModelGroupDDL}
-                  onChange={(event, value) =>
-                    setselectedModelGroup(value?.value)
+                  onChange={(_, value) =>
+                    setselectedModelGroup(Number(value?.value))
                   }
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -606,11 +606,11 @@ export function InspectionItem() {
                   onClose={() => setLoadingStationDDL(false)}
                   defaultValue={{
                     label: `${stationDisplay}`,
-                    value: selectedStation,
+                    value: selectedStation?.toString(),
                   }}
                   options={stationDDL}
                   loading={loadingStationDDL}
-                  onChange={(event, value) => setSelectedStation(value?.value)}
+                  onChange={(_, value) => setSelectedStation(Number(value?.value))}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }

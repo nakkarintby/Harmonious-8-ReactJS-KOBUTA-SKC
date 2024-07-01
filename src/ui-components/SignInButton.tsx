@@ -18,7 +18,6 @@ export const SignInButton = () => {
     if (loginType === "popup") {
       // instance.loginPopup(loginRequest);
       instance.loginPopup(loginRequest).then((tokenResponse) => {
-        console.log(tokenResponse.accessToken)
         setAuthToken(tokenResponse.accessToken)
       });
     } else if (loginType === "redirect") {

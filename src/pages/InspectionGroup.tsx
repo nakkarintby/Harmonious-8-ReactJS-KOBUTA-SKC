@@ -19,7 +19,6 @@ import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
 import instanceAxios from "../api/axios/instanceAxios";
-import Swal from "sweetalert2";
 import _ from 'lodash';
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 
@@ -105,7 +104,7 @@ export function InspectionGroup() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
+  const [createData, setCreateData] = React.useState(false);
   const [selectedInsGroupName, setInsGroupName] = React.useState<string>("");
   const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
     []
@@ -194,12 +193,9 @@ export function InspectionGroup() {
     await instanceAxios
       .post("/InspectionGroup/CreateInspectionGroup", body)
       .then((x) => {
+        toastAlert(x.data.status ,x.data.message , 5000 );
         if (x.data.status == "success") {
-          Swal.fire({
-            title: "Good job!",
-            text: "You clicked the button!",
-            icon: "success",
-          });
+          setCreateData(createData ? false : true)
         }
       });
   }
@@ -257,7 +253,7 @@ export function InspectionGroup() {
           </Grid>
         </Grid>
 
-        <InspectionGroupData />
+        <InspectionGroupData  createData={createData} />
 
         <Modal
           aria-labelledby="unstyled-modal-title"
@@ -279,10 +275,10 @@ export function InspectionGroup() {
                   id="Inspection-Group-Name"
                   defaultValue=""
                   size="small"
-                  style={{ width: 400 }}
                   onChange={(e) => {
                     setInsGroupName(e.target.value);
                   }}
+                  fullWidth
                 />
               </Grid>
               <Grid item xs={6} md={12}>
@@ -409,6 +405,7 @@ export function InspectionGroup() {
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
+                 
                   getOptionLabel={(option) => option.label}
                   renderInput={(params) => (
                     <TextField
@@ -435,7 +432,7 @@ export function InspectionGroup() {
                   id="outlined-size-small"
                   defaultValue=""
                   size="small"
-                  style={{ width: 400 }}
+                  fullWidth
                   onChange={(e) => {
                     setSelectedTrackTime(e.target.value);
                   }}

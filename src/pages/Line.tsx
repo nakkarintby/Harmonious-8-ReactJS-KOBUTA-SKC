@@ -62,11 +62,11 @@ export function Line() {
                 if (response.data.data.lineList[i].createdOn != null)
                   response.data.data.lineList[i].createdOn = moment(
                     response.data.data.lineList[i].createdOn
-                  ).format("YYYY-MM-DD hh:mm");
+                  ).format("DD-MM-YYYY hh:mm");
                 if (response.data.data.lineList[i].modifiedOn != null)
                   response.data.data.lineList[i].modifiedOn = moment(
                     response.data.data.lineList[i].modifiedOn
-                  ).format("YYYY-MM-DD hh:mm");
+                  ).format("DD-MM-YYYY hh:mm");
               }
               setData(response.data.data.lineList);
               setDropDownScheduledLineListAutoComplete(

@@ -36,7 +36,7 @@ async function GetTokenUser(pca : IPublicClientApplication){
       scopes: ["User.Read"],
       account: account
   });
-    setAuthToken(response.accessToken);
+   await setAuthToken(response.accessToken);
   } 
 
 }

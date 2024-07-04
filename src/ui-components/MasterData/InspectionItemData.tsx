@@ -39,6 +39,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 
+
 interface InspectionItem {
   id: number;
   inspectionGroupId: number;
@@ -198,6 +199,7 @@ export default function InspectionItemData(props: {
   activeIns: Boolean;
   OpenBackDrop: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+
   const { dataGroupId, OpenBackDrop, activeIns } = props;
   const [insTypeDDL, setInsTypeDDL] = React.useState<DDLModel[]>([]);
   const [dataPageList, setDataPageList] = React.useState<InspectionItem[]>([]);
@@ -587,13 +589,12 @@ export default function InspectionItemData(props: {
       headerName: "",
       headerAlign: "center",
       align: "left",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
-          {!activeIns && (
-            <>
-              <Button
+          <Button
                 onClick={() => {
                   setLabelModal("Edit Inspection Group Item");
                   handleOpen();
@@ -602,6 +603,8 @@ export default function InspectionItemData(props: {
               >
                 <EditIcon />
               </Button>
+          {!activeIns && (
+            <>
               <Button
                 onClick={() => {
                   Swal.fire({
@@ -629,45 +632,52 @@ export default function InspectionItemData(props: {
     {
       field: "sequence",
       headerName: "Sequence",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "topic",
       headerName: "topic",
-      width: 350,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
     },
     {
       field: "typeName",
       headerName: "Type",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "createdOn",
       headerName: "Created On",
-      width: 200,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
     },
     {
       field: "createdBy",
       headerName: "Created By",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
     },
     {
       field: "modifiedOn",
       headerName: "Modified On",
-      width: 200,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
     },
     {
       field: "modifiedBy",
       headerName: "Modified By",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
       headerAlign: "center",
     },
   ];
@@ -678,7 +688,8 @@ export default function InspectionItemData(props: {
       headerName: "",
       headerAlign: "center",
       align: "left",
-      width: 50,
+      minWidth: 150,
+      flex: 1,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
@@ -695,7 +706,8 @@ export default function InspectionItemData(props: {
     {
       field: "value",
       headerName: "Value",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
       headerAlign: "center",
       align: "center",
     },
@@ -704,7 +716,8 @@ export default function InspectionItemData(props: {
       headerName: "Text",
       headerAlign: "center",
       align: "center",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
   ];
 
@@ -769,7 +782,7 @@ export default function InspectionItemData(props: {
   React.useEffect(() => {
     // Validate Min, Max, Target when component mounts or values change
     validateMinMaxTarget();
-  }, [insItemMin, insItemMax, insItemTarget]);
+  }, [insItemMin, insItemMax]);
 
   React.useEffect(() => {
     // Check if Type is 2 and set initial button state
@@ -828,8 +841,7 @@ export default function InspectionItemData(props: {
           insItemSeq !== 0 &&
           (insItemUnit === null || insItemUnit.trim() !== "") &&
           (insItemMax === null || (typeof insItemMax === 'string' && insItemMax.trim() !== "")) &&
-          (insItemMin === null || (typeof insItemMin === 'string' && insItemMin.trim() !== "")) &&
-          (insItemTarget === null || (typeof insItemTarget === 'string' && insItemTarget.trim() !== ""))
+          (insItemMin === null || (typeof insItemMin === 'string' && insItemMin.trim() !== "")) 
         )
       )
     ) {
@@ -910,11 +922,11 @@ export default function InspectionItemData(props: {
           </AccordionSummary>
           <AccordionDetails>
             <Grid container spacing={2}>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={12} md={12} container justifyContent="flex-end">
                 {!activeIns && (
                   <Box>
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       onClick={() => {
                         setLabelModal("Create Inspection Group Item");
                         SetUpDataCreate();
@@ -926,24 +938,29 @@ export default function InspectionItemData(props: {
                   </Box>
                 )}
               </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={12} md={12} container>
                 <Box sx={{ height: "100%", width: "100%" }}>
                   <DataGrid
                     sx={{
                       boxShadow: 2,
                       border: 2,
                       borderColor: "primary.light",
+                      width: "100%",
+                      "& .MuiDataGrid-columnHeader": {
+                        backgroundColor: "#19857B",
+                        width: "100%", // ทำให้ column headers ขยายเต็มความกว้าง // เปลี่ยนสีพื้นหลังของ header
+                      },
+                      "& .MuiDataGrid-columnHeaderTitle": {
+                        color: "#FFFFFF", // เปลี่ยนสีตัวอักษรของ header ให้เป็นสีขาวเพื่อให้มองเห็นชัดเจน
+                        fontWeight: "bold", // ทำให้ตัวอักษรใน header หนา
+                      },
                       "& .MuiDataGrid-cell:hover": {
                         color: "primary.main",
                       },
                     }}
                     rows={dataPageList}
                     rowHeight={40}
-                    columns={
-                      activeIns
-                        ? columns.filter((col) => col.field !== "action")
-                        : columns
-                    }
+                    columns={columns}
                     initialState={{
                       pagination: {
                         paginationModel: { page: 0, pageSize: 20 },
@@ -973,6 +990,7 @@ export default function InspectionItemData(props: {
           <Grid container spacing={2}>
             <Grid item xs={6} md={12}>
               <TextField
+                disabled={activeIns ? true : false}
                 label={
                   <span>
                     <span style={{ color: "red" }}>*</span> Sequence
@@ -994,7 +1012,10 @@ export default function InspectionItemData(props: {
                     <span style={{ color: "red" }}>*</span> Topic
                   </span>
                 }
-                id="outlined-size-small"
+                // label="Topic"
+                
+                id="topic-size-small"
+                disabled={activeIns ? true : false}
                 defaultValue={insItemTopic}
                 size="small"
                 style={{ width: "100%" }}
@@ -1006,8 +1027,9 @@ export default function InspectionItemData(props: {
             <Grid item xs={12} md={12}>
               <TextField
                 label="Remark"
-                id="outlined-size-small"
+                id="remark-size-small"
                 defaultValue={insItemRemark}
+                disabled={activeIns ? true : false}
                 size="small"
                 style={{ width: "100%" }}
                 onChange={(e) => {
@@ -1018,13 +1040,14 @@ export default function InspectionItemData(props: {
 
             <Grid item xs={12} md={12}>
               <FormControl fullWidth>
-                <InputLabel id="demo-simple-select-helper-label">
+                <InputLabel id="insType-simple-select-helper-label">
                   Inspection Type
                 </InputLabel>
                 <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
+                  labelId="insType-simple-select-label"
+                  id="insType-simple-select"
                   defaultValue={insType}
+                  disabled={activeIns ? true : false}
                   label="InspectionType"
                   onChange={handleChangeInspectionType}
                   size="small"
@@ -1048,6 +1071,7 @@ export default function InspectionItemData(props: {
                     </span>
                   }
                   id="min-size-small"
+                  disabled={activeIns ? true : false}
                   size="small"
                   style={{ width: "100%" }}
                   defaultValue={insItemMin}
@@ -1059,14 +1083,19 @@ export default function InspectionItemData(props: {
                   error={minError} // Apply error state to TextField
                   helperText={
                     minError
-                      ? "Min value cannot be greater than Max value."
+                      ? "Min value must not be greater than Max value."
                       : ""
                   }
                   onChange={(e) => {
                     const value = e.target.value;
                     const numericMinValue = parseFloat(value);
                     const numericMaxValue = parseFloat(insItemMax);
-                    if (value === '' || (!isNaN(numericMinValue) && (insItemMax === '' || numericMinValue <= numericMaxValue))) {
+                    if (
+                      value === "" ||
+                      (!isNaN(numericMinValue) &&
+                        (insItemMax === "" ||
+                          numericMinValue <= numericMaxValue))
+                    ) {
                       setMinError(false); // Reset error state
                     } else {
                       setMinError(true); // Set error state
@@ -1094,23 +1123,26 @@ export default function InspectionItemData(props: {
                     pattern: "[0-9]*[.]?[0-9]*",
                   }}
                   onInput={handleInput}
+                  disabled={activeIns ? true : false}
                   error={maxError} // Apply error state to TextField
                   helperText={
-                    maxError
-                      ? "Max value cannot be greater than Min value."
-                      : ""
+                    maxError ? "Max value must not be less than Min value." : ""
                   }
                   onChange={(e) => {
                     const value = e.target.value;
                     const numericMaxValue = parseFloat(value);
                     const numericMinValue = parseFloat(insItemMin);
-                    if (value === '' || (!isNaN(numericMaxValue) && (insItemMin === '' || numericMaxValue >= numericMinValue))) {
+                    if (
+                      value === "" ||
+                      (!isNaN(numericMaxValue) &&
+                        (insItemMin === "" ||
+                          numericMaxValue >= numericMinValue))
+                    ) {
                       setMaxError(false); // Reset error state
-                    }else{
+                    } else {
                       setMaxError(true);
                     }
                     setInsItemMax(value);
-                   
                   }}
                 />
               </Grid>
@@ -1127,6 +1159,7 @@ export default function InspectionItemData(props: {
                   defaultValue={insItemTarget}
                   size="small"
                   style={{ width: "100%" }}
+                  disabled={activeIns ? true : false}
                   inputProps={{
                     inputMode: "decimal",
                     pattern: "[0-9]*[.]?[0-9]*",
@@ -1135,7 +1168,7 @@ export default function InspectionItemData(props: {
                   error={targetError} // Apply error state to TextField
                   helperText={
                     targetError
-                      ? "Target value cannot be greater than Min value."
+                      ? "Target value must not be less than Min value and must not be greater than Max value."
                       : ""
                   }
                   onChange={(e) => {
@@ -1143,8 +1176,12 @@ export default function InspectionItemData(props: {
                     const numericTargetValue = parseFloat(value);
                     const numericMaxValue = parseFloat(insItemMax);
                     const numericMinValue = parseFloat(insItemMin);
-                    if (value === '' || (!isNaN(numericTargetValue) && numericTargetValue <= numericMaxValue && numericTargetValue >= numericMinValue)) {
-                  
+                    if (
+                      value === "" ||
+                      (!isNaN(numericTargetValue) &&
+                        numericTargetValue <= numericMaxValue &&
+                        numericTargetValue >= numericMinValue)
+                    ) {
                       setTargetError(false); // Reset error state
                     } else {
                       setTargetError(true); // Set error state
@@ -1163,6 +1200,7 @@ export default function InspectionItemData(props: {
                     </span>
                   }
                   id="outlined-size-small"
+                  disabled={activeIns ? true : false}
                   defaultValue={insItemUnit}
                   size="small"
                   style={{ width: "100%" }}
@@ -1181,6 +1219,7 @@ export default function InspectionItemData(props: {
                   onChange={(_, value) => {
                     setInsItemReq(value);
                   }}
+                  disabled={activeIns ? true : false}
                 />
               </Grid>
             )}
@@ -1193,6 +1232,7 @@ export default function InspectionItemData(props: {
                     tabIndex={-1}
                     startIcon={<CloudUploadIcon />}
                     onChange={handleFileChange}
+                    disabled={activeIns ? true : false}
                   >
                     Upload file
                     <VisuallyHiddenInput type="file" />
@@ -1208,6 +1248,7 @@ export default function InspectionItemData(props: {
                     control={<Switch />}
                     checked={insItemPin}
                     label="PinCode"
+                    disabled={activeIns ? true : false}
                     onChange={(_, value) => {
                       setInsItemPin(value);
                     }}
@@ -1220,6 +1261,7 @@ export default function InspectionItemData(props: {
                     size="small"
                     value={insItemQRValue}
                     error={errorQRCodeValue}
+                    disabled={activeIns ? true : false}
                     helperText={errorQRCodeValue ? "Value already exists" : ""}
                     style={{ width: "100%" }}
                     onChange={(e) => {
@@ -1236,6 +1278,7 @@ export default function InspectionItemData(props: {
                     style={{ width: "100%" }}
                     value={insItemQRText}
                     error={errorQRCodeText}
+                    disabled={activeIns ? true : false}
                     helperText={errorQRCodeText ? "Text already exists" : ""}
                     onChange={(e) => {
                       setInsItemQRText(e.target.value);
@@ -1249,7 +1292,8 @@ export default function InspectionItemData(props: {
                     variant="contained"
                     tabIndex={-1}
                     style={{ width: "100%" }}
-                    disabled={isAddButtonDisabled}
+                    disabled={isAddButtonDisabled || activeIns ? true : false}
+                    
                     onClick={() => {
                       AddQRCodeInsItem();
                     }}
@@ -1260,18 +1304,28 @@ export default function InspectionItemData(props: {
               </>
             )}
             {showQRCodeList && (
-              <Grid item xs={6} md={12}>
+              <Grid item xs={12} md={12}>
                 <DataGrid
                   sx={{
                     boxShadow: 2,
                     border: 2,
                     borderColor: "primary.light",
+                    width: "100%",
+                    "& .MuiDataGrid-columnHeader": {
+                      backgroundColor: "#19857B",
+                      width: "100%", // ทำให้ column headers ขยายเต็มความกว้าง // เปลี่ยนสีพื้นหลังของ header
+                    },
+                    "& .MuiDataGrid-columnHeaderTitle": {
+                      color: "#FFFFFF", // เปลี่ยนสีตัวอักษรของ header ให้เป็นสีขาวเพื่อให้มองเห็นชัดเจน
+                      fontWeight: "bold", // ทำให้ตัวอักษรใน header หนา
+                    },
                     "& .MuiDataGrid-cell:hover": {
                       color: "primary.main",
                     },
                   }}
                   rows={qrCodeList}
-                  columns={columnsQR}
+                  columns={activeIns ? columnsQR.filter((col) => col.field !== "action" ) : columnsQR}
+                  
                   initialState={{
                     pagination: {
                       paginationModel: {
@@ -1304,6 +1358,7 @@ export default function InspectionItemData(props: {
                       tabIndex={-1}
                       startIcon={<CloudUploadIcon />}
                       onClick={ValidateQRCode}
+                      disabled={activeIns ? true : false}
                     >
                       Validate Data
                     </Button>
@@ -1311,7 +1366,7 @@ export default function InspectionItemData(props: {
                   <Button
                     variant="contained"
                     onClick={handleButtonSubmitClick}
-                    disabled={disabledBtn}
+                    disabled={disabledBtn || activeIns ? true : false}
                   >
                     {isAdd ? "Create" : "Save"}
                   </Button>

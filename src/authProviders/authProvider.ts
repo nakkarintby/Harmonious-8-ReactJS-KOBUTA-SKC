@@ -10,8 +10,8 @@ export const msalConfig: Configuration = {
     clientId: "d0c122e2-6864-4f8f-8ad5-3dbf243c9723",
     authority:
       "https://login.microsoftonline.com/eef38a1f-720f-4ede-9c7a-79ef6d5dd342",
-    redirectUri: "https://d742apsi01-wa01skc.azurewebsites.net/",
-    // postLogoutRedirectUri: "/",
+    // redirectUri: "https://d742apsi01-wa01skc.azurewebsites.net/",
+    postLogoutRedirectUri: "/",
   },
   system: {
     allowNativeBroker: false, // Disables WAM Broker

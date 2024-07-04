@@ -360,9 +360,9 @@ export function InspectionItem() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="inspectiongroups"
-                prm3="inspectionitem"
+              prm1="Master Data"
+              prm2="Inspection Groups"
+              prm3="Inspection Item"
               />
             </Box>
           </Grid>
@@ -403,7 +403,7 @@ export function InspectionItem() {
               <AccordionDetails sx={{
                 borderTop: "1px solid rgba(0, 0, 0, .125)",
               }}>
-                <Grid container spacing={3}>
+                <Grid container >
                   <Grid item xs={12} md={5}>
                     <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
@@ -414,7 +414,6 @@ export function InspectionItem() {
                       </Typography>
                     </Box>
                   </Grid>
-
                   <Grid item xs={12} md={5}>
                     <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
@@ -478,7 +477,7 @@ export function InspectionItem() {
                   <Grid item xs={12} md={7}>
                     <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
-                        Time:
+                       Takt Time:
                       </Typography>
                       <Typography variant="body1" ml={1}>
                         {taktTimeDisplay}

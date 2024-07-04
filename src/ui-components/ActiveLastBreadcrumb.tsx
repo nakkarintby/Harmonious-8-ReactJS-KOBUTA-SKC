@@ -1,6 +1,4 @@
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Link from "@mui/material/Link";
-import Box from "@mui/material/Box";
+import { Box, Breadcrumbs, Link } from '@mui/material';
 
 export default function ActiveLastBreadcrumb({
   prm1,
@@ -11,6 +9,7 @@ export default function ActiveLastBreadcrumb({
   prm2: string;
   prm3: string;
 }) {
+  const formatString = (str: string) => str.replace(/\s+/g, '').trim().toLowerCase();
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <div role="presentation">
@@ -18,23 +17,22 @@ export default function ActiveLastBreadcrumb({
           <Link
             underline="hover"
             color="inherit"
-            href=''
+            href={''}
           >
             {prm1}
           </Link>
           <Link
             underline="hover"
             color="text.primary"
-            href= {'/' + prm1 +'/'+ prm2}
+            href={'/' + formatString(prm1) + '/' + formatString(prm2)}
             aria-current="page"
           >
             {prm2}
           </Link>
-
           <Link
             underline="hover"
             color="text.primary"
-            href= {'/' + prm1 +'/'+ prm2+'/'+prm3}
+            href={'/' + formatString(prm1) + '/' + formatString(prm2) + '/' + formatString(prm3)}
             aria-current="page"
           >
             {prm3}

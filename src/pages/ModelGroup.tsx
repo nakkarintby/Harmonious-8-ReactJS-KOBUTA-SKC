@@ -9,7 +9,7 @@ import {
   // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
-import { Autocomplete, Backdrop, Box, Button, Grid } from "@mui/material";
+import { Autocomplete, Backdrop, Box, Button, CircularProgress, Grid } from "@mui/material";
 import * as React from "react";
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
@@ -34,19 +34,23 @@ export function ModelGroup() {
   }
 
   const [openModalCreateModelGroup, setOpenModalCreateModelGroup] = React.useState(false)
-  const handleOpenModalCreateModelGroup = () => setOpenModalCreateModelGroup(true)
+
   const handleCloseModalCreateModelGroup = () => setOpenModalCreateModelGroup(false)
   const [valueModelGroupName, setValueModelGroupName] = React.useState('')
-  const [data, setData] = useState([])
-  const [dropDownLineListAutoComplete, setDropDownLineListAutoComplete] = useState([])
-  const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] = React.useState(Object);
-
+  const [dataModelGroup, setDataModelGroup] = useState([])
+  const [dropDownScheduledLineAutoComplete, setDropDownScheduledLineAutoComplete] = useState([])
+  const [valueAutoCompleteDropDownScheduledLine, setValueAutoCompleteLinedropDownScheduledLine] = React.useState(null);
+  const [dropDownLineAutoComplete, setDropDownLineAutoComplete] = useState([])
+  const [valueAutoCompleteDropDownLine, setValueAutoCompleteDropDownLine] = React.useState(null);
+  const [loadingSL, setLoadingSL] = React.useState(false);
+  
+  const [loadingLine, setLoadingLine] = React.useState(false);
 
   useEffect(() => {
-    fetchData()
+    fetchDataModelGroup()
   }, [])
 
-  async function fetchData() {
+  async function fetchDataModelGroup() {
     try {
       await instanceAxios.get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
@@ -56,9 +60,7 @@ export function ModelGroup() {
             if (response.data.data.modelGroup[i].modifiedOn != null)
               response.data.data.modelGroup[i].modifiedOn = moment(response.data.data.modelGroup[i].modifiedOn).format('YYYY-MM-DD hh:mm');
           }
-          setData(response.data.data.modelGroup)
-          setDropDownLineListAutoComplete(response.data.data.linedropdownList)
-          setValueDropDownLineListAutoComplete(response.data.data.linedropdownList[0])
+          setDataModelGroup(response.data.data.modelGroup)
         }
         else {
           toastAlert("error", "Error Call Api GetModelGroup!", 3000)
@@ -71,37 +73,119 @@ export function ModelGroup() {
     }
   }
 
+  async function fetchDataDropDownScheduledLine() {
+    try {
+      await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
+        if (response.data.status == "success") {
+          setDropDownScheduledLineAutoComplete(response.data.data)
+          setLoadingSL(false)
+        }
+        else {
+          setLoadingSL(false)
+          toastAlert("error", "Error Call Api GetScheduledLine!", 3000)
+        }
+      }, (error) => {
+        setLoadingSL(false)
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
+  async function fetchDataDropDownLine(params: any) {
+    try {
+      await instanceAxios.get(`/Line/GetLineByScheduledLineCode?scheduledLineCode=${params}`).then(async (response) => {
+        if (response.data.status == "success") {
+          if (response.data.data.length > 0) {
+            setDropDownLineAutoComplete(response.data.data)
+            setLoadingLine(false)
+            return;
+          }
+          setDropDownLineAutoComplete([])
+          setValueAutoCompleteDropDownLine(null)
+          setLoadingLine(false)
+        }
+        else {
+          setLoadingLine(false)
+          toastAlert("error", "Error Call Api GetLineByScheduledLineCode!", 3000)
+        }
+      }, (error) => {
+        setLoadingLine(false)
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+  async function handleOpenModalCreateModelGroup() {
+    setValueModelGroupName('')
+    setValueAutoCompleteDropDownLine(null)
+    setValueAutoCompleteLinedropDownScheduledLine(null)
+    setOpenModalCreateModelGroup(true)
+  }
+
+
+
   async function handleChangeValueModelGroupNameCreate(e: any) {
     e.preventDefault()
     setValueModelGroupName(e.target.value)
   }
 
-  async function handleChangeValueDropDownLineListAutoComplete(e: any) {
-    setValueDropDownLineListAutoComplete(e)
+  async function handleChangeValueDropDownScheduledLineAutoComplete(e: any) {
+    setValueAutoCompleteLinedropDownScheduledLine(e)
+    setValueAutoCompleteDropDownLine(null)
+    fetchDataDropDownLine(e['scheduledLineCode'])
+  }
+
+  async function handleChangeValueDropDownLineAutoComplete(e: any) {
+    setValueAutoCompleteDropDownLine(e)
+  }
+
+  async function validateModelGroup() {
+    if (valueModelGroupName == null || valueModelGroupName == '') {
+      toastAlert("error", 'Please Enter ModelGroup Name', 3000)
+      return false;
+    }
+    if (valueAutoCompleteDropDownScheduledLine == null) {
+      toastAlert("error", 'Please Enter ScheduledLine', 3000)
+      return false;
+    }
+    if (valueAutoCompleteDropDownLine == null) {
+      toastAlert("error", 'Please Enter Line', 3000)
+      return false;
+    }
+    return true;
   }
 
 
+
   async function CreateModelGroup() {
-    try {
-      await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
-        {
-          name: valueModelGroupName,
-          lineId: valueAutoCompleteLineDropdown['lineId']
-        }
-      ).then(async (response) => {
-        if (response.data.status == "success") {
-          await fetchData()
-          handleCloseModalCreateModelGroup()
-          toastAlert("success", "Create ModelGroup Success!", 3000)
-        }
-        else {
-          toastAlert("error", "Error Call Api CreateModelGroup!", 3000)
-        }
-      }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
-      })
-    } catch (error) {
-      console.log('error', error)
+    if (await validateModelGroup()) {
+      try {
+        await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
+          {
+            name: valueModelGroupName,
+            lineId: valueAutoCompleteDropDownLine ? valueAutoCompleteDropDownLine['value'] : null,
+            scheduledLineCode: valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null
+          }
+        ).then(async (response) => {
+          if (response.data.status == "success") {
+            await fetchDataModelGroup()
+            handleCloseModalCreateModelGroup()
+            toastAlert("success", "Create ModelGroup Success!", 3000)
+          }
+          else {
+            toastAlert("error", "Error Call Api CreateModelGroup!", 3000)
+          }
+        }, (error) => {
+          toastAlert("error", error.response.data.message, 3000)
+        })
+      } catch (error) {
+        console.log('error', error)
+      }
     }
   }
 
@@ -119,7 +203,7 @@ export function ModelGroup() {
         try {
           await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
             if (response.data.status == "success") {
-              await fetchData()
+              await fetchDataModelGroup()
               toastAlert("error", "Deleted ModelGroup!", 3000)
             }
             else {
@@ -163,14 +247,14 @@ export function ModelGroup() {
       },
     },
     {
-      field: "lineName",
-      headerName: "Line Name",
+      field: "name",
+      headerName: "Model Group Name",
       width: 200,
 
     },
     {
-      field: "name",
-      headerName: "Model Group Name",
+      field: "lineName",
+      headerName: "Line Name",
       width: 200,
 
     },
@@ -238,8 +322,8 @@ export function ModelGroup() {
               border: 2,
               borderColor: "primary.light",
             }}
-            rows={data}
-            getRowId={(data) => data.modelGroupId}
+            rows={dataModelGroup}
+            getRowId={(dataModelGroup) => dataModelGroup.modelGroupId}
             rowHeight={40}
             columns={columns}
             initialState={{
@@ -261,7 +345,7 @@ export function ModelGroup() {
           disableEscapeKeyDown
           slots={{ backdrop: StyledBackdrop }}
         >
-          <ModalContent sx={{ width: "30vw"}}>
+          <ModalContent sx={{ width: "30vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Model Group
             </h2>
@@ -276,25 +360,46 @@ export function ModelGroup() {
                     defaultValue=""
                     size="small"
                     onChange={handleChangeValueModelGroupNameCreate}
+                    inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
+
                 <Grid item xs={6} md={12}>
                   <Autocomplete
-                    sx={{ width: "100%"}}
-                     size="small"
-                    onChange={(_, newValue) => {
-                      handleChangeValueDropDownLineListAutoComplete(newValue);
+                    sx={{ width: "100%" }}
+                    size="small"
+                    onOpen={() => {
+                      setLoadingSL(true);
+                      fetchDataDropDownScheduledLine()
                     }}
-                    disablePortal
+                    onClose={() => setLoadingSL(false)}
+                    loading={loadingSL}
+                    onChange={(_, newValue) => {
+                      handleChangeValueDropDownScheduledLineAutoComplete(newValue);
+                    }}
                     id="combo-box-demo"
-                    value={valueAutoCompleteLineDropdown}
-                    options={dropDownLineListAutoComplete.map(
-                      (dropDownLineListAutoComplete) =>
-                        dropDownLineListAutoComplete
+                    value={valueAutoCompleteDropDownScheduledLine}
+                    options={dropDownScheduledLineAutoComplete.map(
+                      (dropDownScheduledLineAutoComplete) =>
+                        dropDownScheduledLineAutoComplete
                     )}
-                    getOptionLabel={(options: any) => `${options.name}`}
+                    getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
                     renderInput={(params) => (
-                      <TextField {...params} label="Line Name" />
+                      <TextField
+                        {...params}
+                        label="ScheduledLine"
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <React.Fragment>
+                              {loadingSL ? (
+                                <CircularProgress color="inherit" size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </React.Fragment>
+                          ),
+                        }}
+                      />
                     )}
                     ListboxProps={{
                       style: {
@@ -303,6 +408,53 @@ export function ModelGroup() {
                     }}
                   />
                 </Grid>
+
+                <Grid item xs={6} md={12}>
+                  <Autocomplete
+                    sx={{ width: "100%" }}
+                    size="small"
+                    onOpen={() => {
+                      setLoadingLine(true);
+                      fetchDataDropDownLine(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+                    }}
+                    onClose={() => setLoadingLine(false)}
+                    loading={loadingLine}
+                    onChange={(_, newValue) => {
+                      handleChangeValueDropDownLineAutoComplete(newValue);
+                    }}
+                    id="combo-box-demo"
+                    value={valueAutoCompleteDropDownLine}
+                    options={dropDownLineAutoComplete.map(
+                      (dropDownLineAutoComplete) =>
+                        dropDownLineAutoComplete
+                    )}
+                    getOptionLabel={(options: any) => `${options.label}`}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Line Name"
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <React.Fragment>
+                              {loadingLine ? (
+                                <CircularProgress color="inherit" size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </React.Fragment>
+                          ),
+                        }}
+                      />
+                    )}
+                    ListboxProps={{
+                      style: {
+                        maxHeight: "10vw",
+                      },
+                    }}
+
+                  />
+                </Grid>
+
                 <Grid item xs={12}>
                   <Grid item xs={6} md={12} container justifyContent="flex-end">
                     <Box display="flex" gap={2}>

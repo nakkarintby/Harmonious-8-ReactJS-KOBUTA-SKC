@@ -97,7 +97,7 @@ export function Model() {
 const columns: GridColDef[] = [
   {
     field: "scheduledLineCode",
-    headerName: "ScheduledLineCode",
+    headerName: "Scheduled Line Code",
     width: 200,
     align:'center',
     headerAlign:'center'
@@ -105,17 +105,17 @@ const columns: GridColDef[] = [
   },
   {
     field: "modelCode",
-    headerName: "ModelCode",
+    headerName: "Model Code",
     width: 200,
   },
   {
     field: "modelName",
-    headerName: "ModelName",
+    headerName: "Model Name",
     width: 200,
   },
   {
     field: "distributorCode",
-    headerName: "DistributorCode",
+    headerName: "Distributor Code",
     width: 200,
   },
   {

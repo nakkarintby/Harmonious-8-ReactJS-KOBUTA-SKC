@@ -10,6 +10,7 @@ const instanceAxios = axios.create({
 
 // Function to set the Authorization token
 const setAuthToken = (token: string) => {
+
   if (token) {
     instanceAxios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {

@@ -12,6 +12,7 @@ import {
   Backdrop,
   Box,
   Button,
+  CircularProgress,
   Fade,
   Grid,
   Switch
@@ -72,7 +73,7 @@ export function Station() {
   const [openModalEdit, setopenModalEdit] = React.useState(false);
   const [openModalLineEdit, setopenModalLineEdit] = React.useState(false);
   const handleopenModalLineEdit = () => setopenModalLineEdit(true);
-  const handlecloseModalLineEdit = () => setopenModalLineEdit(false);
+
   const handleopenModalEdit = () => setopenModalEdit(true);
   const handlecloseModalEdit = () => setopenModalEdit(false);
   const [valueStationName, setValueStationName] = React.useState(null);
@@ -98,6 +99,14 @@ export function Station() {
     React.useState(false);
   const [ischeckedFinishStation, setIscheckedFinishStation] =
     React.useState(false);
+  const [loadingSL, setLoadingSL] = React.useState(false);
+  const [LineTmp, setLineTmp] = React.useState(null);
+  const [LineTmp2, setLineTmp2] = React.useState(null);
+  const [SLTmp, setSLTmp] = React.useState(null);
+  const [SLTmp2, setSLTmp2] = React.useState(null);
+  const [TaskTimeTmp, setTaskTimeTmp] = React.useState(null);
+  const [TaskTimeTmp2, setTaskTimeTmp2] = React.useState(null);
+
 
   useEffect(() => {
     fetchDataHeader();
@@ -120,14 +129,34 @@ export function Station() {
                   (item: any) => item["lineId"] === location.state.lineId
                 )[0]["name"]
               );
+              setLineTmp(response.data.data.lineList.filter(
+                (item: any) => item["lineId"] === location.state.lineId
+              )[0]["name"])
+              setLineTmp2(response.data.data.lineList.filter(
+                (item: any) => item["lineId"] === location.state.lineId
+              )[0]["name"])
+
               setValueTaskTime(
                 response.data.data.lineList.filter(
                   (item: any) => item["lineId"] === location.state.lineId
                 )[0]["taktTime"]
               );
+              setTaskTimeTmp(
+                response.data.data.lineList.filter(
+                  (item: any) => item["lineId"] === location.state.lineId
+                )[0]["taktTime"]
+              );
+              setTaskTimeTmp2(
+                response.data.data.lineList.filter(
+                  (item: any) => item["lineId"] === location.state.lineId
+                )[0]["taktTime"]
+              );
+
+
               setDropDownScheduledLineListAutoComplete(
                 response.data.data.dropdownScheduledLineList
               );
+
               setValueAutoCompletedropDownScheduledLineList(
                 response.data.data.dropdownScheduledLineList.filter(
                   (item: any) =>
@@ -137,6 +166,23 @@ export function Station() {
                     )[0]["scheduledLineCode"]
                 )[0]
               );
+
+              setSLTmp(response.data.data.dropdownScheduledLineList.filter(
+                (item: any) =>
+                  item["scheduledLineCode"] ===
+                  response.data.data.lineList.filter(
+                    (item: any) => item["lineId"] === location.state.lineId
+                  )[0]["scheduledLineCode"]
+              )[0]['name'])
+
+              setSLTmp2(response.data.data.dropdownScheduledLineList.filter(
+                (item: any) =>
+                  item["scheduledLineCode"] ===
+                  response.data.data.lineList.filter(
+                    (item: any) => item["lineId"] === location.state.lineId
+                  )[0]["scheduledLineCode"]
+              )[0]['name'])
+
             } else {
               toastAlert("error", "Error Call Api GetLine!", 5000);
             }
@@ -203,9 +249,43 @@ export function Station() {
     }
   }
 
+  async function fetchDataDropDownScheduledLine() {
+
+    try {
+      await instanceAxios.get(`/Line/GetLine?page=1&perpage=1000`).then(async (response) => {
+        if (response.data.status == "success") {
+          setDropDownScheduledLineListAutoComplete(
+            response.data.data.dropdownScheduledLineList
+          );
+          setValueAutoCompletedropDownScheduledLineList(
+            response.data.data.dropdownScheduledLineList.filter(
+              (item: any) =>
+                item["scheduledLineCode"] ===
+                response.data.data.lineList.filter(
+                  (item: any) => item["lineId"] === location.state.lineId
+                )[0]["scheduledLineCode"]
+            )[0]
+          );
+          setLoadingSL(false)
+        }
+        else {
+          setLoadingSL(false)
+          toastAlert("error", "Error Call Api GetLine!", 3000)
+        }
+      }, (error) => {
+        setLoadingSL(false)
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
+
   async function updateLine() {
     try {
-       await instanceAxios
+      await instanceAxios
         .put(`/Line/UpdateLine`, {
           lineId: valueLineId,
           name: valueLineName,
@@ -217,9 +297,9 @@ export function Station() {
           async (response) => {
             if (response.data.status == "success") {
               await fetchDataHeader();
-              toastAlert("success", "Create Line Success!", 5000);
+              toastAlert("success", "Update Line Success!", 5000);
             } else {
-              toastAlert("error", "Error Call Api CreateLine!", 5000);
+              toastAlert("error", "Error Call Api UpdateLine!", 5000);
             }
             setopenModalLineEdit(false)
           },
@@ -239,17 +319,20 @@ export function Station() {
   async function handleChangeValueLineName(e: any) {
     e.preventDefault();
     setValueLineName(e.target.value);
+    setLineTmp(e.target.value)
   }
 
   async function handleChangeValueAutoCompletedropDownScheduledLineList(
     e: any
   ) {
     setValueAutoCompletedropDownScheduledLineList(e);
+    setSLTmp(e['name'])
   }
 
   async function handleChangeValueTaskTime(e: any) {
     e.preventDefault();
     setValueTaskTime(e.target.value);
+    setTaskTimeTmp(e.target.value)
   }
 
   async function handleChangeValueStationName(e: any) {
@@ -257,22 +340,36 @@ export function Station() {
     setValueStationName(e.target.value);
   }
 
+
+  async function handlecloseModalLineEdit() {
+    setopenModalLineEdit(false);
+    setLineTmp(LineTmp2)
+    setValueLineName(LineTmp2)
+    setSLTmp(SLTmp2)
+    fetchDataDropDownScheduledLine()
+    setTaskTimeTmp(TaskTimeTmp2)
+    setValueTaskTime(TaskTimeTmp2)
+  }
+
   async function handleChangeValueAutoCompletedropDownStationList(e: any) {
-    
+
     if (e["text"] == "Auto Station") {
       setShowSequence(true);
-      
       setShowFirstStationSwitch(true);
-      setIscheckedFinishStation(false);
       setShowFinishStationSwitch(true);
-      setIscheckedFinishStation(false);
       setShowRefFirst(true);
-      setValueRefMFG(null);
       setShowRefFinish(true);
+
+      setValueStationName(null);
+      setValueSequence(1)
+      setIscheckedFirstStation(true);
+      setIscheckedFinishStation(false);
+      setValueRefMFG(null);
       setValueRefMFGFinish(null);
+
     } else if (e["text"] == "Manual Station") {
       setShowSequence(false);
-   
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(true);
@@ -283,7 +380,7 @@ export function Station() {
       setValueRefMFGFinish(null);
     } else if (e["text"] == "Rework Station") {
       setShowSequence(false);
-      
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -294,7 +391,7 @@ export function Station() {
       setValueRefMFGFinish(null);
     } else if (e["text"] == "Special Station") {
       setShowSequence(false);
-      
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -329,76 +426,144 @@ export function Station() {
     setValueRefMFGFinish(e.target.value);
   }
 
-  async function createStation() {
-    const sequence = valueSequence;
-    const type = parseInt(valueAutoCompletedropDownStationListAutoComplete["code"], 10);
-    try {
-       await instanceAxios
-        .post(`/Station/CreateStation`, {
-          name: valueStationName,
-          lineId: valueLineId,
-          scheduledLineCode: valueScheduledLineCode,
-          sequence: sequence,
-          type: type,
-          isFirstStation: ischeckedFirstStation,
-          isFinishedStation: ischeckedFinishStation,
-          refMFG: valueRefMFG,
-          refFinishedMFG: valueRefMFGFinish ?? "",
-          refStation: "1",
-        })
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
-              await fetchDataDetail();
-              handlecloseModalCreate();
-              toastAlert("success", "Create Station Success!", 5000);
-            } else {
-              toastAlert("error", "Error Call Api CreateStation!", 5000);
-            }
-          },
-          (error) => {
-            toastAlert("error", error.response.data.message, 5000);
+  async function validateStation() {
+    switch (valueAutoCompletedropDownStationListAutoComplete["code"]) {
+      case '1': {
+        if (valueStationName == null || valueStationName == '') {
+          toastAlert("error", 'Please Enter Station Name', 3000)
+          return false;
+        }
+        if (valueSequence != 1) {
+          toastAlert("error", 'Please Enter Sequence is 1', 3000)
+          return false;
+        }
+
+        if (ischeckedFirstStation) {
+          if (valueRefMFG == null || valueRefMFG == '') {
+            toastAlert("error", 'Please Enter Value Ref. MFG', 3000)
+            return false;
           }
-        );
-    } catch (error) {
-      console.log("error", error);
+        }
+
+        if (ischeckedFinishStation) {
+          if (valueRefMFGFinish == null || valueRefMFGFinish == '') {
+            toastAlert("error", 'Please Enter Value Ref. MFG(Finish Station)', 3000)
+            return false;
+          }
+        }
+        break;
+      }
+      case '2': {
+        if (valueStationName == null || valueStationName == '') {
+          toastAlert("error", 'Please Enter Station Name', 3000)
+          return false;
+        }
+        if (valueRefMFG == null || valueRefMFG == '') {
+          toastAlert("error", 'Please Enter Value Ref. MFG', 3000)
+          return false;
+        }
+        if (ischeckedFinishStation) {
+          if (valueRefMFGFinish == null || valueRefMFGFinish == '') {
+            toastAlert("error", 'Please Enter Value Ref. MFG(Finish Station)', 3000)
+            return false;
+          }
+        }
+        break;
+      }
+      case '3': {
+        if (valueStationName == null || valueStationName == '') {
+          toastAlert("error", 'Please Enter Station Name', 3000)
+          return false;
+        }
+        break;
+      }
+      case '4': {
+        if (valueStationName == null || valueStationName == '') {
+          toastAlert("error", 'Please Enter Station Name', 3000)
+          return false;
+        }
+        break;
+      }
+      default: {
+        //statements; 
+        break;
+      }
+    }
+    return true;
+  }
+
+  async function createStation() {
+    if (await validateStation()) {
+      const sequence = valueSequence;
+      const type = parseInt(valueAutoCompletedropDownStationListAutoComplete["code"], 10);
+      try {
+        await instanceAxios
+          .post(`/Station/CreateStation`, {
+            name: valueStationName,
+            lineId: valueLineId,
+            scheduledLineCode: valueScheduledLineCode,
+            sequence: valueSequence,
+            type: valueAutoCompletedropDownStationListAutoComplete["code"],
+            isFirstStation: ischeckedFirstStation,
+            isFinishedStation: ischeckedFinishStation,
+            refMFG: valueRefMFG,
+            refFinishedMFG: valueRefMFGFinish,
+            refStation: "1",
+          })
+          .then(
+            async (response) => {
+              if (response.data.status == "success") {
+                await fetchDataDetail();
+                handlecloseModalCreate();
+                toastAlert("success", "Create Station Success!", 5000);
+              } else {
+                toastAlert("error", "Error Call Api CreateStation!", 5000);
+              }
+            },
+            (error) => {
+              toastAlert("error", error.response.data.message, 5000);
+            }
+          );
+      } catch (error) {
+        console.log("error", error);
+      }
     }
   }
 
   async function editStation() {
-
-
-    try {
-      await instanceAxios
-        .put(`/Station/UpdateStation`, {
-          name: valueStationName,
-          lineId: valueLineId,
-          scheduledLineCode: valueScheduledLineCode,
-          sequence: valueSequence,
-          type: valueAutoCompletedropDownStationListAutoComplete["code"],
-          isFirstStation: ischeckedFirstStation,
-          isFinishedStation: ischeckedFinishStation,
-          refMFG: valueRefMFG,
-          refFinishedMFG: valueRefMFGFinish,
-          refStation: "1",
-          stationId: valueStationId,
-        })
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
-              await fetchDataDetail();
-              handlecloseModalEdit();
-              toastAlert("success", "Update Station Success!", 5000);
-            } else {
-              toastAlert("error", "Error Call Api UpdateStation!", 5000);
+    if (await validateStation()) {
+      try {
+        await instanceAxios
+          .put(`/Station/UpdateStation`, {
+            name: valueStationName,
+            lineId: valueLineId,
+            scheduledLineCode: valueScheduledLineCode,
+            sequence: valueSequence,
+            type: valueAutoCompletedropDownStationListAutoComplete["code"],
+            isFirstStation: ischeckedFirstStation,
+            isFinishedStation: ischeckedFinishStation,
+            refMFG: valueRefMFG,
+            refFinishedMFG: valueRefMFGFinish,
+            refStation: "1",
+            stationId: valueStationId,
+          })
+          .then(
+            async (response) => {
+              if (response.data.status == "success") {
+                await fetchDataDetail();
+                handlecloseModalEdit();
+                toastAlert("success", "Update Station Success!", 5000);
+              } else {
+                toastAlert("error", "Error Call Api UpdateStation!", 5000);
+              }
+            },
+            (error) => {
+              toastAlert("error", error.response.data.message, 5000);
             }
-          },
-          (error) => {
-            toastAlert("error", error.response.data.message, 5000);
-          }
-        );
-    } catch (error) {
-      console.log("error", error);
+          );
+      } catch (error) {
+        console.log("error", error);
+      }
     }
   }
 
@@ -414,7 +579,7 @@ export function Station() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-           await instanceAxios
+          await instanceAxios
             .put(`/Station/RemoveStation?stationId=${id}`)
             .then(
               async (response) => {
@@ -451,7 +616,7 @@ export function Station() {
       setValueRefMFGFinish(rows["refFinishedMFG"]);
     } else if (rows["type"] == 2) {
       setShowSequence(false);
-     
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(true);
@@ -462,7 +627,7 @@ export function Station() {
       setValueRefMFGFinish(null);
     } else if (rows["type"] == 3) {
       setShowSequence(false);
-    
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -473,7 +638,7 @@ export function Station() {
       setValueRefMFGFinish(null);
     } else if (rows["type"] == 4) {
       setShowSequence(false);
-    
+
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -492,15 +657,15 @@ export function Station() {
   }
 
   async function setValueModalCreate() {
-    setValueStationName(null);
     setShowSequence(true);
     setShowFirstStationSwitch(true);
     setShowFinishStationSwitch(true);
     setShowRefFirst(true);
     setShowRefFinish(true);
 
-   
-    setIscheckedFirstStation(false);
+    setValueStationName(null);
+    setValueSequence(1)
+    setIscheckedFirstStation(true);
     setIscheckedFinishStation(false);
     setValueRefMFG(null);
     setValueRefMFGFinish(null);
@@ -653,7 +818,7 @@ export function Station() {
                     >
                       Line Name:
                     </Typography>
-                    <Typography variant="body1">{valueLineName}</Typography>
+                    <Typography variant="body1">{LineTmp}</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={6} md={4} container>
@@ -666,7 +831,7 @@ export function Station() {
                       Schedule Line:
                     </Typography>
                     <Typography variant="body1">
-                      {valueAutoCompletedropDownScheduledLineList.name}
+                      {SLTmp}
                     </Typography>
                   </Box>
                 </Grid>
@@ -679,7 +844,7 @@ export function Station() {
                     >
                       Task Time:
                     </Typography>
-                    <Typography variant="body1">{valueTaskTime}</Typography>
+                    <Typography variant="body1">{TaskTimeTmp}</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -762,6 +927,7 @@ export function Station() {
                   value={valueStationName ? valueStationName : ""}
                   size="small"
                   onChange={handleChangeValueStationName}
+                  inputProps={{ maxLength: 200 }}
                 />
               </Grid>
 
@@ -772,7 +938,6 @@ export function Station() {
                   onChange={(_, newValue) => {
                     handleChangeValueAutoCompletedropDownStationList(newValue);
                   }}
-                  disablePortal
                   id="combo-box-demo"
                   value={valueAutoCompletedropDownStationListAutoComplete}
                   options={dropDownStationListAutoComplete.map(
@@ -785,7 +950,7 @@ export function Station() {
                   )}
                   ListboxProps={{
                     style: {
-                      maxHeight: "150px",
+                      maxHeight: "10vw",
                     },
                   }}
                 />
@@ -793,6 +958,7 @@ export function Station() {
               <Grid item xs={6} md={6}>
                 {showSequence && (
                   <TextField
+                    type="number"
                     sx={{ width: "100%" }}
                     label="Sequence"
                     id="outlined-size-small"
@@ -800,6 +966,7 @@ export function Station() {
                     value={valueSequence ? valueSequence : ""}
                     size="small"
                     onChange={handleChangeValueSequence}
+                    inputProps={{ maxLength: 200 }}
                   />
                 )}
               </Grid>
@@ -824,12 +991,13 @@ export function Station() {
                 {showRefFirst && (
                   <TextField
                     sx={{ width: "100%" }}
-                    label="Ref. MFG (First Station)"
+                    label="Ref. MFG"
                     id="outlined-size-small"
                     defaultValue=""
                     value={valueRefMFG ? valueRefMFG : ""}
                     size="small"
                     onChange={handleChangeValueMFG}
+                    inputProps={{ maxLength: 200 }}
                   />
                 )}
               </Grid>
@@ -860,6 +1028,7 @@ export function Station() {
                     value={valueRefMFGFinish ? valueRefMFGFinish : ""}
                     size="small"
                     onChange={handleChangeValueMFGFinish}
+                    inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
               )}
@@ -905,6 +1074,7 @@ export function Station() {
                   size="small"
                   style={{ width: "100%" }}
                   onChange={handleChangeValueLineName}
+                  inputProps={{ maxLength: 200 }}
                 />
               </Grid>
 
@@ -916,7 +1086,13 @@ export function Station() {
                     );
                   }}
                   size="small"
-                  disablePortal
+                  onOpen={() => {
+                    setLoadingSL(true);
+                    fetchDataDropDownScheduledLine()
+                  }}
+                  onClose={() => setLoadingSL(false)}
+                  loading={loadingSL}
+
                   id="combo-box-demo"
                   value={valueAutoCompletedropDownScheduledLineList}
                   options={dropDownScheduledLineListAutoComplete.map(
@@ -924,13 +1100,27 @@ export function Station() {
                       dropDownScheduledLineListAutoComplete
                   )}
                   sx={{ width: "100%" }}
-                  getOptionLabel={(options: any) => `${options.name}`}
+                  getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
                   renderInput={(params) => (
-                    <TextField {...params} label="Schedule Line" />
+                    <TextField
+                      {...params}
+                      label="ScheduledLine"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingSL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
                   ListboxProps={{
                     style: {
-                      maxHeight: "150px",
+                      maxHeight: "10vw",
                     },
                   }}
                 />
@@ -944,6 +1134,7 @@ export function Station() {
                   size="small"
                   style={{ width: "100%" }}
                   onChange={handleChangeValueTaskTime}
+                  inputProps={{ maxLength: 200 }}
                 />
               </Grid>
 
@@ -988,6 +1179,7 @@ export function Station() {
                   value={valueStationName ? valueStationName : ""}
                   size="small"
                   onChange={handleChangeValueStationName}
+                  inputProps={{ maxLength: 200 }}
                 />
               </Grid>
 
@@ -997,7 +1189,6 @@ export function Station() {
                   onChange={(_, newValue) => {
                     handleChangeValueAutoCompletedropDownStationList(newValue);
                   }}
-                  disablePortal
                   size="small"
                   id="combo-box-demo"
                   value={valueAutoCompletedropDownStationListAutoComplete}
@@ -1026,6 +1217,7 @@ export function Station() {
                     value={valueSequence ? valueSequence : ""}
                     size="small"
                     onChange={handleChangeValueSequence}
+                    inputProps={{ maxLength: 200 }}
                   />
                 )}
               </Grid>
@@ -1050,12 +1242,13 @@ export function Station() {
                 {showRefFirst && (
                   <TextField
                     sx={{ width: "100%" }}
-                    label="Ref. MFG (First Station)"
+                    label="Ref. MFG"
                     id="outlined-size-small"
                     defaultValue=""
                     value={valueRefMFG ? valueRefMFG : ""}
                     size="small"
                     onChange={handleChangeValueMFG}
+                    inputProps={{ maxLength: 200 }}
                   />
                 )}
               </Grid>
@@ -1085,6 +1278,7 @@ export function Station() {
                     value={valueRefMFGFinish ? valueRefMFGFinish : ""}
                     size="small"
                     onChange={handleChangeValueMFGFinish}
+                    inputProps={{ maxLength: 200 }}
                   />
                 )}
               </Grid>

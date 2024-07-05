@@ -18,6 +18,7 @@ import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import {
   Backdrop,
   ButtonGroup,
+  CircularProgress,
   Fade,
   Grid,
   Paper,
@@ -72,8 +73,8 @@ export function MGDetail() {
     setDropDownModelListTable([]);
     setValueAutoCompleteModelList(null);
   };
-  const handleopenModalModelGroup = () => setOpenModalModelGroupEdit(true);
-  const handlecloseModalModelGroup = () => setOpenModalModelGroupEdit(false);
+
+
   const [expanded, setExpanded] = React.useState(true);
   const [dropDownModelListAutoComplete, setDropDownModelListAutoComplete] =
     useState([]);
@@ -84,6 +85,20 @@ export function MGDetail() {
     useState([]);
   const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] =
     React.useState(Object);
+
+  const [dropDownScheduledLineAutoComplete, setDropDownScheduledLineAutoComplete] = useState([])
+  const [valueAutoCompleteDropDownScheduledLine, setValueAutoCompleteLinedropDownScheduledLine] = React.useState(null);
+  const [dropDownLineAutoComplete, setDropDownLineAutoComplete] = useState([])
+  const [valueAutoCompleteDropDownLine, setValueAutoCompleteDropDownLine] = React.useState(null);
+  const [modelGroupDetail, setModelGroupDetail] = React.useState(Object);
+  const [nameTmp, setNameTmp] = React.useState(null);
+  const [LineTmp, setLineTmp] = React.useState(null);
+  const [nameTmp2, setNameTmp2] = React.useState(null);
+  const [LineTmp2, setLineTmp2] = React.useState(null);
+  const [loadingSL, setLoadingSL] = React.useState(false);
+  const [loadingLine, setLoadingLine] = React.useState(false);
+
+
 
   useEffect(() => {
     fetchData();
@@ -106,9 +121,22 @@ export function MGDetail() {
               setValueModelGroupNameEdit(
                 response.data.data.modelGroupDetail["name"]
               );
+              setNameTmp(response.data.data.modelGroupDetail["name"])
+              setLineTmp(response.data.data.dropDownLineList.filter(
+                (item: any) =>
+                  item["lineId"] ===
+                  response.data.data.modelGroupDetail["lineId"]
+              )[0]['name'])
+              setNameTmp2(response.data.data.modelGroupDetail["name"])
+              setLineTmp2(response.data.data.dropDownLineList.filter(
+                (item: any) =>
+                  item["lineId"] ===
+                  response.data.data.modelGroupDetail["lineId"]
+              )[0]['name'])
               setDropDownLineListAutoComplete(
                 response.data.data.dropDownLineList
               );
+              
               setValueDropDownLineListAutoComplete(
                 response.data.data.dropDownLineList.filter(
                   (item: any) =>
@@ -116,6 +144,7 @@ export function MGDetail() {
                     response.data.data.modelGroupDetail["lineId"]
                 )[0]
               );
+              setModelGroupDetail(response.data.data.modelGroupDetail)
 
               //Set Detail
               setDropDownModelListAutoComplete(
@@ -136,11 +165,19 @@ export function MGDetail() {
             toastAlert("error", error.response.data.message, 5000);
           }
         );
-    } catch (error : any) {
+    } catch (error: any) {
       toastAlert("error", error, 5000);
     }
   }
 
+  async function handlecloseModalModelGroup() {
+    setOpenModalModelGroupEdit(false);
+    setValueModelGroupNameEdit(nameTmp2)
+    setNameTmp(nameTmp2)
+    setLineTmp(LineTmp2)
+    fetchDataDropDownScheduledLine()
+    fetchDataDropDownLine(modelGroupDetail['scheduledLineCode'])
+  }
   async function handleExpansion() {
     setExpanded((prevExpanded) => !prevExpanded);
   }
@@ -148,10 +185,12 @@ export function MGDetail() {
   async function handleChangeValueModelGroupNameEdit(e: any) {
     e.preventDefault();
     setValueModelGroupNameEdit(e.target.value);
+    setNameTmp(e.target.value)
   }
 
   async function handleChangeValueDropDownLineListAutoComplete(e: any) {
-    setValueDropDownLineListAutoComplete(e);
+    setValueAutoCompleteDropDownLine(e);
+    setLineTmp(e['label'])
   }
 
   async function saveHeader() {
@@ -160,13 +199,14 @@ export function MGDetail() {
         .put(`ModelGroup/UpdateModelGroup`, {
           modelGroupId: valueModelGroupId,
           name: valueModelGroupNameEdit,
-          lineId: valueAutoCompleteLineDropdown["lineId"],
+          lineId: valueAutoCompleteDropDownLine ? valueAutoCompleteDropDownLine["value"] : null,
+          scheduledLineCode: valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null
         })
         .then(
           async (response) => {
             if (response.data.status == "success") {
               await fetchData();
-              toastAlert("success", "Edit Model Group Success!", 5000);
+              toastAlert("success", "Edit ModelGroup Success!", 5000);
               setOpenModalModelGroupEdit(false);
             } else {
               toastAlert("error", "Error Call Api UpdateModelGroup!", 5000);
@@ -176,7 +216,7 @@ export function MGDetail() {
             toastAlert("error", error.response.data.message, 5000);
           }
         );
-    } catch (error : any) {
+    } catch (error: any) {
       toastAlert("error", error, 5000);
     }
   }
@@ -193,7 +233,7 @@ export function MGDetail() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-           await instanceAxios
+          await instanceAxios
             .put(
               `/ModelGroupMapping/RemoveModelGroupMapping?modelGroupMappingId=${id}`
             )
@@ -214,7 +254,7 @@ export function MGDetail() {
                 toastAlert("error", error.response.data.message, 5000);
               }
             );
-        } catch (error : any) {
+        } catch (error: any) {
           toastAlert("error", error, 5000);
         }
       }
@@ -223,7 +263,7 @@ export function MGDetail() {
 
   async function submitModelGroupDetail() {
     try {
-       await instanceAxios
+      await instanceAxios
         .post(`/ModelGroupMapping/CreateItemByModelCodeList`, {
           modelGroupId: valueModelGroupId,
           modelCode: dropDownModelListTable.map(
@@ -248,7 +288,7 @@ export function MGDetail() {
             toastAlert("error", error.response.data.message, 5000);
           }
         );
-    } catch (error : any) {
+    } catch (error: any) {
       toastAlert("error", error, 5000);
     }
   }
@@ -282,6 +322,75 @@ export function MGDetail() {
     );
     setValueAutoCompleteModelList(null);
   }
+
+  async function fetchDataDropDownScheduledLine() {
+    try {
+      await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
+        if (response.data.status == "success") {
+          setDropDownScheduledLineAutoComplete(response.data.data)
+          setValueAutoCompleteLinedropDownScheduledLine(
+            response.data.data.filter(
+              (item: any) =>
+                item["scheduledLineCode"] ===
+                modelGroupDetail['scheduledLineCode']
+            )[0]
+          );
+          setLoadingSL(false)
+        }
+        else {
+          setLoadingSL(false)
+          toastAlert("error", "Error Call Api GetScheduledLine!", 3000)
+        }
+      }, (error) => {
+        setLoadingSL(false)
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
+  async function fetchDataDropDownLine(params: any) {
+    try {
+      await instanceAxios.get(`/Line/GetLineByScheduledLineCode?scheduledLineCode=${params}`).then(async (response) => {
+        if (response.data.status == "success") {
+          setDropDownLineAutoComplete(response.data.data)
+          setValueAutoCompleteDropDownLine(
+            response.data.data.filter(
+              (item: any) =>
+                item["value"] ===
+                modelGroupDetail['lineId']
+            )[0]
+          );
+          setLoadingLine(false)
+        }
+        else {
+          setLoadingLine(false)
+          toastAlert("error", "Error Call Api GetLineByScheduledLineCode!", 3000)
+        }
+      }, (error) => {
+        setLoadingLine(false)
+        toastAlert("error", error.response.data.message, 3000)
+      })
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
+
+
+
+  async function handleChangeValueDropDownScheduledLineAutoComplete(e: any) {
+    setValueAutoCompleteLinedropDownScheduledLine(e)
+    fetchDataDropDownLine(e['scheduledLineCode'])
+  }
+
+  async function handleopenModalModelGroup() {
+    fetchDataDropDownScheduledLine()
+    fetchDataDropDownLine(modelGroupDetail['scheduledLineCode'])
+    setOpenModalModelGroupEdit(true);
+  }
+
 
   const columns: GridColDef[] = [
     {
@@ -380,7 +489,7 @@ export function MGDetail() {
                       Model Group Name:
                     </Typography>
                     <Typography variant="body1">
-                      {valueModelGroupNameEdit}
+                      {nameTmp}
                     </Typography>
                   </Box>
                 </Grid>
@@ -395,7 +504,7 @@ export function MGDetail() {
                       Line:
                     </Typography>
                     <Typography variant="body1">
-                      {valueAutoCompleteLineDropdown.name}
+                      {LineTmp}
                     </Typography>
                   </Box>
                 </Grid>
@@ -478,7 +587,6 @@ export function MGDetail() {
                   onChange={(_, newValue) => {
                     handleChangeValueDropDownModelListAutoComplete(newValue);
                   }}
-                  disablePortal
                   id="combo-box-demo"
                   value={valueAutoCompleteModelList}
                   options={dropDownModelListAutoComplete.map(
@@ -578,28 +686,101 @@ export function MGDetail() {
                   size="small"
                   style={{ width: "100%" }}
                   onChange={handleChangeValueModelGroupNameEdit}
+                  inputProps={{ maxLength: 200 }}
+                />
+              </Grid>
+              <Grid item xs={6} md={12}>
+                <Autocomplete
+                  sx={{ width: "100%" }}
+                  size="small"
+                  onOpen={() => {
+                    setLoadingSL(true);
+                    fetchDataDropDownScheduledLine()
+                  }}
+                  onClose={() => setLoadingSL(false)}
+                  loading={loadingSL}
+                  onChange={(_, newValue) => {
+                    handleChangeValueDropDownScheduledLineAutoComplete(newValue);
+                  }}
+                  id="combo-box-demo"
+                  value={valueAutoCompleteDropDownScheduledLine}
+                  options={dropDownScheduledLineAutoComplete.map(
+                    (dropDownScheduledLineAutoComplete) =>
+                      dropDownScheduledLineAutoComplete
+                  )}
+                  getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="ScheduledLine"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingSL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
+                  )}
+                  ListboxProps={{
+                    style: {
+                      maxHeight: "10vw",
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12}>
                 <Autocomplete
+                  onOpen={() => {
+                    setLoadingLine(true);
+                    fetchDataDropDownLine(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+                  }}
+                  onClose={() => setLoadingLine(false)}
+                  loading={loadingLine}
                   onChange={(_, newValue) => {
                     handleChangeValueDropDownLineListAutoComplete(newValue);
                   }}
-                  disablePortal
                   id="combo-box-demo"
-                  value={valueAutoCompleteLineDropdown}
-                  options={dropDownLineListAutoComplete.map(
-                    (dropDownLineListAutoComplete) =>
-                      dropDownLineListAutoComplete
+                  value={valueAutoCompleteDropDownLine}
+                  options={dropDownLineAutoComplete.map(
+                    (dropDownLineAutoComplete) =>
+                      dropDownLineAutoComplete
                   )}
                   sx={{ width: "100%" }}
                   size="small"
-                  getOptionLabel={(options: any) => `${options.name}`}
+                  getOptionLabel={(options: any) => `${options.label}`}
                   renderInput={(params) => (
-                    <TextField {...params} label="Line Name" />
+                    <TextField
+                      {...params}
+                      label="Line Name"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingLine ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
+                  ListboxProps={{
+                    style: {
+                      maxHeight: "10vw",
+                    },
+                  }}
                 />
               </Grid>
+
+
+
+
               <Grid item xs={12}>
                 <Grid item xs={6} md={12} container justifyContent="flex-end">
                   <Box display="flex" gap={2}>
@@ -727,9 +908,8 @@ const ModalContent = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
   borderRadius: 8,
   border: `1px solid ${theme.palette.mode === "dark" ? "#666" : "#ccc"}`,
-  boxShadow: `0 4px 12px ${
-    theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
-  }`,
+  boxShadow: `0 4px 12px ${theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
+    }`,
   padding: 24,
   color: theme.palette.mode === "dark" ? "#fff" : "#000",
   maxWidth: "90%",

@@ -111,13 +111,13 @@ const columns: GridColDef[] = [
   },
   {
     field: "scheduledLineCode",
-    headerName: "ScheduleLineCode",
+    headerName: "Schedule Line Code",
     width: 200,
 
   },
   {
     field: "name",
-    headerName: "ScheduleLineName",
+    headerName: "Schedule Line Name",
     width: 200,
   },
   {

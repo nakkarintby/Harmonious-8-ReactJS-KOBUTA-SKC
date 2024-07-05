@@ -9,6 +9,7 @@ import {
   Backdrop,
   Box,
   Button,
+  CircularProgress,
   Grid,
   TextField,
 } from "@mui/material";
@@ -33,7 +34,7 @@ export function Line() {
   };
   const [data, setData] = useState([]);
   const [openModalCreateLine, setOpenModalCreateLine] = React.useState(false);
-  const handleOpenModalCreateLine = () => setOpenModalCreateLine(true);
+
   const handleCloseModalCreateLine = () => setOpenModalCreateLine(false);
   const [valueLineName, setValueLineName] = React.useState("");
   const [
@@ -43,9 +44,9 @@ export function Line() {
   const [
     valueAutoCompletedropDownScheduledLineList,
     setValueAutoCompletedropDownScheduledLineList,
-  ] = React.useState(Object);
+  ] = React.useState(null);
   const [valueTaskTime, setValueTaskTime] = React.useState("");
- 
+  const [loadingSL, setLoadingSL] = React.useState(false);
 
   useEffect(() => {
     fetchData();
@@ -53,7 +54,7 @@ export function Line() {
 
   async function fetchData() {
     try {
-       await instanceAxios
+      await instanceAxios
         .get(`/Line/GetLine?page=1&perpage=1000`)
         .then(
           async (response) => {
@@ -72,18 +73,18 @@ export function Line() {
               setDropDownScheduledLineListAutoComplete(
                 response.data.data.dropdownScheduledLineList
               );
-              setValueAutoCompletedropDownScheduledLineList(
-                response.data.data.dropdownScheduledLineList[0]
-              );
+              setLoadingSL(false);
             } else {
+              setLoadingSL(false);
               toastAlert("error", "Error Call Api GetLine!", 5000);
             }
           },
           (error) => {
+            setLoadingSL(false);
             toastAlert("error", error.response.data.message, 5000);
           }
         );
-    } catch (error : any) {
+    } catch (error: any) {
       toastAlert("error", error, 5000);
     }
   }
@@ -104,31 +105,50 @@ export function Line() {
     setValueTaskTime(e.target.value);
   }
 
+
+  async function validateLine() {
+    if (valueLineName == null || valueLineName == '') {
+      toastAlert("error", 'Please Enter Line Name', 3000)
+      return false;
+    }
+    if (valueAutoCompletedropDownScheduledLineList == null) {
+      toastAlert("error", 'Please Enter ScheduledLine', 3000)
+      return false;
+    }
+    if (valueTaskTime == null || valueTaskTime == '') {
+      toastAlert("error", 'Please Enter TaskTime', 3000)
+      return false;
+    }
+    return true;
+  }
+
   async function createLine() {
-    try {
-      await instanceAxios
-        .post(`/Line/CreateLine`, {
-          name: valueLineName,
-          scheduledLineCode:
-            valueAutoCompletedropDownScheduledLineList["scheduledLineCode"],
-          taktTime: valueTaskTime,
-        })
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
-              await fetchData();
-              handleCloseModalCreateLine();
-              toastAlert("success", "Create Line Success!", 5000);
-            } else {
-              toastAlert("error", "Error Call Api CreateLine!", 5000);
+    if (await validateLine()) {
+      try {
+        await instanceAxios
+          .post(`/Line/CreateLine`, {
+            name: valueLineName,
+            scheduledLineCode:
+              valueAutoCompletedropDownScheduledLineList ? valueAutoCompletedropDownScheduledLineList["scheduledLineCode"] : null,
+            taktTime: valueTaskTime,
+          })
+          .then(
+            async (response) => {
+              if (response.data.status == "success") {
+                await fetchData();
+                handleCloseModalCreateLine();
+                toastAlert("success", "Create Line Success!", 5000);
+              } else {
+                toastAlert("error", "Error Call Api CreateLine!", 5000);
+              }
+            },
+            (error) => {
+              toastAlert("error", error.response.data.message, 5000);
             }
-          },
-          (error) => {
-            toastAlert("error", error.response.data.message, 5000);
-          }
-        );
-    } catch (error) {
-      console.log("error", error);
+          );
+      } catch (error) {
+        console.log("error", error);
+      }
     }
   }
 
@@ -144,7 +164,7 @@ export function Line() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-           await instanceAxios
+          await instanceAxios
             .put(`/Line/RemoveLine?lineId=${id}`)
             .then(
               async (response) => {
@@ -165,6 +185,14 @@ export function Line() {
       }
     });
   }
+
+  async function handleOpenModalCreateLine() {
+    setValueLineName('')
+    setValueAutoCompletedropDownScheduledLineList(null)
+    setValueTaskTime('')
+    setOpenModalCreateLine(true)
+  }
+
 
   const columns: GridColDef[] = [
     {
@@ -195,17 +223,17 @@ export function Line() {
     },
     {
       field: "name",
-      headerName: "LineName",
+      headerName: "Line Name",
       width: 140,
     },
     {
       field: "scheduledLineCode",
-      headerName: "scheduledLineCode",
+      headerName: "Scheduled Line Code",
       width: 200,
     },
     {
       field: "taktTime",
-      headerName: "taktTime",
+      headerName: "takt Time",
       width: 140,
     },
     {
@@ -285,7 +313,7 @@ export function Line() {
           disableBackdropClick
           disableEscapeKeyDown
         >
-          <ModalContent sx={{ width: "30vw"}}>
+          <ModalContent sx={{ width: "30vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Line
             </h2>
@@ -299,36 +327,55 @@ export function Line() {
                     defaultValue=""
                     size="small"
                     onChange={handleChangeValueLineNameCreate}
-                   
+                    inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
                 <Grid item xs={12} md={12}>
                   <Autocomplete
                     sx={{ width: "100%" }}
                     size="small"
+                    onOpen={() => {
+                      setLoadingSL(true);
+                      fetchData()
+                    }}
+                    onClose={() => setLoadingSL(false)}
+                    loading={loadingSL}
                     onChange={(_, newValue) => {
                       handleChangeValueAutoCompletedropDownScheduledLineList(
                         newValue
                       );
                     }}
-                    disablePortal
                     id="combo-box-demo"
                     value={valueAutoCompletedropDownScheduledLineList}
                     options={dropDownScheduledLineListAutoComplete.map(
                       (dropDownScheduledLineListAutoComplete) =>
                         dropDownScheduledLineListAutoComplete
                     )}
-                    getOptionLabel={(options: any) => `${options.name}`}
+                    getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
                     renderInput={(params) => (
-                      <TextField {...params} label="Schedule Line" />
+                      <TextField
+                        {...params}
+                        label="ScheduledLine"
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <React.Fragment>
+                              {loadingSL ? (
+                                <CircularProgress color="inherit" size={20} />
+                              ) : null}
+                              {params.InputProps.endAdornment}
+                            </React.Fragment>
+                          ),
+                        }}
+                      />
                     )}
                     ListboxProps={{
                       style: {
-                        maxHeight: "100px",
+                        maxHeight: "10vw",
                       },
                     }}
                   />
-                  
+
                 </Grid>
                 <Grid item xs={12} md={12}>
                   <TextField
@@ -336,8 +383,9 @@ export function Line() {
                     label="Task Time"
                     id="outlined-size-small"
                     defaultValue=""
-                     size="small"
+                    size="small"
                     onChange={handleChangeValueTaskTime}
+                    inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
 

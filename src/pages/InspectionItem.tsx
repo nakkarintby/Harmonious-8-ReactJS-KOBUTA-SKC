@@ -8,16 +8,22 @@ import { loginRequest } from "../authProviders/authProvider";
 import CircularProgress from "@mui/material/CircularProgress";
 import * as React from "react";
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Autocomplete,
   Backdrop,
   Box,
   Button,
+  ButtonGroup,
   Grid,
   Typography,
 } from "@mui/material";
+import MuiAccordion, {
+  AccordionProps,
+} from "@mui/material/Accordion";
+import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
+import MuiAccordionSummary, {
+  AccordionSummaryProps,
+} from "@mui/material/AccordionSummary";
+import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
@@ -41,6 +47,24 @@ async function GetInsGroupAPI(InsId: number) {
       .get(`/InspectionGroup/GetInspectionGroupById?inspectionGroupId=${InsId}`)
       .then(async function (response: any) {
         dataApi = response.data;
+      })
+      .catch(function (error: any) {
+        toastAlert("error", error, 5000);
+      });
+  } catch (err : any) {
+    toastAlert("error", err, 5000);
+  }
+  return dataApi;
+}
+
+async function ActiveInsGroupAPI(InsId: number) {
+  let dataApi: any;
+  try {
+    await instanceAxios
+      .get(`/InspectionGroup/UpdateStatus?inspectionGroupId=${InsId}`)
+      .then(async function (response: any) {
+        dataApi = response.data;
+        toastAlert(response.data.status, response.data.message, 5000);
       })
       .catch(function (error: any) {
         toastAlert("error", error, 5000);
@@ -183,6 +207,8 @@ export function InspectionItem() {
   const [loadingModelGroupDDL, setLoadingModelGroupDDL] = useState(false);
 
   const insGroupId = data.id;
+  const [activeIns , setActiveIns] = useState<Boolean>(data.status === "Active")
+  const [activeInsDisplay , setActiveInsDisplay] = useState<string>(data.status)
 
   function GetModelGroupDDL(LineId: number) {
     GetModelGroupAPI().then((x) => {
@@ -290,7 +316,8 @@ export function InspectionItem() {
         setModelGroupDisplay(x.data.modelGroupName);
         setTaktTimeDisplay(x.data.taktTime);
         setStationDisplay(x.data.stationName);
-
+        setActiveIns(x.data.status === "Active")
+        setActiveInsDisplay(x.data.status)
         setInsGroupName(x.data.name);
         setSelectedLine(x.data.lineId);
         setSelectedScheduledLine(x.data.scheduledLineCode);
@@ -301,6 +328,11 @@ export function InspectionItem() {
       dataInsGroup = x;
     });
     return dataInsGroup;
+  }
+
+  async function ActiveInsGroupPage(insId: number) {
+    await ActiveInsGroupAPI(insId);
+    InsGroupPage();
   }
 
   React.useEffect(() => {
@@ -328,122 +360,136 @@ export function InspectionItem() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="inspectiongroups"
-                prm3="inspectionitem"
+              prm1="Master Data"
+              prm2="Inspection Groups"
+              prm3="Inspection Item"
               />
             </Box>
           </Grid>
         </Grid>
         <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Accordion defaultExpanded>
+          <Grid item xs={12} md={12}>
+            <Accordion defaultExpanded >
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1-content"
                 id="panel1-header"
+                sx={{
+                  backgroundColor: "rgba(0, 0, 0, .03)",
+                  flexDirection: "row-reverse",
+                  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+                    transform: "rotate(90deg)",
+                  },
+                }}
               >
-                <Typography sx={{ flexShrink: 0 }}>InspectionGroup</Typography>
+                <Typography sx={{ flexShrink: 0 }}>Inspection Group</Typography>
                 <Typography
-                  sx={{ color: "text.secondary", marginLeft: "auto" }}
+                  sx={{
+                    color:
+                      data.status === "Active" ? "green" : "text.secondary",
+                    marginLeft: "auto",
+                  }}
                 >
-                  Version: {data.version}
+                  <b>{activeInsDisplay}</b>
+                </Typography>
+                <Typography
+                  sx={{
+                    color: "text.secondary",
+                  }}
+                >
+                  <b>:</b>Version:<b>{data.version}</b>
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} md={12} container justifyContent="flex-end">
-                    <Box>
-                      <Button variant="outlined" onClick={handleOpenInsGroup}>
-                        EDIT
-                      </Button>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+              <AccordionDetails sx={{
+                borderTop: "1px solid rgba(0, 0, 0, .125)",
+              }}>
+                <Grid container >
+                  <Grid item xs={12} md={5}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
                         InspectionGroup Name:
                       </Typography>
-                      <Typography variant="body1">
+                      <Typography variant="body1" ml={1}>
                         {insGroupNameDisplay}
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+                  <Grid item xs={12} md={5}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
                         Scheduled Line:
                       </Typography>
-                      <Typography variant="body1">
-                        {`${scheduledLineDisplay}`}
+                      <Typography variant="body1" ml={1}>
+                        {scheduledLineDisplay}
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+
+                  <Grid item xs={12} md={2} container justifyContent="flex-end">
+                    {!activeIns && (
+                      <ButtonGroup variant="contained" aria-label="btn group">
+                        <Button
+                          variant="contained"
+                          onClick={() => ActiveInsGroupPage(insGroupId)}
+                        >
+                          Active
+                        </Button>
+                        <Button variant="outlined" onClick={handleOpenInsGroup}>
+                          EDIT
+                        </Button>
+                      </ButtonGroup>
+                    )}
+                  </Grid>
+
+                  <Grid item xs={12} md={5}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
                         Line:
                       </Typography>
-                      <Typography variant="body1">{lineDisplay}</Typography>
+                      <Typography variant="body1" ml={1}>
+                        {lineDisplay}
+                      </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+
+                  <Grid item xs={12} md={7}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
                         Station:
                       </Typography>
-                      <Typography variant="body1">{stationDisplay}</Typography>
+                      <Typography variant="body1" ml={1}>
+                        {stationDisplay}
+                      </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+
+                  <Grid item xs={12} md={5}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
                         Model Group:
                       </Typography>
-                      <Typography variant="body1">
+                      <Typography variant="body1" ml={1}>
                         {modelGroupDisplay}
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="center"
-                    >
+
+                  <Grid item xs={12} md={7}>
+                    <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
-                        Time:
+                       Takt Time:
                       </Typography>
-                      <Typography variant="body1">{taktTimeDisplay}</Typography>
+                      <Typography variant="body1" ml={1}>
+                        {taktTimeDisplay}
+                      </Typography>
                     </Box>
                   </Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>
-          </Grid>
-          <Grid item xs={12} md={12}>
             <InspectionItemData
               dataGroupId={insGroupId}
+              activeIns={activeIns}
               OpenBackDrop={setOpenBackDrop}
             />
           </Grid>
@@ -610,7 +656,9 @@ export function InspectionItem() {
                   }}
                   options={stationDDL}
                   loading={loadingStationDDL}
-                  onChange={(_, value) => setSelectedStation(Number(value?.value))}
+                  onChange={(_, value) =>
+                    setSelectedStation(Number(value?.value))
+                  }
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -649,7 +697,12 @@ export function InspectionItem() {
               </Grid>
               <Grid item xs={6} md={12} container justifyContent="flex-end">
                 <Box display="flex" gap={2}>
-                  <Button variant="outlined" onClick={()=>{handleCloseInsGroup()}}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      handleCloseInsGroup();
+                    }}
+                  >
                     Close
                   </Button>
                   <Button
@@ -722,3 +775,39 @@ const ModalContent = styled("div")(
     }
   `
 );
+
+const Accordion = styled((props: AccordionProps) => (
+  <MuiAccordion disableGutters elevation={0} square {...props} />
+))(({ theme }) => ({
+  border: `1px solid ${theme.palette.divider}`,
+  "&:not(:last-child)": {
+    borderBottom: 0,
+  },
+  "&::before": {
+    display: "none",
+  },
+}));
+
+const AccordionSummary = styled((props: AccordionSummaryProps) => (
+  <MuiAccordionSummary
+    expandIcon={<ArrowForwardIosSharpIcon sx={{ fontSize: "0.9rem" }} />}
+    {...props}
+  />
+))(({ theme }) => ({
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, .05)"
+      : "rgba(0, 0, 0, .03)",
+  flexDirection: "row-reverse",
+  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+    transform: "rotate(90deg)",
+  },
+  "& .MuiAccordionSummary-content": {
+    marginLeft: theme.spacing(1),
+  },
+}));
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
+  padding: theme.spacing(2),
+  borderTop: "1px solid rgba(0, 0, 0, .125)",
+}));

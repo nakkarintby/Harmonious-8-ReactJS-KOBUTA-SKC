@@ -278,6 +278,7 @@ export function InspectionGroup() {
                   onChange={(e) => {
                     setInsGroupName(e.target.value);
                   }}
+                  inputProps={{ maxLength: 200 }}
                   fullWidth
                 />
               </Grid>
@@ -433,6 +434,7 @@ export function InspectionGroup() {
                   defaultValue=""
                   size="small"
                   fullWidth
+                  inputProps={{ maxLength: 200 }}
                   onChange={(e) => {
                     setSelectedTrackTime(e.target.value);
                   }}
@@ -471,7 +473,7 @@ export function InspectionGroup() {
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
 

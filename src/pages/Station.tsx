@@ -1,21 +1,19 @@
-
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { Loading } from "../ui-components/Loading";
-import {
-  InteractionType,
-} from "@azure/msal-browser";
+import { InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import {
   Autocomplete,
   Backdrop,
   Box,
   Button,
+  ButtonGroup,
   CircularProgress,
   Fade,
   Grid,
-  Switch
+  Switch,
 } from "@mui/material";
 import * as React from "react";
 import { styled, css } from "@mui/system";
@@ -33,18 +31,66 @@ import MuiAccordionSummary, {
 } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import SaveIcon from "@mui/icons-material/Save";
 import Swal from "sweetalert2";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import StyledDataGrid from "../styles/styledDataGrid";
+import moment from "moment";
+
+interface StationTypeModel {
+  text: string;
+  code: string;
+}
+
+interface DDLModel {
+  label: string;
+  value: string;
+}
+
+interface StationModel {
+  stationId: number;
+  name: string;
+  lineId: number;
+  sequence: number;
+  type: number;
+  typeName: string;
+  isFirstStation: boolean;
+  refMFG: string;
+  refStation: string;
+  isFinishedStation: boolean;
+  refFinishedMFG: string;
+  scheduledLindCode: string;
+  nextSequence: number;
+  isDeleted: boolean;
+  createdBy: string;
+  createdOn: string;
+  modifiedBy: string;
+  modifiedOn: string;
+}
+
+async function GetScheduledLineAPI() {
+  let dataApi: any;
+  try {
+    await instanceAxios
+      .get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`)
+      .then(async function (response: any) {
+        dataApi = response.data;
+      })
+      .catch(function (error: any) {
+        toastAlert("error", error, 5000);
+      });
+  } catch (err: any) {
+    toastAlert("error", err, 5000);
+  }
+  return dataApi;
+}
 
 export function Station() {
   const authRequest = {
@@ -57,23 +103,24 @@ export function Station() {
   const [valueScheduledLineCode, setValueScheduledLineCode] =
     React.useState(null);
   const [valueLineName, setValueLineName] = React.useState(null);
-  const [valueTaskTime, setValueTaskTime] = React.useState(null);
-  const [
-    dropDownScheduledLineListAutoComplete,
-    setDropDownScheduledLineListAutoComplete,
-  ] = useState([]);
-  const [
-    valueAutoCompletedropDownScheduledLineList,
-    setValueAutoCompletedropDownScheduledLineList,
-  ] = React.useState(Object);
-  const [stationList, setStationList] = useState([]);
+  const [valueTaktTime, setValueTaskTime] = React.useState(null);
+  const [displayLineName, setDisplayLineName] = React.useState("");
+  const [displayTaktTime, setDisplayTaskTime] = React.useState("");
+  const [scheduledLineDisplay, setScheduledLineDisplay] =
+    React.useState<string>("");
+  const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
+    []
+  );
+  const [stationList, setStationList] = useState<StationModel[]>([]);
   const [openModalCreate, setopenModalCreate] = React.useState(false);
   const handleopenModalCreate = () => setopenModalCreate(true);
   const handlecloseModalCreate = () => setopenModalCreate(false);
   const [openModalEdit, setopenModalEdit] = React.useState(false);
   const [openModalLineEdit, setopenModalLineEdit] = React.useState(false);
-  const handleopenModalLineEdit = () => setopenModalLineEdit(true);
-
+  const handleopenModalLineEdit = async () => {setopenModalLineEdit(true)
+    setDisalbedEdit(false);
+    await fetchDataHeader();
+  };
   const handleopenModalEdit = () => setopenModalEdit(true);
   const handlecloseModalEdit = () => setopenModalEdit(false);
   const [valueStationName, setValueStationName] = React.useState(null);
@@ -87,7 +134,8 @@ export function Station() {
   const [valueRefMFG, setValueRefMFG] = React.useState(null);
   const [valueRefMFGFinish, setValueRefMFGFinish] = React.useState(null);
   const [valueStationId, setValueStationId] = React.useState(null);
-
+  const [selectedScheduledLine, setSelectedScheduledLine] =
+    React.useState<string>("");
   const [showSequence, setShowSequence] = React.useState(false);
   const [showFirstStationSwitch, setShowFirstStationSwitch] =
     React.useState(false);
@@ -99,100 +147,78 @@ export function Station() {
     React.useState(false);
   const [ischeckedFinishStation, setIscheckedFinishStation] =
     React.useState(false);
-  const [loadingSL, setLoadingSL] = React.useState(false);
-  const [LineTmp, setLineTmp] = React.useState(null);
-  const [LineTmp2, setLineTmp2] = React.useState(null);
-  const [SLTmp, setSLTmp] = React.useState(null);
-  const [SLTmp2, setSLTmp2] = React.useState(null);
-  const [TaskTimeTmp, setTaskTimeTmp] = React.useState(null);
-  const [TaskTimeTmp2, setTaskTimeTmp2] = React.useState(null);
+  const [stationTypeList, setStationTypeList] = React.useState<
+    StationTypeModel[]
+  >([]);
+  const [disalbedEdit, setDisalbedEdit] = React.useState<boolean>(false);
+  const [disalbedSwitchFirstStation, setDisalbedSwitchFirstStation] =
+    React.useState<boolean>(false);
+  const [disalbedSwitchFinishStation, setDisalbedSwitchFinishStation] =
+    React.useState<boolean>(false);
+  const [disalbedRefMFG, setDisalbedRefMFG] = React.useState<boolean>(false);
+  const [disalbedRefFinish, setDisalbedRefFinish] =
+    React.useState<boolean>(false);
+  const [disalbedSeq, setDisalbedSeq] = React.useState<boolean>(false);
+  const [loadingDDL, setLoadingDDL] = React.useState(false);
 
+  const [typeDDL, setTypeDDL] = React.useState<number>(0);
+  useEffect(() => {
+    // Check if all required fields have values
+    setDisalbedEdit(
+      valueLineName === null ||
+        valueLineName === "" ||
+        selectedScheduledLine === null ||
+        selectedScheduledLine === "" ||
+        valueTaktTime === null ||
+        valueTaktTime === ""
+    );
+  }, [valueLineName, selectedScheduledLine, valueTaktTime]);
 
   useEffect(() => {
-    fetchDataHeader();
-    fetchDataDetail();
-    fetchDataDropDownStationListAutoComplete();
+    const FetchPage = async () => {
+      await fetchDataDropDownStationListAutoComplete();
+      await fetchDataHeader();
+    };
+    FetchPage();
   }, []);
 
+  useEffect(() => {
+    fetchDataDetail();
+  }, [stationTypeList]);
+
   async function fetchDataHeader() {
+    setOpenBackDrop(true);
     try {
       await instanceAxios
-        .get(`/Line/GetLine?page=1&perpage=1000`)
+        .get(`/Line/GetLineById?lineId=${location.state.lineId}`)
         .then(
           async (response) => {
             if (response.data.status == "success") {
               //Set Header
               setValueLineId(location.state.lineId);
               setValueScheduledLineCode(location.state.scheduledLineCode);
-              setValueLineName(
-                response.data.data.lineList.filter(
-                  (item: any) => item["lineId"] === location.state.lineId
-                )[0]["name"]
+              setSelectedScheduledLine(location.state.scheduledLineCode)
+              setScheduledLineDisplay(
+                `${response.data.data.scheduledLineCode} : ${response.data.data.scheduledLineName}`
               );
-              setLineTmp(response.data.data.lineList.filter(
-                (item: any) => item["lineId"] === location.state.lineId
-              )[0]["name"])
-              setLineTmp2(response.data.data.lineList.filter(
-                (item: any) => item["lineId"] === location.state.lineId
-              )[0]["name"])
-
-              setValueTaskTime(
-                response.data.data.lineList.filter(
-                  (item: any) => item["lineId"] === location.state.lineId
-                )[0]["taktTime"]
-              );
-              setTaskTimeTmp(
-                response.data.data.lineList.filter(
-                  (item: any) => item["lineId"] === location.state.lineId
-                )[0]["taktTime"]
-              );
-              setTaskTimeTmp2(
-                response.data.data.lineList.filter(
-                  (item: any) => item["lineId"] === location.state.lineId
-                )[0]["taktTime"]
-              );
-
-
-              setDropDownScheduledLineListAutoComplete(
-                response.data.data.dropdownScheduledLineList
-              );
-
-              setValueAutoCompletedropDownScheduledLineList(
-                response.data.data.dropdownScheduledLineList.filter(
-                  (item: any) =>
-                    item["scheduledLineCode"] ===
-                    response.data.data.lineList.filter(
-                      (item: any) => item["lineId"] === location.state.lineId
-                    )[0]["scheduledLineCode"]
-                )[0]
-              );
-
-              setSLTmp(response.data.data.dropdownScheduledLineList.filter(
-                (item: any) =>
-                  item["scheduledLineCode"] ===
-                  response.data.data.lineList.filter(
-                    (item: any) => item["lineId"] === location.state.lineId
-                  )[0]["scheduledLineCode"]
-              )[0]['name'])
-
-              setSLTmp2(response.data.data.dropdownScheduledLineList.filter(
-                (item: any) =>
-                  item["scheduledLineCode"] ===
-                  response.data.data.lineList.filter(
-                    (item: any) => item["lineId"] === location.state.lineId
-                  )[0]["scheduledLineCode"]
-              )[0]['name'])
-
+              setValueLineName(response.data.data.name);
+              setDisplayLineName(response.data.data.name);
+              setValueTaskTime(response.data.data.taktTime);
+              setDisplayTaskTime(response.data.data.taktTime);
+              setOpenBackDrop(false);
             } else {
-              toastAlert("error", "Error Call Api GetLine!", 5000);
+              toastAlert("error", "Error call api", 5000);
+              setOpenBackDrop(false);
             }
           },
           (error) => {
             toastAlert("error", error.response.data.message, 5000);
+            setOpenBackDrop(false);
           }
         );
     } catch (error) {
       console.log("error", error);
+      setOpenBackDrop(false);
     }
   }
 
@@ -203,18 +229,41 @@ export function Station() {
         .then(
           async (response) => {
             if (response.data.status == "success") {
-              //Set Detail
-              setStationList(response.data.data);
+              const stationList: StationModel[] = response.data.data.map(
+                (item: any) => {
+                  const typeData = stationTypeList.find(
+                    (x) => x.code === item.type.toString()
+                  );
+                  return {
+                    ...item,
+                    typeName: typeData ? typeData.text : "",
+                    sequence: item.sequence === 0 ? "" : item.sequence,
+                    valueRefMFG:
+                      item.valueRefMFG === null ? "" : item.valueRefMFG,
+                    createdOn: item.createdOn
+                      ? moment(item.createdOn).format("DD-MM-YYYY hh:mm:ss")
+                      : "",
+                    modifiedOn: item.modifiedOn
+                      ? moment(item.modifiedOn).format("DD-MM-YYYY hh:mm:ss")
+                      : "",
+                  };
+                }
+              );
+              setStationList(stationList);
+              setOpenBackDrop(false);
             } else {
               toastAlert("error", "Error Call Api GetStationByLineId!", 5000);
+              setOpenBackDrop(false);
             }
           },
           (error) => {
             toastAlert("error", error.response.data.message, 5000);
+            setOpenBackDrop(false);
           }
         );
     } catch (error) {
       console.log("error", error);
+      setOpenBackDrop(false);
     }
   }
 
@@ -227,61 +276,32 @@ export function Station() {
 
     //fetch detail data
     try {
-      await instanceAxios
-        .get(`/Constant/GetConstantByGRP?grp=DD_STATION`)
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
-              setDropDownStationListAutoComplete(response.data.data);
-              setValueAutoCompletedropDownStationListAutoComplete(
-                response.data.data[0]
-              );
-            } else {
-              toastAlert("error", "Error Call Api GetConstantByGRP!", 5000);
-            }
-          },
-          (error) => {
-            toastAlert("error", error.response.data.message, 5000);
+      await instanceAxios.get(`/Constant/GetConstantByGRP?grp=DD_STATION`).then(
+        async (response) => {
+          if (response.data.status == "success") {
+            const stationTypeList: StationTypeModel[] = response.data.data.map(
+              (item: any) => ({
+                code: item.code,
+                text: item.text,
+              })
+            );
+            setStationTypeList(stationTypeList);
+            setDropDownStationListAutoComplete(response.data.data);
+            setValueAutoCompletedropDownStationListAutoComplete(
+              response.data.data[0]
+            );
+          } else {
+            toastAlert("error", "Error Call Api GetConstantByGRP!", 5000);
           }
-        );
+        },
+        (error) => {
+          toastAlert("error", error.response.data.message, 5000);
+        }
+      );
     } catch (error) {
       console.log("error", error);
     }
   }
-
-  async function fetchDataDropDownScheduledLine() {
-
-    try {
-      await instanceAxios.get(`/Line/GetLine?page=1&perpage=1000`).then(async (response) => {
-        if (response.data.status == "success") {
-          setDropDownScheduledLineListAutoComplete(
-            response.data.data.dropdownScheduledLineList
-          );
-          setValueAutoCompletedropDownScheduledLineList(
-            response.data.data.dropdownScheduledLineList.filter(
-              (item: any) =>
-                item["scheduledLineCode"] ===
-                response.data.data.lineList.filter(
-                  (item: any) => item["lineId"] === location.state.lineId
-                )[0]["scheduledLineCode"]
-            )[0]
-          );
-          setLoadingSL(false)
-        }
-        else {
-          setLoadingSL(false)
-          toastAlert("error", "Error Call Api GetLine!", 3000)
-        }
-      }, (error) => {
-        setLoadingSL(false)
-        toastAlert("error", error.response.data.message, 3000)
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-
 
   async function updateLine() {
     try {
@@ -289,19 +309,18 @@ export function Station() {
         .put(`/Line/UpdateLine`, {
           lineId: valueLineId,
           name: valueLineName,
-          scheduledLineCode:
-            valueAutoCompletedropDownScheduledLineList["scheduledLineCode"],
-          taktTime: valueTaskTime,
+          scheduledLineCode: selectedScheduledLine,
+          taktTime: valueTaktTime,
         })
         .then(
           async (response) => {
             if (response.data.status == "success") {
               await fetchDataHeader();
-              toastAlert("success", "Update Line Success!", 5000);
+              toastAlert("success", response.data.message, 5000);
             } else {
-              toastAlert("error", "Error Call Api UpdateLine!", 5000);
+              toastAlert("error", response.data.message, 5000);
             }
-            setopenModalLineEdit(false)
+            setopenModalLineEdit(false);
           },
           (error) => {
             toastAlert("error", error.response.data.message, 5000);
@@ -319,20 +338,11 @@ export function Station() {
   async function handleChangeValueLineName(e: any) {
     e.preventDefault();
     setValueLineName(e.target.value);
-    setLineTmp(e.target.value)
   }
 
-  async function handleChangeValueAutoCompletedropDownScheduledLineList(
-    e: any
-  ) {
-    setValueAutoCompletedropDownScheduledLineList(e);
-    setSLTmp(e['name'])
-  }
-
-  async function handleChangeValueTaskTime(e: any) {
+  async function handleChangeValueTaktTime(e: any) {
     e.preventDefault();
     setValueTaskTime(e.target.value);
-    setTaskTimeTmp(e.target.value)
   }
 
   async function handleChangeValueStationName(e: any) {
@@ -340,47 +350,54 @@ export function Station() {
     setValueStationName(e.target.value);
   }
 
-
   async function handlecloseModalLineEdit() {
     setopenModalLineEdit(false);
-    setLineTmp(LineTmp2)
-    setValueLineName(LineTmp2)
-    setSLTmp(SLTmp2)
-    fetchDataDropDownScheduledLine()
-    setTaskTimeTmp(TaskTimeTmp2)
-    setValueTaskTime(TaskTimeTmp2)
+    setValueLineName(valueLineName);
   }
 
   async function handleChangeValueAutoCompletedropDownStationList(e: any) {
-
-    if (e["text"] == "Auto Station") {
+    setTypeDDL(e["code"]);
+    if (e["code"] == 1) {
       setShowSequence(true);
       setShowFirstStationSwitch(true);
       setShowFinishStationSwitch(true);
       setShowRefFirst(true);
       setShowRefFinish(true);
-
-      setValueStationName(null);
-      setValueSequence(1)
+      setDisalbedSeq(false);
+      setDisalbedRefMFG(false);
+      setDisalbedRefFinish(true);
+      setDisalbedSwitchFirstStation(false);
+      setDisalbedSwitchFinishStation(false);
+      // รอทำ
+      // const lastSequence = _.maxBy(dataPageList, "sequence")?.sequence ?? 0;
+      // let nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10;
+      // if (lastSequence == nextMultipleOfTen) {
+      //   nextMultipleOfTen += 10;
+      // }
+      // setInsItemSeq(nextMultipleOfTen);
+      setValueSequence(1);
       setIscheckedFirstStation(true);
       setIscheckedFinishStation(false);
       setValueRefMFG(null);
       setValueRefMFGFinish(null);
-
-    } else if (e["text"] == "Manual Station") {
-      setShowSequence(false);
-
-      setShowFirstStationSwitch(false);
+    } else if (e["code"] == 2) {
+      setShowSequence(true);
+      setDisalbedSeq(true);
+      setDisalbedRefMFG(false);
+      setValueSequence(0);
+      setShowFirstStationSwitch(true);
+      setDisalbedSwitchFirstStation(true);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(true);
       setIscheckedFinishStation(false);
+      setDisalbedSwitchFinishStation(false);
       setShowRefFirst(true);
       setValueRefMFG(null);
       setShowRefFinish(true);
       setValueRefMFGFinish(null);
-    } else if (e["text"] == "Rework Station") {
+    } else if (e["code"] == 3) {
       setShowSequence(false);
-
+      setValueSequence(0);
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -389,9 +406,9 @@ export function Station() {
       setValueRefMFG(null);
       setShowRefFinish(false);
       setValueRefMFGFinish(null);
-    } else if (e["text"] == "Special Station") {
+    } else if (e["code"] == 4) {
       setShowSequence(false);
-
+      setValueSequence(0);
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -411,6 +428,8 @@ export function Station() {
 
   async function handleChangeShowFirstStationSwitch(e: any) {
     setIscheckedFirstStation(e.target.checked);
+    setDisalbedRefMFG(!e.target.checked);
+    setValueRefMFG(null);
   }
 
   async function handleChangeValueMFG(e: any) {
@@ -420,6 +439,10 @@ export function Station() {
 
   async function handleChangeShowFinishStationSwitch(e: any) {
     setIscheckedFinishStation(e.target.checked);
+    setDisalbedRefFinish(!e.target.checked);
+    // setDisalbedRefMFG(!e.target.checked);
+    setValueRefMFGFinish(null);
+    setValueRefMFG(null);
   }
 
   async function handleChangeValueMFGFinish(e: any) {
@@ -428,64 +451,73 @@ export function Station() {
 
   async function validateStation() {
     switch (valueAutoCompletedropDownStationListAutoComplete["code"]) {
-      case '1': {
-        if (valueStationName == null || valueStationName == '') {
-          toastAlert("error", 'Please Enter Station Name', 3000)
+      case "1": {
+        if (valueStationName === null || valueStationName === "") {
+          toastAlert("error", "Please Enter Station Name", 5000);
           return false;
         }
-        if (valueSequence != 1) {
-          toastAlert("error", 'Please Enter Sequence is 1', 3000)
+        if (valueSequence == null) {
+          toastAlert("error", "Please Enter Sequence ", 5000);
           return false;
         }
 
         if (ischeckedFirstStation) {
-          if (valueRefMFG == null || valueRefMFG == '') {
-            toastAlert("error", 'Please Enter Value Ref. MFG', 3000)
+          if (valueRefMFG === null || valueRefMFG === "") {
+            toastAlert("error", "Please Enter Value Ref. MFG", 5000);
             return false;
           }
         }
 
         if (ischeckedFinishStation) {
-          if (valueRefMFGFinish == null || valueRefMFGFinish == '') {
-            toastAlert("error", 'Please Enter Value Ref. MFG(Finish Station)', 3000)
+          if (valueRefMFGFinish == null || valueRefMFGFinish == "") {
+            toastAlert(
+              "error",
+              "Please Enter Value Ref. MFG(Finish Station)",
+              5000
+            );
             return false;
           }
         }
         break;
       }
-      case '2': {
-        if (valueStationName == null || valueStationName == '') {
-          toastAlert("error", 'Please Enter Station Name', 3000)
+      case "2": {
+        setValueSequence(0);
+        if (valueStationName == null || valueStationName == "") {
+          toastAlert("error", "Please Enter Station Name", 5000);
           return false;
         }
-        if (valueRefMFG == null || valueRefMFG == '') {
-          toastAlert("error", 'Please Enter Value Ref. MFG', 3000)
+        if (valueRefMFG == null || valueRefMFG == "") {
+          toastAlert("error", "Please Enter Value Ref. MFG", 5000);
           return false;
         }
         if (ischeckedFinishStation) {
-          if (valueRefMFGFinish == null || valueRefMFGFinish == '') {
-            toastAlert("error", 'Please Enter Value Ref. MFG(Finish Station)', 3000)
+          if (valueRefMFGFinish == null || valueRefMFGFinish == "") {
+            toastAlert(
+              "error",
+              "Please Enter Value Ref. MFG(Finish Station)",
+              5000
+            );
             return false;
           }
         }
         break;
       }
-      case '3': {
-        if (valueStationName == null || valueStationName == '') {
-          toastAlert("error", 'Please Enter Station Name', 3000)
+      case "3": {
+        if (valueStationName == null || valueStationName == "") {
+          toastAlert("error", "Please Enter Station Name", 5000);
           return false;
         }
         break;
       }
-      case '4': {
-        if (valueStationName == null || valueStationName == '') {
-          toastAlert("error", 'Please Enter Station Name', 3000)
+      case "4": {
+        if (valueStationName == null || valueStationName == "") {
+          toastAlert("error", "Please Enter Station Name", 5000);
           return false;
         }
         break;
       }
       default: {
-        //statements; 
+        //statements;
         break;
       }
     }
@@ -494,8 +526,6 @@ export function Station() {
 
   async function createStation() {
     if (await validateStation()) {
-      const sequence = valueSequence;
-      const type = parseInt(valueAutoCompletedropDownStationListAutoComplete["code"], 10);
       try {
         await instanceAxios
           .post(`/Station/CreateStation`, {
@@ -508,7 +538,6 @@ export function Station() {
             isFinishedStation: ischeckedFinishStation,
             refMFG: valueRefMFG,
             refFinishedMFG: valueRefMFGFinish,
-            refStation: "1",
           })
           .then(
             async (response) => {
@@ -521,7 +550,13 @@ export function Station() {
               }
             },
             (error) => {
-              toastAlert("error", error.response.data.message, 5000);
+              toastAlert(
+                "error",
+                error.response.data.detail == null
+                  ? error.response.data.message
+                  : error.response.data.detail,
+                5000
+              );
             }
           );
       } catch (error) {
@@ -544,7 +579,6 @@ export function Station() {
             isFinishedStation: ischeckedFinishStation,
             refMFG: valueRefMFG,
             refFinishedMFG: valueRefMFGFinish,
-            refStation: "1",
             stationId: valueStationId,
           })
           .then(
@@ -600,34 +634,66 @@ export function Station() {
       }
     });
   }
+
+  async function setValueModalCreate() {
+    setShowSequence(true);
+    setShowFirstStationSwitch(true);
+    setShowFinishStationSwitch(true);
+    setShowRefFirst(true);
+    setShowRefFinish(true);
+    setTypeDDL(1);
+    setValueStationName(null);
+    setValueSequence(1);
+    setIscheckedFirstStation(true);
+    setIscheckedFinishStation(false);
+    setDisalbedSeq(false);
+    setDisalbedSwitchFirstStation(false);
+    setDisalbedRefMFG(false);
+    setDisalbedRefFinish(true);
+    setValueRefMFG(null);
+    setValueRefMFGFinish(null);
+    setValueAutoCompletedropDownStationListAutoComplete(
+      dropDownStationListAutoComplete[0]
+    );
+    handleopenModalCreate();
+  }
+
   async function setValueModalEdit(rows: any) {
     setValueStationId(rows["stationId"]);
     setValueStationName(rows["name"]);
     setValueSequence(rows["sequence"]);
+    setTypeDDL(rows["type"]);
     if (rows["type"] == 1) {
       setShowSequence(true);
+      setDisalbedSwitchFirstStation(false);
+
       setShowFirstStationSwitch(true);
       setIscheckedFirstStation(rows["isFirstStation"]);
+      setShowFinishStationSwitch(true);
+      setIscheckedFinishStation(rows["isFinishedStation"]);
+
+      setDisalbedSeq(rows["isFirstStation"]);
+      setDisalbedRefMFG(rows["isFirstStation"]);
+
+      setShowRefFirst(true);
+      setValueRefMFG(rows["refMFG"]);
+      setShowRefFinish(true);
+      setValueRefMFGFinish(rows["refFinishedMFG"]);
+    } else if (rows["type"] == 2) {
+      setShowSequence(true);
+      setShowFirstStationSwitch(true);
+      setIscheckedFirstStation(false);
       setShowFinishStationSwitch(true);
       setIscheckedFinishStation(rows["isFinishedStation"]);
       setShowRefFirst(true);
       setValueRefMFG(rows["refMFG"]);
       setShowRefFinish(true);
       setValueRefMFGFinish(rows["refFinishedMFG"]);
-    } else if (rows["type"] == 2) {
-      setShowSequence(false);
-
-      setShowFirstStationSwitch(false);
-      setIscheckedFirstStation(false);
-      setShowFinishStationSwitch(true);
-      setIscheckedFinishStation(false);
-      setShowRefFirst(true);
-      setValueRefMFG(null);
-      setShowRefFinish(true);
-      setValueRefMFGFinish(null);
+      setDisalbedRefFinish(!rows["refFinishedMFG"]);
+      setDisalbedSeq(true);
+      setDisalbedSwitchFirstStation(true);
     } else if (rows["type"] == 3) {
       setShowSequence(false);
-
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -638,7 +704,6 @@ export function Station() {
       setValueRefMFGFinish(null);
     } else if (rows["type"] == 4) {
       setShowSequence(false);
-
       setShowFirstStationSwitch(false);
       setIscheckedFirstStation(false);
       setShowFinishStationSwitch(false);
@@ -656,23 +721,20 @@ export function Station() {
     handleopenModalEdit();
   }
 
-  async function setValueModalCreate() {
-    setShowSequence(true);
-    setShowFirstStationSwitch(true);
-    setShowFinishStationSwitch(true);
-    setShowRefFirst(true);
-    setShowRefFinish(true);
+  async function GetScheduledLineDDL() {
+    await GetScheduledLineAPI().then(async (x) => {
+      if (x.status == "success") {
+        const ddlSheduLine: DDLModel[] = x.data.map((item: any) => ({
+          label: `${item.scheduledLineCode} : ${item.name}`,
+          value: item.scheduledLineCode,
+        }));
 
-    setValueStationName(null);
-    setValueSequence(1)
-    setIscheckedFirstStation(true);
-    setIscheckedFinishStation(false);
-    setValueRefMFG(null);
-    setValueRefMFGFinish(null);
-    setValueAutoCompletedropDownStationListAutoComplete(
-      dropDownStationListAutoComplete[0]
-    );
-    handleopenModalCreate();
+        setScheduledLineDDL(ddlSheduLine);
+        setLoadingDDL(false);
+      } else {
+        setLoadingDDL(false);
+      }
+    });
   }
 
   const columns: GridColDef[] = [
@@ -681,7 +743,8 @@ export function Station() {
       headerName: "",
       headerAlign: "center",
       sortable: false,
-      width: 180,
+      minWidth: 150,
+      flex: 1,
       renderCell: (params: any) => {
         return (
           <>
@@ -699,60 +762,72 @@ export function Station() {
     {
       field: "name",
       headerName: "Station",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
     },
     {
-      field: "type",
+      field: "typeName",
       headerName: "Station Type",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
     },
     {
       field: "sequence",
       headerName: "Sequence",
-      width: 100,
+      minWidth: 150,
+      flex: 1,
     },
     {
       field: "isFirstStation",
       headerName: "First Station",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
     },
     {
       field: "isFinishedStation",
       headerName: "Finished Station",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
     },
     {
       field: "refMFG",
       headerName: "refMFG",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
     },
     {
-      field: "refStation",
+      field: "refStationName",
       headerName: "refStation",
-      width: 150,
+      minWidth: 150,
+      flex: 1,
     },
     {
       field: "createdOn",
       headerName: "createdOn",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "createdBy",
       headerName: "createdBy",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "modifiedOn",
       headerName: "modifiedOn",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "modifiedBy",
       headerName: "modifiedBy",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
   ];
 
+  const [openBackDrop, setOpenBackDrop] = React.useState(true);
   return (
     <>
       <MsalAuthenticationTemplate
@@ -761,18 +836,23 @@ export function Station() {
         errorComponent={ErrorComponent}
         loadingComponent={Loading}
       >
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={openBackDrop}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="line"
-                prm3="station"
+                prm1="Master Data"
+                prm2="Line"
+                prm3="Station"
               />
             </Box>
           </Grid>
         </Grid>
-
         <Box sx={{ height: "100%", width: "100%" }}>
           <Accordion
             defaultExpanded={true}
@@ -794,63 +874,51 @@ export function Station() {
             >
               <Typography>Line</Typography>
             </AccordionSummary>
-
             <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={6} md={12} container justifyContent="flex-end">
-                  <Box>
-                    <Button
-                      variant="outlined"
-                      endIcon={<SaveIcon />}
-                      // onClick={updateLine}
-                      onClick={handleopenModalLineEdit}
-                    >
-                      Edit
-                    </Button>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} md={4} container>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      style={{ marginRight: 8 }}
-                    >
+              <Grid container spacing={0}>
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
                       Line Name:
                     </Typography>
-                    <Typography variant="body1">{LineTmp}</Typography>
+                    <Typography variant="body1" ml={1}>
+                      {displayLineName}
+                    </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} md={4} container>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      style={{ marginRight: 8 }}
-                    >
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
                       Schedule Line:
                     </Typography>
-                    <Typography variant="body1">
-                      {SLTmp}
+                    <Typography variant="body1" ml={1}>
+                      {scheduledLineDisplay}
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} md={4} container>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      style={{ marginRight: 8 }}
+                <Grid item xs={12} md={2} container justifyContent="flex-end">
+                  <ButtonGroup variant="contained" aria-label="btn group">
+                    <Button
+                      variant="outlined"
+                      onClick={handleopenModalLineEdit}
                     >
-                      Task Time:
+                      EDIT
+                    </Button>
+                  </ButtonGroup>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      Takt Time:
                     </Typography>
-                    <Typography variant="body1">{TaskTimeTmp}</Typography>
+                    <Typography variant="body1" ml={1}>
+                      {displayTaktTime}
+                    </Typography>
                   </Box>
                 </Grid>
               </Grid>
             </AccordionDetails>
           </Accordion>
-
           <Accordion defaultExpanded={true}>
             <AccordionSummary
               expandIcon={<ExpandMoreIcon />}
@@ -878,24 +946,13 @@ export function Station() {
                 </Box>
 
                 <Box sx={{ height: "100%", width: "100%" }}>
-                  <DataGrid
-                    autoHeight
-                    sx={{
-                      "--DataGrid-overlayHeight": "300px",
-                      boxShadow: 2,
-                      border: 2,
-                      borderColor: "primary.light",
-                      "& .MuiDataGrid-cell:hover": {
-                        color: "primary.main",
-                      },
-                    }}
-                    slots={{ noRowsOverlay: CustomNoRowsOverlay }}
+                  <StyledDataGrid
                     rows={stationList}
                     getRowId={(data) => data.stationId}
                     columns={columns}
                     initialState={{
                       pagination: {
-                        paginationModel: { page: 0, pageSize: 10 },
+                        paginationModel: { page: 1, pageSize: 10 },
                       },
                     }}
                     pageSizeOptions={[5, 10]}
@@ -905,7 +962,115 @@ export function Station() {
             </AccordionDetails>
           </Accordion>
         </Box>
-
+        {/* Line edit */}
+        <Modal
+          aria-labelledby="unstyled-modal-title"
+          aria-describedby="unstyled-modal-description"
+          open={openModalLineEdit}
+          // onClose={handlecloseModalLineEdit}
+          slots={{ backdrop: StyledBackdrop }}
+        >
+          <ModalContent sx={{ width: "50vw" }}>
+            <h2 id="unstyled-modal-title" className="modal-title">
+              Edit Line
+            </h2>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Line Name"
+                  id="outlined-size-small"
+                  defaultValue=""
+                  value={valueLineName ? valueLineName : ""}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={handleChangeValueLineName}
+                  inputProps={{ maxLength: 200 }}
+                />
+              </Grid>
+              <Grid item xs={6} md={12}>
+                <Autocomplete
+                  id="scheduledLine-box-demo"
+                  size="small"
+                  onOpen={() => {
+                    setLoadingDDL(true);
+                    GetScheduledLineDDL();
+                  }}
+                  onClose={() => setLoadingDDL(false)}
+                  defaultValue={{
+                    label: `${scheduledLineDisplay}`,
+                    value: selectedScheduledLine,
+                  }}
+                  options={scheduledLineDDL}
+                  loading={loadingDDL}
+                  onChange={(_, value) =>
+                    setSelectedScheduledLine(value?.value ?? "")
+                  }
+                  isOptionEqualToValue={(option, value) =>
+                    option.value === value.value
+                  }
+                  getOptionLabel={(option) => option.label}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="ScheduledLine"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {loadingDDL ? (
+                              <CircularProgress color="inherit" size={20} />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  label="Takt Time"
+                  id="outlined-size-small"
+                  defaultValue=""
+                  value={valueTaktTime ? valueTaktTime : ""}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={handleChangeValueTaktTime}
+                  inputProps={{ maxLength: 200 }}
+                />
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
+                <Box display="flex" gap={2}>
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      handlecloseModalLineEdit();
+                    }}
+                  >
+                    Close
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <ButtonGroup
+                    variant="contained"
+                    aria-label="Basic button group"
+                  >
+                    <Button
+                      variant="contained"
+                      onClick={updateLine}
+                      disabled={disalbedEdit}
+                    >
+                      Save
+                    </Button>
+                  </ButtonGroup>
+                </Box>
+              </Grid>
+            </Grid>
+          </ModalContent>
+        </Modal>
         {/* create */}
         <Modal
           aria-labelledby="unstyled-modal-title"
@@ -930,15 +1095,14 @@ export function Station() {
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>
-
-              <Grid item xs={6} md={6}>
+              <Grid item xs={6} md={typeDDL == 3 || typeDDL == 4 ? 12 : 6}>
                 <Autocomplete
                   sx={{ width: "100%" }}
                   size="small"
                   onChange={(_, newValue) => {
                     handleChangeValueAutoCompletedropDownStationList(newValue);
                   }}
-                  id="combo-box-demo"
+                  id="station-box"
                   value={valueAutoCompletedropDownStationListAutoComplete}
                   options={dropDownStationListAutoComplete.map(
                     (dropDownStationListAutoComplete) =>
@@ -955,40 +1119,38 @@ export function Station() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6} md={6}>
-                {showSequence && (
+              {showSequence && (
+                <Grid item xs={6} md={6}>
                   <TextField
                     type="number"
                     sx={{ width: "100%" }}
                     label="Sequence"
-                    id="outlined-size-small"
+                    id="sequence-size-small"
                     defaultValue=""
                     value={valueSequence ? valueSequence : ""}
+                    disabled={disalbedSeq}
                     size="small"
                     onChange={handleChangeValueSequence}
                     inputProps={{ maxLength: 200 }}
                   />
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showFirstStationSwitch && (
-                  <FormGroup sx={{ width: "100%" }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={ischeckedFirstStation}
-                          onChange={handleChangeShowFirstStationSwitch}
-                        />
-                      }
-                      label="First Station"
-                    />
-                  </FormGroup>
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showRefFirst && (
+                </Grid>
+              )}
+              {showFirstStationSwitch && (
+                <Grid item xs={6} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={ischeckedFirstStation}
+                        onChange={handleChangeShowFirstStationSwitch}
+                        disabled={disalbedSwitchFirstStation}
+                      />
+                    }
+                    label="First Station"
+                  />
+                </Grid>
+              )}
+              {showRefFirst && (
+                <Grid item xs={6} md={6}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Ref. MFG"
@@ -998,26 +1160,24 @@ export function Station() {
                     size="small"
                     onChange={handleChangeValueMFG}
                     inputProps={{ maxLength: 200 }}
+                    disabled={disalbedRefMFG}
                   />
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showFinishStationSwitch && (
-                  <FormGroup sx={{ width: "100%" }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={ischeckedFinishStation}
-                          onChange={handleChangeShowFinishStationSwitch}
-                        />
-                      }
-                      label="Finish Station"
-                    />
-                  </FormGroup>
-                )}
-              </Grid>
-
+                </Grid>
+              )}
+              {showFinishStationSwitch && (
+                <Grid item xs={6} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={ischeckedFinishStation}
+                        onChange={handleChangeShowFinishStationSwitch}
+                        disabled={disalbedSwitchFinishStation}
+                      />
+                    }
+                    label="Finish Station"
+                  />
+                </Grid>
+              )}
               {showRefFinish && (
                 <Grid item xs={6} md={6}>
                   <TextField
@@ -1028,12 +1188,12 @@ export function Station() {
                     value={valueRefMFGFinish ? valueRefMFGFinish : ""}
                     size="small"
                     onChange={handleChangeValueMFGFinish}
+                    disabled={disalbedRefFinish}
                     inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
               )}
-
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
                   <Button
                     variant="outlined"
@@ -1043,114 +1203,18 @@ export function Station() {
                   >
                     Close
                   </Button>
-                  <Button variant="contained" onClick={createStation}>
-                    Create
-                  </Button>
                 </Box>
               </Grid>
-            </Grid>
-          </ModalContent>
-        </Modal>
-
-        {/* Line edit */}
-        <Modal
-          aria-labelledby="unstyled-modal-title"
-          aria-describedby="unstyled-modal-description"
-          open={openModalLineEdit}
-          onClose={handlecloseModalLineEdit}
-          slots={{ backdrop: StyledBackdrop }}
-        >
-          <ModalContent sx={{ width: "50vw" }}>
-            <h2 id="unstyled-modal-title" className="modal-title">
-              Edit Line
-            </h2>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  label="Line Name"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  value={valueLineName ? valueLineName : ""}
-                  size="small"
-                  style={{ width: "100%" }}
-                  onChange={handleChangeValueLineName}
-                  inputProps={{ maxLength: 200 }}
-                />
-              </Grid>
-
-              <Grid item xs={6} md={12}>
-                <Autocomplete
-                  onChange={(_, newValue) => {
-                    handleChangeValueAutoCompletedropDownScheduledLineList(
-                      newValue
-                    );
-                  }}
-                  size="small"
-                  onOpen={() => {
-                    setLoadingSL(true);
-                    fetchDataDropDownScheduledLine()
-                  }}
-                  onClose={() => setLoadingSL(false)}
-                  loading={loadingSL}
-
-                  id="combo-box-demo"
-                  value={valueAutoCompletedropDownScheduledLineList}
-                  options={dropDownScheduledLineListAutoComplete.map(
-                    (dropDownScheduledLineListAutoComplete) =>
-                      dropDownScheduledLineListAutoComplete
-                  )}
-                  sx={{ width: "100%" }}
-                  getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="ScheduledLine"
-                      InputProps={{
-                        ...params.InputProps,
-                        endAdornment: (
-                          <React.Fragment>
-                            {loadingSL ? (
-                              <CircularProgress color="inherit" size={20} />
-                            ) : null}
-                            {params.InputProps.endAdornment}
-                          </React.Fragment>
-                        ),
-                      }}
-                    />
-                  )}
-                  ListboxProps={{
-                    style: {
-                      maxHeight: "10vw",
-                    },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={12}>
-                <TextField
-                  label="Task Time"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  value={valueTaskTime ? valueTaskTime : ""}
-                  size="small"
-                  style={{ width: "100%" }}
-                  onChange={handleChangeValueTaskTime}
-                  inputProps={{ maxLength: 200 }}
-                />
-              </Grid>
-
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
                 <Box display="flex" gap={2}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      handlecloseModalLineEdit();
-                    }}
+                  <ButtonGroup
+                    variant="contained"
+                    aria-label="Basic button group"
                   >
-                    Close
-                  </Button>
-                  <Button variant="contained" onClick={updateLine}>
-                    Save
-                  </Button>
+                    <Button variant="contained" onClick={createStation}>
+                      Create
+                    </Button>
+                  </ButtonGroup>
                 </Box>
               </Grid>
             </Grid>
@@ -1162,7 +1226,6 @@ export function Station() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={openModalEdit}
-          // onClose={handlecloseModalEdit}
           slots={{ backdrop: StyledBackdrop }}
         >
           <ModalContent sx={{ width: "50vw" }}>
@@ -1182,8 +1245,7 @@ export function Station() {
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>
-
-              <Grid item xs={6} md={6}>
+              <Grid item xs={12} md={typeDDL == 3 || typeDDL == 4 ? 12 : 6}>
                 <Autocomplete
                   sx={{ width: "100%" }}
                   onChange={(_, newValue) => {
@@ -1207,8 +1269,9 @@ export function Station() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6} md={6}>
+         
                 {showSequence && (
+                       <Grid item xs={6} md={6}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Sequence"
@@ -1218,28 +1281,27 @@ export function Station() {
                     size="small"
                     onChange={handleChangeValueSequence}
                     inputProps={{ maxLength: 200 }}
+                    disabled={disalbedSeq}
                   />
+                     </Grid>
                 )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showFirstStationSwitch && (
-                  <FormGroup sx={{ width: "100%" }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={ischeckedFirstStation}
-                          onChange={handleChangeShowFirstStationSwitch}
-                        />
-                      }
-                      label="First Station"
-                    />
-                  </FormGroup>
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showRefFirst && (
+           
+              {showFirstStationSwitch && (
+                <Grid item xs={6} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={ischeckedFirstStation}
+                        onChange={handleChangeShowFirstStationSwitch}
+                        disabled={disalbedSwitchFirstStation}
+                      />
+                    }
+                    label="First Station"
+                  />
+                </Grid>
+              )}
+              {showRefFirst && (
+                <Grid item xs={6} md={6}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Ref. MFG"
@@ -1248,42 +1310,41 @@ export function Station() {
                     value={valueRefMFG ? valueRefMFG : ""}
                     size="small"
                     onChange={handleChangeValueMFG}
+                    disabled={disalbedRefMFG}
                     inputProps={{ maxLength: 200 }}
                   />
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={6}>
-                {showFinishStationSwitch && (
-                  <FormGroup sx={{ width: "100%" }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={ischeckedFinishStation}
-                          onChange={handleChangeShowFinishStationSwitch}
-                        />
-                      }
-                      label="Finish Station"
-                    />
-                  </FormGroup>
-                )}
-              </Grid>
-              <Grid item xs={6} md={6}>
-                {showRefFinish && (
+                </Grid>
+              )}
+              {showFinishStationSwitch && (
+                <Grid item xs={6} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={ischeckedFinishStation}
+                        onChange={handleChangeShowFinishStationSwitch}
+                        disabled={disalbedSwitchFinishStation}
+                      />
+                    }
+                    label="Finish Station"
+                  />
+                </Grid>
+              )}
+              {showRefFinish && (
+                <Grid item xs={6} md={6}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Ref. MFG (Finish Station)"
                     id="outlined-size-small"
                     defaultValue=""
                     value={valueRefMFGFinish ? valueRefMFGFinish : ""}
+                    disabled={disalbedRefFinish}
                     size="small"
                     onChange={handleChangeValueMFGFinish}
                     inputProps={{ maxLength: 200 }}
                   />
-                )}
-              </Grid>
-
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+                </Grid>
+              )}
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
                   <Button
                     variant="outlined"
@@ -1293,9 +1354,18 @@ export function Station() {
                   >
                     Close
                   </Button>
-                  <Button variant="contained" onClick={editStation}>
-                    Save
-                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <ButtonGroup
+                    variant="contained"
+                    aria-label="Basic button group"
+                  >
+                    <Button variant="contained" onClick={editStation}>
+                      Save
+                    </Button>
+                  </ButtonGroup>
                 </Box>
               </Grid>
             </Grid>
@@ -1306,81 +1376,9 @@ export function Station() {
   );
 }
 
-const StyledGridOverlay = styled("div")(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-  "& .ant-empty-img-1": {
-    fill: theme.palette.mode === "light" ? "#aeb8c2" : "#262626",
-  },
-  "& .ant-empty-img-2": {
-    fill: theme.palette.mode === "light" ? "#f5f5f7" : "#595959",
-  },
-  "& .ant-empty-img-3": {
-    fill: theme.palette.mode === "light" ? "#dce0e6" : "#434343",
-  },
-  "& .ant-empty-img-4": {
-    fill: theme.palette.mode === "light" ? "#fff" : "#1c1c1c",
-  },
-  "& .ant-empty-img-5": {
-    fillOpacity: theme.palette.mode === "light" ? "0.8" : "0.08",
-    fill: theme.palette.mode === "light" ? "#f5f5f5" : "#fff",
-  },
-}));
-
-function CustomNoRowsOverlay() {
-  return (
-    <StyledGridOverlay>
-      <svg
-        style={{ flexShrink: 0 }}
-        width="240"
-        height="200"
-        viewBox="0 0 184 152"
-        aria-hidden
-        focusable="false"
-      >
-        <g fill="none" fillRule="evenodd">
-          <g transform="translate(24 31.67)">
-            <ellipse
-              className="ant-empty-img-5"
-              cx="67.797"
-              cy="106.89"
-              rx="67.797"
-              ry="12.668"
-            />
-            <path
-              className="ant-empty-img-1"
-              d="M122.034 69.674L98.109 40.229c-1.148-1.386-2.826-2.225-4.593-2.225h-51.44c-1.766 0-3.444.839-4.592 2.225L13.56 69.674v15.383h108.475V69.674z"
-            />
-            <path
-              className="ant-empty-img-2"
-              d="M33.83 0h67.933a4 4 0 0 1 4 4v93.344a4 4 0 0 1-4 4H33.83a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z"
-            />
-            <path
-              className="ant-empty-img-3"
-              d="M42.678 9.953h50.237a2 2 0 0 1 2 2V36.91a2 2 0 0 1-2 2H42.678a2 2 0 0 1-2-2V11.953a2 2 0 0 1 2-2zM42.94 49.767h49.713a2.262 2.262 0 1 1 0 4.524H42.94a2.262 2.262 0 0 1 0-4.524zM42.94 61.53h49.713a2.262 2.262 0 1 1 0 4.525H42.94a2.262 2.262 0 0 1 0-4.525zM121.813 105.032c-.775 3.071-3.497 5.36-6.735 5.36H20.515c-3.238 0-5.96-2.29-6.734-5.36a7.309 7.309 0 0 1-.222-1.79V69.675h26.318c2.907 0 5.25 2.448 5.25 5.42v.04c0 2.971 2.37 5.37 5.277 5.37h34.785c2.907 0 5.277-2.421 5.277-5.393V75.1c0-2.972 2.343-5.426 5.25-5.426h26.318v33.569c0 .617-.077 1.216-.221 1.789z"
-            />
-          </g>
-          <path
-            className="ant-empty-img-3"
-            d="M149.121 33.292l-6.83 2.65a1 1 0 0 1-1.317-1.23l1.937-6.207c-2.589-2.944-4.109-6.534-4.109-10.408C138.802 8.102 148.92 0 161.402 0 173.881 0 184 8.102 184 18.097c0 9.995-10.118 18.097-22.599 18.097-4.528 0-8.744-1.066-12.28-2.902z"
-          />
-          <g className="ant-empty-img-4" transform="translate(149.65 15.383)">
-            <ellipse cx="20.654" cy="3.167" rx="2.849" ry="2.815" />
-            <path d="M5.698 5.63H0L2.898.704zM9.259.704h4.985V5.63H9.259z" />
-          </g>
-        </g>
-      </svg>
-      <Box sx={{ mt: 1 }}>No Rows</Box>
-    </StyledGridOverlay>
-  );
-}
-
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
   align-items: center;

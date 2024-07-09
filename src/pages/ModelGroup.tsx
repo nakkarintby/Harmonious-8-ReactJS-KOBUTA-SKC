@@ -3,10 +3,7 @@ import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
 import { Loading } from "../ui-components/Loading";
 import {
-  // InteractionStatus,
   InteractionType,
-  // InteractionRequiredAuthError,
-  // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { Autocomplete, Backdrop, Box, Button, CircularProgress, Grid } from "@mui/material";
@@ -19,14 +16,13 @@ import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from "sweetalert2";
 import moment from "moment";
 import instanceAxios from "../api/axios/instanceAxios";
-
-
+import StyledDataGrid from "../styles/styledDataGrid";
 
 export function ModelGroup() {
   const authRequest = {
@@ -34,7 +30,6 @@ export function ModelGroup() {
   }
 
   const [openModalCreateModelGroup, setOpenModalCreateModelGroup] = React.useState(false)
-
   const handleCloseModalCreateModelGroup = () => setOpenModalCreateModelGroup(false)
   const [valueModelGroupName, setValueModelGroupName] = React.useState('')
   const [dataModelGroup, setDataModelGroup] = useState([])
@@ -43,7 +38,6 @@ export function ModelGroup() {
   const [dropDownLineAutoComplete, setDropDownLineAutoComplete] = useState([])
   const [valueAutoCompleteDropDownLine, setValueAutoCompleteDropDownLine] = React.useState(null);
   const [loadingSL, setLoadingSL] = React.useState(false);
-  
   const [loadingLine, setLoadingLine] = React.useState(false);
 
   useEffect(() => {
@@ -53,12 +47,11 @@ export function ModelGroup() {
   async function fetchDataModelGroup() {
     try {
       await instanceAxios.get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`).then(async (response) => {
+        console.log(response.data)
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.modelGroup.length; i++) {
-            if (response.data.data.modelGroup[i].createdOn != null)
-              response.data.data.modelGroup[i].createdOn = moment(response.data.data.modelGroup[i].createdOn).format('YYYY-MM-DD hh:mm');
-            if (response.data.data.modelGroup[i].modifiedOn != null)
-              response.data.data.modelGroup[i].modifiedOn = moment(response.data.data.modelGroup[i].modifiedOn).format('YYYY-MM-DD hh:mm');
+              response.data.data.modelGroup[i].createdOn =  response.data.data.modelGroup[i].createdOn == null ? "" : moment(response.data.data.modelGroup[i].createdOn).format('DD-MM-YYYY hh:mm:ss');
+              response.data.data.modelGroup[i].modifiedOn = response.data.data.modelGroup[i].modifiedOn == null ? "" : moment(response.data.data.modelGroup[i].modifiedOn).format('DD-MM-YYYY hh:mm:ss');
           }
           setDataModelGroup(response.data.data.modelGroup)
         }
@@ -163,8 +156,11 @@ export function ModelGroup() {
 
 
   async function CreateModelGroup() {
+    console.log(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+    console.log(valueAutoCompleteDropDownLine ? valueAutoCompleteDropDownLine['value'] : null)
     if (await validateModelGroup()) {
       try {
+       
         await instanceAxios.post(`/ModelGroup/CreateModelGroup`,
           {
             name: valueModelGroupName,
@@ -203,6 +199,7 @@ export function ModelGroup() {
         try {
           await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
             if (response.data.status == "success") {
+           
               await fetchDataModelGroup()
               toastAlert("error", "Deleted ModelGroup!", 3000)
             }
@@ -225,7 +222,8 @@ export function ModelGroup() {
     {
       field: "action1",
       headerName: "",
-      width: 170,
+      minWidth: 150,
+      flex : 1,
       renderCell: (params: any) => {
         return (
           <>
@@ -249,37 +247,50 @@ export function ModelGroup() {
     {
       field: "name",
       headerName: "Model Group Name",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
+
+    },
+    {
+      field: "scheduledLineName",
+      headerName: "Scheduled Line",
+      minWidth: 200,
+      flex : 1,
 
     },
     {
       field: "lineName",
       headerName: "Line Name",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
 
     },
     {
       field: "createdOn",
       headerName: "Created On",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
 
     },
     {
       field: "createdBy",
       headerName: "Created By",
-      width: 280,
+      minWidth: 200,
+      flex : 1,
 
     },
     {
       field: "modifiedOn",
       headerName: "Modified On",
-      width: 280,
+      minWidth: 200,
+      flex : 1,
 
     },
     {
       field: "modifiedBy",
       headerName: "Modified By",
-      width: 300,
+      minWidth: 200,
+      flex : 1,
 
     },
   ];
@@ -296,8 +307,8 @@ export function ModelGroup() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="modelgroups"
+                prm1="Master Data"
+                prm2="Model Groups"
                 prm3=""
               />
             </Box>
@@ -316,12 +327,8 @@ export function ModelGroup() {
         </Grid>
 
         <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
-          <DataGrid
-            sx={{
-              boxShadow: 2,
-              border: 2,
-              borderColor: "primary.light",
-            }}
+          <StyledDataGrid
+           
             rows={dataModelGroup}
             getRowId={(dataModelGroup) => dataModelGroup.modelGroupId}
             rowHeight={40}
@@ -485,7 +492,7 @@ export function ModelGroup() {
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
 

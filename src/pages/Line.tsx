@@ -9,6 +9,7 @@ import {
   Backdrop,
   Box,
   Button,
+  ButtonGroup,
   CircularProgress,
   Grid,
   TextField,
@@ -19,7 +20,7 @@ import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
 import instanceAxios from "../api/axios/instanceAxios";
@@ -27,6 +28,7 @@ import moment from "moment";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import StyledDataGrid from "../styles/styledDataGrid";
 
 export function Line() {
   const authRequest = {
@@ -45,8 +47,9 @@ export function Line() {
     valueAutoCompletedropDownScheduledLineList,
     setValueAutoCompletedropDownScheduledLineList,
   ] = React.useState(null);
-  const [valueTaskTime, setValueTaskTime] = React.useState("");
+  const [valueTaktTime, setValueTaktTime] = React.useState("");
   const [loadingSL, setLoadingSL] = React.useState(false);
+  const [disalbedCreate, setDisalbedCreate] = React.useState<boolean>(true);
 
   useEffect(() => {
     fetchData();
@@ -54,36 +57,39 @@ export function Line() {
 
   async function fetchData() {
     try {
-      await instanceAxios
-        .get(`/Line/GetLine?page=1&perpage=1000`)
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
-              for (let i = 0; i < response.data.data.lineList.length; i++) {
-                if (response.data.data.lineList[i].createdOn != null)
-                  response.data.data.lineList[i].createdOn = moment(
-                    response.data.data.lineList[i].createdOn
-                  ).format("DD-MM-YYYY hh:mm");
-                if (response.data.data.lineList[i].modifiedOn != null)
-                  response.data.data.lineList[i].modifiedOn = moment(
-                    response.data.data.lineList[i].modifiedOn
-                  ).format("DD-MM-YYYY hh:mm");
-              }
-              setData(response.data.data.lineList);
-              setDropDownScheduledLineListAutoComplete(
-                response.data.data.dropdownScheduledLineList
-              );
-              setLoadingSL(false);
-            } else {
-              setLoadingSL(false);
-              toastAlert("error", "Error Call Api GetLine!", 5000);
+      await instanceAxios.get(`/Line/GetLine?page=1&perpage=1000`).then(
+        async (response) => {
+          if (response.data.status == "success") {
+            for (let i = 0; i < response.data.data.lineList.length; i++) {
+              response.data.data.lineList[i].createdOn =
+                response.data.data.lineList[i].createdOn === null
+                  ? ""
+                  : moment(response.data.data.lineList[i].createdOn).format(
+                      "DD-MM-YYYY hh:mm:ss"
+                    );
+
+              response.data.data.lineList[i].modifiedOn =
+                response.data.data.lineList[i].modifiedOn === null
+                  ? ""
+                  : moment(response.data.data.lineList[i].modifiedOn).format(
+                      "DD-MM-YYYY hh:mm:ss"
+                    );
             }
-          },
-          (error) => {
+            setData(response.data.data.lineList);
+            setDropDownScheduledLineListAutoComplete(
+              response.data.data.dropdownScheduledLineList
+            );
             setLoadingSL(false);
-            toastAlert("error", error.response.data.message, 5000);
+          } else {
+            setLoadingSL(false);
+            toastAlert("error", "Error Call Api GetLine!", 5000);
           }
-        );
+        },
+        (error) => {
+          setLoadingSL(false);
+          toastAlert("error", error.response.data.message, 5000);
+        }
+      );
     } catch (error: any) {
       toastAlert("error", error, 5000);
     }
@@ -100,23 +106,38 @@ export function Line() {
     setValueAutoCompletedropDownScheduledLineList(e);
   }
 
-  async function handleChangeValueTaskTime(e: any) {
+  async function handleChangeValueTaktTime(e: any) {
     e.preventDefault();
-    setValueTaskTime(e.target.value);
+    setValueTaktTime(e.target.value);
   }
 
+  useEffect(() => {
+    // Check if all required fields have values
+    setDisalbedCreate(
+      valueLineName === null ||
+        valueLineName === "" ||
+        valueAutoCompletedropDownScheduledLineList === null ||
+        valueAutoCompletedropDownScheduledLineList === "" ||
+        valueTaktTime === null ||
+        valueTaktTime === ""
+    );
+  }, [
+    valueLineName,
+    valueAutoCompletedropDownScheduledLineList,
+    valueTaktTime,
+  ]);
 
   async function validateLine() {
-    if (valueLineName == null || valueLineName == '') {
-      toastAlert("error", 'Please Enter Line Name', 3000)
+    if (valueLineName == null || valueLineName == "") {
+      toastAlert("error", "Please Enter Line Name", 3000);
       return false;
     }
     if (valueAutoCompletedropDownScheduledLineList == null) {
-      toastAlert("error", 'Please Enter ScheduledLine', 3000)
+      toastAlert("error", "Please Enter ScheduledLine", 3000);
       return false;
     }
-    if (valueTaskTime == null || valueTaskTime == '') {
-      toastAlert("error", 'Please Enter TaskTime', 3000)
+    if (valueTaktTime == null || valueTaktTime == "") {
+      toastAlert("error", "Please Enter TaktTime", 3000);
       return false;
     }
     return true;
@@ -128,9 +149,10 @@ export function Line() {
         await instanceAxios
           .post(`/Line/CreateLine`, {
             name: valueLineName,
-            scheduledLineCode:
-              valueAutoCompletedropDownScheduledLineList ? valueAutoCompletedropDownScheduledLineList["scheduledLineCode"] : null,
-            taktTime: valueTaskTime,
+            scheduledLineCode: valueAutoCompletedropDownScheduledLineList
+              ? valueAutoCompletedropDownScheduledLineList["scheduledLineCode"]
+              : null,
+            taktTime: valueTaktTime,
           })
           .then(
             async (response) => {
@@ -164,21 +186,19 @@ export function Line() {
     }).then(async (result: any) => {
       if (result.isConfirmed) {
         try {
-          await instanceAxios
-            .put(`/Line/RemoveLine?lineId=${id}`)
-            .then(
-              async (response) => {
-                if (response.data.status == "success") {
-                  await fetchData();
-                  toastAlert("error", "Deleted Line!", 5000);
-                } else {
-                  toastAlert("error", "Error Call Api RemoveLine!", 5000);
-                }
-              },
-              (error) => {
-                toastAlert("error", error.response.data.message, 5000);
+          await instanceAxios.put(`/Line/RemoveLine?lineId=${id}`).then(
+            async (response) => {
+              if (response.data.status == "success") {
+                await fetchData();
+                toastAlert("error", "Deleted Line!", 5000);
+              } else {
+                toastAlert("error", "Error Call Api RemoveLine!", 5000);
               }
-            );
+            },
+            (error) => {
+              toastAlert("error", error.response.data.message, 5000);
+            }
+          );
         } catch (error) {
           console.log("error", error);
         }
@@ -187,12 +207,12 @@ export function Line() {
   }
 
   async function handleOpenModalCreateLine() {
-    setValueLineName('')
-    setValueAutoCompletedropDownScheduledLineList(null)
-    setValueTaskTime('')
-    setOpenModalCreateLine(true)
+    setValueLineName("");
+    setValueAutoCompletedropDownScheduledLineList(null);
+    setValueTaktTime("");
+    setDisalbedCreate(true);
+    setOpenModalCreateLine(true);
   }
-
 
   const columns: GridColDef[] = [
     {
@@ -224,37 +244,44 @@ export function Line() {
     {
       field: "name",
       headerName: "Line Name",
-      width: 140,
+      minWidth: 200,
+      flex: 1,
     },
     {
-      field: "scheduledLineCode",
-      headerName: "Scheduled Line Code",
-      width: 200,
+      field: "scheduledLineName",
+      headerName: "Scheduled Line Name",
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "taktTime",
-      headerName: "takt Time",
-      width: 140,
+      headerName: "Takt Time",
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "createdOn",
       headerName: "Created On",
-      width: 200,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "createdBy",
       headerName: "Created By",
-      width: 280,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "modifiedOn",
       headerName: "Modified On",
-      width: 280,
+      minWidth: 200,
+      flex: 1,
     },
     {
       field: "modifiedBy",
       headerName: "Modified By",
-      width: 300,
+      minWidth: 200,
+      flex: 1,
     },
   ];
 
@@ -286,12 +313,7 @@ export function Line() {
         </Grid>
 
         <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
-          <DataGrid
-            sx={{
-              boxShadow: 2,
-              border: 2,
-              borderColor: "primary.light",
-            }}
+          <StyledDataGrid
             rows={data}
             getRowId={(data) => data.lineId}
             rowHeight={40}
@@ -336,7 +358,7 @@ export function Line() {
                     size="small"
                     onOpen={() => {
                       setLoadingSL(true);
-                      fetchData()
+                      fetchData();
                     }}
                     onClose={() => setLoadingSL(false)}
                     loading={loadingSL}
@@ -351,7 +373,9 @@ export function Line() {
                       (dropDownScheduledLineListAutoComplete) =>
                         dropDownScheduledLineListAutoComplete
                     )}
-                    getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
+                    getOptionLabel={(options: any) =>
+                      `${options.scheduledLineCode} - ${options.name}`
+                    }
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -375,21 +399,19 @@ export function Line() {
                       },
                     }}
                   />
-
                 </Grid>
                 <Grid item xs={12} md={12}>
                   <TextField
                     sx={{ width: "100%" }}
-                    label="Task Time"
+                    label="Takt Time"
                     id="outlined-size-small"
                     defaultValue=""
                     size="small"
-                    onChange={handleChangeValueTaskTime}
+                    onChange={handleChangeValueTaktTime}
                     inputProps={{ maxLength: 200 }}
                   />
                 </Grid>
-
-                <Grid item xs={6} md={12} container justifyContent="flex-end">
+                <Grid item xs={6} md={6} container justifyContent="flex-start">
                   <Box display="flex" gap={2}>
                     <Button
                       variant="outlined"
@@ -399,12 +421,23 @@ export function Line() {
                     >
                       Close
                     </Button>
-                    <Button
+                  </Box>
+                </Grid>
+
+                <Grid item xs={6} md={6} container justifyContent="flex-end">
+                  <Box display="flex" gap={2}>
+                    <ButtonGroup
                       variant="contained"
-                      onClick={createLine}
+                      aria-label="Basic button group"
                     >
-                      Create
-                    </Button>
+                      <Button
+                        variant="contained"
+                        onClick={createLine}
+                        disabled={disalbedCreate}
+                      >
+                        Create
+                      </Button>
+                    </ButtonGroup>
                   </Box>
                 </Grid>
               </Grid>
@@ -418,7 +451,7 @@ export function Line() {
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
 
@@ -466,4 +499,3 @@ const ModalContent = styled("div")(
     }
   `
 );
-

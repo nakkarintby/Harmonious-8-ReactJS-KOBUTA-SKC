@@ -4,13 +4,14 @@ import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import React from "react";
 import instanceAxios from "../../api/axios/instanceAxios";
 import moment from "moment";
 import toastAlert from "../SweetAlert2/toastAlert";
 import Swal from "sweetalert2";
+import StyledDataGrid from "../../styles/styledDataGrid";
 
 interface InspectionGroupModel{
   inspectionGroupName: string,
@@ -118,7 +119,7 @@ export default function InspectionGroupData(props : {
       headerName: "",
       headerAlign: "center",
       align: "left",
-      width: 150,
+      minWidth: 150,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
@@ -163,95 +164,100 @@ export default function InspectionGroupData(props : {
     {
       field: "inspectionGroupName",
       headerName: "Name",
-      width: 250,
+      minWidth: 250,
+      flex : 1,
       headerAlign: "center",
     },
     {
       field: "version",
       headerName: "Version",
-      width: 70,
+      minWidth: 70,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "scheduledLineName",
       headerName: "scheduledLine",
-      width: 150,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "lineName",
       headerName: "Line",
-      width: 150,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "stationName",
       headerName: "Station",
-      width: 150,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "modelGroupName",
       headerName: "Model Group",
-      width: 150,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "taktTime",
       headerName: "Takt Time",
-      width: 100,
+      minWidth: 100,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "status",
       headerName: "Status",
-      width: 100,
+      minWidth: 150,
+      flex : 1,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "createdOn",
       headerName: "Created On",
-      width: 200,
+      minWidth: 150,
+      flex : 1,
       headerAlign: "center",
     },
     {
       field: "createdBy",
       headerName: "Created By",
-      width: 150,
+      minWidth: 150,
+      flex : 1,
       headerAlign: "center",
     },
     {
       field: "modifiedOn",
       headerName: "Modified On",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
     },
     {
       field: "modifiedBy",
       headerName: "Modified By",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
     },
   ];
 
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
+      
         rowHeight={40}
         rows={dataList}
         columns={columns}

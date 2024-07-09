@@ -4,20 +4,14 @@ import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
+import StyledDataGrid from "../../styles/styledDataGrid";
 const UsersData = () => {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
+       
         rowHeight={40}
         rows={rows}
         columns={columns}

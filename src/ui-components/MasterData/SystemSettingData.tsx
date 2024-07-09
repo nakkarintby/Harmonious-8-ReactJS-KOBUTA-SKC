@@ -2,25 +2,18 @@
 // import { GridRowParams } from "@mui/x-data-grid";
 import EditIcon from "@mui/icons-material/Edit";
 import Button from "@mui/material/Button";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import Swal from "sweetalert2";
 import toastAlert from "../SweetAlert2/toastAlert";
 import withReactContent from "sweetalert2-react-content";
 import { Grid, TextField } from "@mui/material";
+import StyledDataGrid from "../../styles/styledDataGrid";
 const MySwal = withReactContent(Swal);
 export default function SystemSettingData() {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
         rowHeight={40}
         rows={rows}
         columns={columns}

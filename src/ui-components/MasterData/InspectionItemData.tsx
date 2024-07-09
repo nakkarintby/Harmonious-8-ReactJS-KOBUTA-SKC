@@ -25,7 +25,7 @@ import {
 import MuiAccordion, {
   AccordionProps,
 } from "@mui/material/Accordion";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import instanceAxios from "../../api/axios/instanceAxios";
 import React from "react";
 import { TextField } from "@mui/material";
@@ -38,7 +38,7 @@ import moment from "moment";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
-
+import StyledDataGrid from "../../styles/styledDataGrid";
 
 interface InspectionItem {
   id: number;
@@ -128,7 +128,6 @@ async function ValidateQRCodeAPI(qrcode: any[]) {
     await instanceAxios
       .post(`/qrCodeCheck/ValidateImportQrCode`, qrcode)
       .then(async function (response: any) {
-        console.log(response);
         dataAPI = response.data;
         // toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
       })
@@ -213,7 +212,7 @@ export default function InspectionItemData(props: {
   const [insItemMin, setInsItemMin] = React.useState<string>("");
   const [insItemMax, setInsItemMax] = React.useState<string>("");
   const [insItemTarget, setInsItemTarget] = React.useState<string>("");
-  const [insItemUnit, setInsItemUnit] = React.useState<string | null>(null);
+  const [insItemUnit, setInsItemUnit] = React.useState<string>("");
   const [insItemRemark, setInsItemRemark] = React.useState<string>("");
   const [insItemSeq, setInsItemSeq] = React.useState<number>(0);
   const [insItemTopic, setInsItemTopic] = React.useState<string>("");
@@ -313,12 +312,13 @@ export default function InspectionItemData(props: {
   }
 
   function SetUpDataEdit(Id: any) {
+    const dataSetUp = _.find(dataPageList, { id: Id });
     setIsAdd(false);
-    setDisabledBtn(true);
+    setDisabledBtn(String(dataSetUp?.type ?? "") === "4");
     setMaxError(false);
     setMinError(false);
     setTargetError(false);
-    const dataSetUp = _.find(dataPageList, { id: Id });
+
     setInsItemId(Id);
     setInsItemSeq(dataSetUp?.sequence ?? 0);
     setInsItemTopic(dataSetUp?.topic ?? "");
@@ -788,6 +788,8 @@ export default function InspectionItemData(props: {
     // Check if Type is 2 and set initial button state
     if (insType === "2") {
       validateMinMaxTarget();
+    }else if (insType === "4"){
+      setDisabledBtn(true)
     }else{
       setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0)
     }
@@ -830,25 +832,9 @@ export default function InspectionItemData(props: {
       setTargetError(true);
     }
 
-    // Enable/disable button based on validation and Type
-    if (
-      !minError &&
-      !maxError &&
-      !targetError &&
-      (insType !== "2" ||
-        (insType === "2" &&
-          insItemTopic.trim() !== "" &&
-          insItemSeq !== 0 &&
-          (insItemUnit === null || insItemUnit.trim() !== "") &&
-          (insItemMax === null || (typeof insItemMax === 'string' && insItemMax.trim() !== "")) &&
-          (insItemMin === null || (typeof insItemMin === 'string' && insItemMin.trim() !== "")) 
-        )
-      )
-    ) {
-      setDisabledBtn(false);
-    } else {
-      setDisabledBtn(true);
-    }
+    let d = insItemTopic.trim() === "" || 
+    insItemSeq === 0  || insItemMax === "" || insItemMin === "" || insItemUnit === ""
+    setDisabledBtn(d)
   };
 
   const isAddButtonDisabled =
@@ -904,9 +890,6 @@ export default function InspectionItemData(props: {
   const [maxError, setMaxError] = React.useState<boolean>(false);
   const [targetError, setTargetError] = React.useState<boolean>(false);
 
-
-
-  
   return (
     <>
       <div>
@@ -940,24 +923,8 @@ export default function InspectionItemData(props: {
               </Grid>
               <Grid item xs={12} md={12} container>
                 <Box sx={{ height: "100%", width: "100%" }}>
-                  <DataGrid
-                    sx={{
-                      boxShadow: 2,
-                      border: 2,
-                      borderColor: "primary.light",
-                      width: "100%",
-                      "& .MuiDataGrid-columnHeader": {
-                        backgroundColor: "#19857B",
-                        width: "100%", // ทำให้ column headers ขยายเต็มความกว้าง // เปลี่ยนสีพื้นหลังของ header
-                      },
-                      "& .MuiDataGrid-columnHeaderTitle": {
-                        color: "#FFFFFF", // เปลี่ยนสีตัวอักษรของ header ให้เป็นสีขาวเพื่อให้มองเห็นชัดเจน
-                        fontWeight: "bold", // ทำให้ตัวอักษรใน header หนา
-                      },
-                      "& .MuiDataGrid-cell:hover": {
-                        color: "primary.main",
-                      },
-                    }}
+                  <StyledDataGrid
+                 
                     rows={dataPageList}
                     rowHeight={40}
                     columns={columns}
@@ -1305,27 +1272,9 @@ export default function InspectionItemData(props: {
             )}
             {showQRCodeList && (
               <Grid item xs={12} md={12}>
-                <DataGrid
-                  sx={{
-                    boxShadow: 2,
-                    border: 2,
-                    borderColor: "primary.light",
-                    width: "100%",
-                    "& .MuiDataGrid-columnHeader": {
-                      backgroundColor: "#19857B",
-                      width: "100%", // ทำให้ column headers ขยายเต็มความกว้าง // เปลี่ยนสีพื้นหลังของ header
-                    },
-                    "& .MuiDataGrid-columnHeaderTitle": {
-                      color: "#FFFFFF", // เปลี่ยนสีตัวอักษรของ header ให้เป็นสีขาวเพื่อให้มองเห็นชัดเจน
-                      fontWeight: "bold", // ทำให้ตัวอักษรใน header หนา
-                    },
-                    "& .MuiDataGrid-cell:hover": {
-                      color: "primary.main",
-                    },
-                  }}
+                <StyledDataGrid
                   rows={qrCodeList}
                   columns={activeIns ? columnsQR.filter((col) => col.field !== "action" ) : columnsQR}
-                  
                   initialState={{
                     pagination: {
                       paginationModel: {

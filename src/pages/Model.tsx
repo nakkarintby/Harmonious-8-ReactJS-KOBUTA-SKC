@@ -10,30 +10,33 @@ import {
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { Box, Grid } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import moment from "moment";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
+import StyledDataGrid from "../styles/styledDataGrid";
+import { useLocation } from "react-router-dom";
 
 export function Model() {
   const authRequest = {
     ...loginRequest,
   };
-
+  const location = useLocation();
   const [data, setData] = useState([])
-
   useEffect(() => {
-    fetchData()
+    fetchData(location.state.data.scheduledLineCode)
   }, [])
 
-  async function fetchData() {
+  async function fetchData(scheduledLineCode : string) {
     try {
-      await instanceAxios.get(`/Model/GetModel?page=1&perpage=1000`).then(async (response) => {
+      
+      await instanceAxios.get(`/Model/GetModelByScheduledLineCode?scheduledLineCode=${scheduledLineCode}`).then(async (response) => {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.length; i++) {
-            response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm');
-          }
+            response.data.data[i].createdOn =  response.data.data[i].createdOn == null ? "" :moment(response.data.data[i].createdOn).format('DD-MM-YYYY hh:mm:ss');
+            response.data.data[i].modifiedOn =  response.data.data[i].modifiedOn == null ? "" :moment(response.data.data[i].modifiedOn).format('DD-MM-YYYY hh:mm:ss');
+          }    
           setData(response.data.data)
         }
         else {
@@ -60,19 +63,14 @@ export function Model() {
           <Grid container spacing={2}>
             <Grid item xs={6} md={8}>
               <Box>
-                <ActiveLastBreadcrumb prm1="masterData" prm2="scheduleLine" prm3="model" />
+                <ActiveLastBreadcrumb prm1="Master Data" prm2="Schedule Line" prm3="Model" />
               </Box>
             </Grid>
           </Grid>
 
           <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
-            <DataGrid
-              sx={{
-                boxShadow: 2,
-                border: 2,
-                borderColor: "primary.light",
-
-              }}
+            <StyledDataGrid
+             
               rows={data}
               getRowId={(data) => data.modelName}
               rowHeight={40}
@@ -98,7 +96,8 @@ const columns: GridColDef[] = [
   {
     field: "scheduledLineCode",
     headerName: "Scheduled Line Code",
-    width: 200,
+    minWidth: 200,
+    flex:1,
     align:'center',
     headerAlign:'center'
 
@@ -106,27 +105,32 @@ const columns: GridColDef[] = [
   {
     field: "modelCode",
     headerName: "Model Code",
-    width: 200,
+    minWidth: 200,
+    flex:1,
   },
   {
     field: "modelName",
     headerName: "Model Name",
-    width: 200,
+    minWidth: 200,
+    flex:1,
   },
   {
     field: "distributorCode",
     headerName: "Distributor Code",
-    width: 200,
+    minWidth: 200,
+    flex:1,
   },
   {
     field: "createdOn",
     headerName: "Created On",
-    width: 200,
+    minWidth: 200,
+    flex:1,
   },
   {
     field: "modifiedOn",
     headerName: "Modified On",
-    width: 200,
+    minWidth: 200,
+    flex:1,
   },
 ];
 

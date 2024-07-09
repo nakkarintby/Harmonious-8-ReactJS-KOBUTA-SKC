@@ -424,7 +424,6 @@ export function InspectionItem() {
                       </Typography>
                     </Box>
                   </Grid>
-
                   <Grid item xs={12} md={2} container justifyContent="flex-end">
                     {!activeIns && (
                       <ButtonGroup variant="contained" aria-label="btn group">
@@ -515,6 +514,7 @@ export function InspectionItem() {
                   defaultValue={insGroupNameDisplay}
                   size="small"
                   style={{ width: 400 }}
+                  inputProps={{ maxLength: 200 }}
                   onChange={(e) => {
                     setInsGroupName(e.target.value);
                   }}
@@ -689,7 +689,8 @@ export function InspectionItem() {
                   id="outlined-size-small"
                   defaultValue={`${selectedTaktTime}`}
                   size="small"
-                  style={{ width: 400 }}
+                  style={{ width: '100%' }}
+                  inputProps={{ maxLength: 200 }}
                   onChange={(e) => {
                     setSelectedTaktTime(e.target.value);
                   }}
@@ -727,7 +728,7 @@ export function InspectionItem() {
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
 

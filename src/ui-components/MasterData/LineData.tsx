@@ -5,20 +5,14 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Link } from "react-router-dom";
 
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
+import StyledDataGrid from "../../styles/styledDataGrid";
 const LineData = () => {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
+      
         rows={rows}
         rowHeight={40}
         columns={columns}

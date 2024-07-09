@@ -8,13 +8,14 @@ import {
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { Box, Button, Grid } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef, GridRowParams } from "@mui/x-data-grid";
 import instanceAxios from "../api/axios/instanceAxios";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { Link } from "react-router-dom";
+import StyledDataGrid from "../styles/styledDataGrid";
 
 export function ScheduleLine() {
   const authRequest = {
@@ -64,13 +65,8 @@ export function ScheduleLine() {
         </Grid>
 
         <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
-          <DataGrid
-            sx={{
-              boxShadow: 2,
-              border: 2,
-              borderColor: "primary.light",
-
-            }}
+          <StyledDataGrid
+        
             rows={data}
             getRowId={(data) => data.name}
             rowHeight={40}
@@ -94,12 +90,14 @@ const columns: GridColDef[] = [
   {
     field: "action1",
     headerName: "",
-    width: 120,
-    renderCell: () => {
+    minWidth: 150,
+    flex: 1,
+    renderCell: ({ row }: Partial<GridRowParams>) => {
       return (
         <>
           <Link
             to={`/masterData/scheduleLine/model`}
+            state={{ data: row }}
           >
             <Button>
               <VisibilityIcon />
@@ -112,23 +110,26 @@ const columns: GridColDef[] = [
   {
     field: "scheduledLineCode",
     headerName: "Schedule Line Code",
-    width: 200,
-
+    minWidth: 200,
+    flex: 1,
   },
   {
     field: "name",
     headerName: "Schedule Line Name",
-    width: 200,
+    minWidth: 200,
+    flex: 1,
   },
   {
     field: "createdOn",
     headerName: "Created On",
-    width: 200,
+    minWidth: 200,
+    flex: 1,
   },
   {
     field: "modifiedOn",
     headerName: "Modified On",
-    width: 200,
+    minWidth: 200,
+    flex: 1,
   },
 ];
 

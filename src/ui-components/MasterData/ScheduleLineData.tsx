@@ -2,23 +2,51 @@
 import { GridRowParams } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import StyledDataGrid from "../../styles/styledDataGrid";
+import instanceAxios from "src/api/axios/instanceAxios";
+import toastAlert from "../SweetAlert2/toastAlert";
+import React from "react";
+
+async function GetScheduleLineDataApi(){
+  let dataApi:any ;
+  try {
+    await instanceAxios
+      .get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`)
+      .then(async function (response: any) {
+        dataApi = response.data
+      })
+      .catch(function (error: any) {
+        toastAlert("error", error.response.data.message, 5000);
+      });
+  } catch (err : any) {
+    toastAlert("error", err, 5000);
+  }
+  return dataApi;
+}
+
+
 const ScheduleLineData = () => {
+  const [dataList , setDataList] = React.useState([]);
+  React.useEffect(() => {
+    const FetchMenu = async () => {
+      GetScheduleLineDataApi().then((x)=>{
+        if(x.status === "success"){
+          setDataList(x.data);
+        }
+
+
+      });
+    };
+    FetchMenu();
+  }, []);
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
         rowHeight={40}
-        rows={rows}
+        rows={dataList}
         columns={columns}
         initialState={{
           pagination: {
@@ -40,20 +68,14 @@ const columns: GridColDef[] = [
     headerAlign: "center",
     sortable: false,
     renderCell: ({ row }: Partial<GridRowParams>) => (
-      // <Link
-      //   to={{
-      //     pathname: "/masterData/scheduleLine/model",
-      //     state: [{ data: row }],
-      //   }}
-      // >
-      <Link
-      to="/masterData/scheduleLine/model"
-      state={{ data: row }}
-    >
-        <Button>
-          <VisibilityIcon />
-        </Button>
-      </Link>
+      <>
+        <Link to="/masterData/scheduleLine/model" state={{ data: row }}>
+          <Button>
+        
+            <VisibilityIcon />
+          </Button>
+        </Link>
+      </>
     ),
   },
   {
@@ -83,61 +105,3 @@ const columns: GridColDef[] = [
   },
 ];
 
-const rows = [
-  {
-    id: 1,
-    scheduleLineCode: "300000",
-    scheduleLineName: "SH",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 2,
-    scheduleLineCode: "400000",
-    scheduleLineName: "TRACTOR",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 3,
-    scheduleLineCode: "500000",
-    scheduleLineName: "COMBINE",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 4,
-    scheduleLineCode: "700000",
-    scheduleLineName: "Rotary",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 5,
-    scheduleLineCode: "800000",
-    scheduleLineName: "B TRACTOR",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 6,
-    scheduleLineCode: "990000",
-    scheduleLineName: "TTL Dozer",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 7,
-    scheduleLineCode: "990002",
-    scheduleLineName: "Line Cell",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-  {
-    id: 8,
-    scheduleLineCode: "990004",
-    scheduleLineName: "Line KIT-SET",
-    createdOn: "2024-05-09T00:00:00",
-    modifiedOn: "2024-05-09T00:00:00",
-  },
-];

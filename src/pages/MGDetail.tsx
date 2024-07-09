@@ -9,7 +9,7 @@ import { loginRequest } from "../authProviders/authProvider";
 import { useLocation } from "react-router";
 import Button from "@mui/material/Button";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
@@ -47,6 +47,7 @@ import MuiAccordionSummary, {
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import Swal from "sweetalert2";
+import StyledDataGrid from "../styles/styledDataGrid";
 
 export function MGDetail() {
   const authRequest = {
@@ -74,16 +75,11 @@ export function MGDetail() {
     setValueAutoCompleteModelList(null);
   };
 
-
   const [expanded, setExpanded] = React.useState(true);
   const [dropDownModelListAutoComplete, setDropDownModelListAutoComplete] =
     useState([]);
   const [dropDownModelListTable, setDropDownModelListTable] = useState([]);
   const [valueAutoCompleteModelList, setValueAutoCompleteModelList] =
-    React.useState(Object);
-  const [dropDownLineListAutoComplete, setDropDownLineListAutoComplete] =
-    useState([]);
-  const [valueAutoCompleteLineDropdown, setValueDropDownLineListAutoComplete] =
     React.useState(Object);
 
   const [dropDownScheduledLineAutoComplete, setDropDownScheduledLineAutoComplete] = useState([])
@@ -93,12 +89,11 @@ export function MGDetail() {
   const [modelGroupDetail, setModelGroupDetail] = React.useState(Object);
   const [nameTmp, setNameTmp] = React.useState(null);
   const [LineTmp, setLineTmp] = React.useState(null);
+  const [scheduledLineDisplay, setScheduledLineDisplay] = React.useState("");
   const [nameTmp2, setNameTmp2] = React.useState(null);
   const [LineTmp2, setLineTmp2] = React.useState(null);
   const [loadingSL, setLoadingSL] = React.useState(false);
   const [loadingLine, setLoadingLine] = React.useState(false);
-
-
 
   useEffect(() => {
     fetchData();
@@ -114,6 +109,7 @@ export function MGDetail() {
           async (response) => {
             if (response.data.status == "success") {
               //Set All List
+      
               setModelList(response.data.data.modelList);
 
               //Set Header
@@ -127,23 +123,14 @@ export function MGDetail() {
                   item["lineId"] ===
                   response.data.data.modelGroupDetail["lineId"]
               )[0]['name'])
+              setScheduledLineDisplay(`${response.data.data.modelGroupDetail.scheduledLineCode} : ${response.data.data.modelGroupDetail.scheduledLineName}`)
               setNameTmp2(response.data.data.modelGroupDetail["name"])
               setLineTmp2(response.data.data.dropDownLineList.filter(
                 (item: any) =>
                   item["lineId"] ===
                   response.data.data.modelGroupDetail["lineId"]
               )[0]['name'])
-              setDropDownLineListAutoComplete(
-                response.data.data.dropDownLineList
-              );
-              
-              setValueDropDownLineListAutoComplete(
-                response.data.data.dropDownLineList.filter(
-                  (item: any) =>
-                    item["lineId"] ===
-                    response.data.data.modelGroupDetail["lineId"]
-                )[0]
-              );
+          
               setModelGroupDetail(response.data.data.modelGroupDetail)
 
               //Set Detail
@@ -285,6 +272,7 @@ export function MGDetail() {
             }
           },
           (error) => {
+           
             toastAlert("error", error.response.data.message, 5000);
           }
         );
@@ -350,7 +338,6 @@ export function MGDetail() {
     }
   }
 
-
   async function fetchDataDropDownLine(params: any) {
     try {
       await instanceAxios.get(`/Line/GetLineByScheduledLineCode?scheduledLineCode=${params}`).then(async (response) => {
@@ -378,8 +365,6 @@ export function MGDetail() {
     }
   }
 
-
-
   async function handleChangeValueDropDownScheduledLineAutoComplete(e: any) {
     setValueAutoCompleteLinedropDownScheduledLine(e)
     fetchDataDropDownLine(e['scheduledLineCode'])
@@ -398,6 +383,8 @@ export function MGDetail() {
       headerName: "",
       headerAlign: "center",
       sortable: false,
+      minWidth: 150,
+      flex : 1,
       renderCell: (params: any) => {
         return (
           <>
@@ -415,13 +402,15 @@ export function MGDetail() {
     {
       field: "modelCode",
       headerName: "Model Code",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
     },
     {
       field: "modelName",
       headerName: "Model Name",
-      width: 200,
+      minWidth: 200,
+      flex : 1,
       headerAlign: "center",
     },
   ];
@@ -438,9 +427,9 @@ export function MGDetail() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="modelgroups"
-                prm3={`detail`}
+                prm1="Master Data"
+                prm2="Model Groups"
+                prm3={`Detail`}
               />
             </Box>
           </Grid>
@@ -468,42 +457,43 @@ export function MGDetail() {
               <Typography sx={{ flexShrink: 0 }}>Model Group</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid container spacing={1}>
-                <Grid item xs={12} md={12} container justifyContent="flex-end">
-                  <Box>
-                    <Button
-                      variant="outlined"
-                      onClick={handleopenModalModelGroup}
-                    >
-                      Edit
-                    </Button>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      style={{ marginRight: 8 }}
-                    >
-                      Model Group Name:
+              <Grid container spacing={0}>
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      Model Group Name :
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" ml={1}>
                       {nameTmp}
                     </Typography>
                   </Box>
                 </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <Box display="flex" alignItems="center">
-                    <Typography
-                      variant="body1"
-                      color="textSecondary"
-                      style={{ marginRight: 8 }}
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      Scheduled Line:
+                    </Typography>
+                    <Typography variant="body1" ml={1}>
+                      {scheduledLineDisplay}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={2} container justifyContent="flex-end">
+                  <ButtonGroup variant="contained" aria-label="btn group">
+                    <Button
+                      variant="outlined"
+                      onClick={handleopenModalModelGroup}
                     >
+                      EDIT
+                    </Button>
+                  </ButtonGroup>
+                </Grid>
+                <Grid item xs={12} md={5}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Typography variant="subtitle1" color="textSecondary">
                       Line:
                     </Typography>
-                    <Typography variant="body1">
+                    <Typography variant="body1" ml={1}>
                       {LineTmp}
                     </Typography>
                   </Box>
@@ -539,24 +529,14 @@ export function MGDetail() {
                 </Box>
 
                 <Box sx={{ height: "100%", width: "100%" }}>
-                  <DataGrid
+                  <StyledDataGrid
                     autoHeight
-                    sx={{
-                      "--DataGrid-overlayHeight": "300px",
-                      boxShadow: 2,
-                      border: 2,
-                      borderColor: "primary.light",
-                      "& .MuiDataGrid-cell:hover": {
-                        color: "primary.main",
-                      },
-                    }}
-                    slots={{ noRowsOverlay: CustomNoRowsOverlay }}
                     rows={modelList}
                     getRowId={(data) => data.modelGroupMappingId}
                     columns={columns}
                     initialState={{
                       pagination: {
-                        paginationModel: { page: 0, pageSize: 10 },
+                        paginationModel: { page: 1, pageSize: 10 },
                       },
                     }}
                     pageSizeOptions={[5, 10]}
@@ -576,18 +556,19 @@ export function MGDetail() {
           disableBackdropClick
           disableEscapeKeyDown
         >
-          <ModalContent sx={{ width: '30vw' }}>
+          <ModalContent sx={{ width: "50vw" }}>
             <h2 id="unstyled-modal-title" className="modal-title">
               Add Model
             </h2>
-            <Grid container spacing={8}>
+            <Grid container spacing={2}>
               <Grid item xs={12} md={8}>
                 <Autocomplete
                   sx={{ width: "100%" }}
                   onChange={(_, newValue) => {
                     handleChangeValueDropDownModelListAutoComplete(newValue);
                   }}
-                  id="combo-box-demo"
+                  id="model-box-create"
+                  size="small"
                   value={valueAutoCompleteModelList}
                   options={dropDownModelListAutoComplete.map(
                     (dropDownModelListAutoComplete) =>
@@ -599,17 +580,16 @@ export function MGDetail() {
                   )}
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={4} container justifyContent="flex-end">
                 <ButtonGroup
                   variant="contained"
                   aria-label="Basic button group"
                 >
-                  <Button variant="outlined" onClick={addDropDownModelList}>
-                    Add
-                  </Button>
-                  <Button variant="outlined" onClick={submitModelGroupDetail}>
-                    Submit
-                  </Button>
+                  <Box display="flex" gap={2}>
+                    <Button variant="contained"  onClick={addDropDownModelList}>
+                      Add
+                    </Button>
+                  </Box>
                 </ButtonGroup>
               </Grid>
               <Grid item xs={12} md={12}>
@@ -621,9 +601,10 @@ export function MGDetail() {
                     <Table sx={{ width: "100%" }} aria-label="customized table">
                       <TableHead>
                         <TableRow>
+                        <StyledTableCell></StyledTableCell>
                           <StyledTableCell>Model Code</StyledTableCell>
                           <StyledTableCell>Model Name </StyledTableCell>
-                          <StyledTableCell></StyledTableCell>
+                       
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -632,14 +613,7 @@ export function MGDetail() {
                             <StyledTableRow
                               key={dropDownModelListTable["modelName"]}
                             >
-                              <StyledTableCell component="th" scope="row">
-                                {dropDownModelListTable["modelCode"]}
-                              </StyledTableCell>
-
-                              <StyledTableCell component="th" scope="row">
-                                {dropDownModelListTable["modelName"]}
-                              </StyledTableCell>
-                              <StyledTableCell align="right">
+                               <StyledTableCell align="left">
                                 <Button>
                                   <DeleteIcon
                                     onClick={() =>
@@ -648,6 +622,14 @@ export function MGDetail() {
                                   />
                                 </Button>
                               </StyledTableCell>
+                              <StyledTableCell component="th" scope="row">
+                                {dropDownModelListTable["modelCode"]}
+                              </StyledTableCell>
+
+                              <StyledTableCell component="th" scope="row">
+                                {dropDownModelListTable["modelName"]}
+                              </StyledTableCell>
+                             
                             </StyledTableRow>
                           )
                         )}
@@ -656,10 +638,18 @@ export function MGDetail() {
                   </TableContainer>
                 </Box>
               </Grid>
-              <Grid item xs={12} md={12}>
-                <Box display="flex" justifyContent="flex-end" gap={2}>
-                  <Button variant="outlined" onClick={handlecloseModalCreate}>
+
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
+                <Box display="flex" gap={2}>
+                  <Button variant="outlined" color="secondary" onClick={handlecloseModalCreate}>
                     Close
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <Button variant="contained" onClick={submitModelGroupDetail}>
+                    Submit
                   </Button>
                 </Box>
               </Grid>
@@ -695,12 +685,14 @@ export function MGDetail() {
                   size="small"
                   onOpen={() => {
                     setLoadingSL(true);
-                    fetchDataDropDownScheduledLine()
+                    fetchDataDropDownScheduledLine();
                   }}
                   onClose={() => setLoadingSL(false)}
                   loading={loadingSL}
                   onChange={(_, newValue) => {
-                    handleChangeValueDropDownScheduledLineAutoComplete(newValue);
+                    handleChangeValueDropDownScheduledLineAutoComplete(
+                      newValue
+                    );
                   }}
                   id="combo-box-demo"
                   value={valueAutoCompleteDropDownScheduledLine}
@@ -708,7 +700,9 @@ export function MGDetail() {
                     (dropDownScheduledLineAutoComplete) =>
                       dropDownScheduledLineAutoComplete
                   )}
-                  getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
+                  getOptionLabel={(options: any) =>
+                    `${options.scheduledLineCode} - ${options.name}`
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -737,7 +731,13 @@ export function MGDetail() {
                 <Autocomplete
                   onOpen={() => {
                     setLoadingLine(true);
-                    fetchDataDropDownLine(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+                    fetchDataDropDownLine(
+                      valueAutoCompleteDropDownScheduledLine
+                        ? valueAutoCompleteDropDownScheduledLine[
+                            "scheduledLineCode"
+                          ]
+                        : null
+                    );
                   }}
                   onClose={() => setLoadingLine(false)}
                   loading={loadingLine}
@@ -747,8 +747,7 @@ export function MGDetail() {
                   id="combo-box-demo"
                   value={valueAutoCompleteDropDownLine}
                   options={dropDownLineAutoComplete.map(
-                    (dropDownLineAutoComplete) =>
-                      dropDownLineAutoComplete
+                    (dropDownLineAutoComplete) => dropDownLineAutoComplete
                   )}
                   sx={{ width: "100%" }}
                   size="small"
@@ -777,10 +776,6 @@ export function MGDetail() {
                   }}
                 />
               </Grid>
-
-
-
-
               <Grid item xs={12}>
                 <Grid item xs={6} md={12} container justifyContent="flex-end">
                   <Box display="flex" gap={2}>
@@ -808,81 +803,13 @@ export function MGDetail() {
   );
 }
 
-const StyledGridOverlay = styled("div")(({ theme }) => ({
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-  "& .ant-empty-img-1": {
-    fill: theme.palette.mode === "light" ? "#aeb8c2" : "#262626",
-  },
-  "& .ant-empty-img-2": {
-    fill: theme.palette.mode === "light" ? "#f5f5f7" : "#595959",
-  },
-  "& .ant-empty-img-3": {
-    fill: theme.palette.mode === "light" ? "#dce0e6" : "#434343",
-  },
-  "& .ant-empty-img-4": {
-    fill: theme.palette.mode === "light" ? "#fff" : "#1c1c1c",
-  },
-  "& .ant-empty-img-5": {
-    fillOpacity: theme.palette.mode === "light" ? "0.8" : "0.08",
-    fill: theme.palette.mode === "light" ? "#f5f5f5" : "#fff",
-  },
-}));
 
-function CustomNoRowsOverlay() {
-  return (
-    <StyledGridOverlay>
-      <svg
-        style={{ flexShrink: 0 }}
-        width="240"
-        height="200"
-        viewBox="0 0 184 152"
-        aria-hidden
-        focusable="false"
-      >
-        <g fill="none" fillRule="evenodd">
-          <g transform="translate(24 31.67)">
-            <ellipse
-              className="ant-empty-img-5"
-              cx="67.797"
-              cy="106.89"
-              rx="67.797"
-              ry="12.668"
-            />
-            <path
-              className="ant-empty-img-1"
-              d="M122.034 69.674L98.109 40.229c-1.148-1.386-2.826-2.225-4.593-2.225h-51.44c-1.766 0-3.444.839-4.592 2.225L13.56 69.674v15.383h108.475V69.674z"
-            />
-            <path
-              className="ant-empty-img-2"
-              d="M33.83 0h67.933a4 4 0 0 1 4 4v93.344a4 4 0 0 1-4 4H33.83a4 4 0 0 1-4-4V4a4 4 0 0 1 4-4z"
-            />
-            <path
-              className="ant-empty-img-3"
-              d="M42.678 9.953h50.237a2 2 0 0 1 2 2V36.91a2 2 0 0 1-2 2H42.678a2 2 0 0 1-2-2V11.953a2 2 0 0 1 2-2zM42.94 49.767h49.713a2.262 2.262 0 1 1 0 4.524H42.94a2.262 2.262 0 0 1 0-4.524zM42.94 61.53h49.713a2.262 2.262 0 1 1 0 4.525H42.94a2.262 2.262 0 0 1 0-4.525zM121.813 105.032c-.775 3.071-3.497 5.36-6.735 5.36H20.515c-3.238 0-5.96-2.29-6.734-5.36a7.309 7.309 0 0 1-.222-1.79V69.675h26.318c2.907 0 5.25 2.448 5.25 5.42v.04c0 2.971 2.37 5.37 5.277 5.37h34.785c2.907 0 5.277-2.421 5.277-5.393V75.1c0-2.972 2.343-5.426 5.25-5.426h26.318v33.569c0 .617-.077 1.216-.221 1.789z"
-            />
-          </g>
-          <path
-            className="ant-empty-img-3"
-            d="M149.121 33.292l-6.83 2.65a1 1 0 0 1-1.317-1.23l1.937-6.207c-2.589-2.944-4.109-6.534-4.109-10.408C138.802 8.102 148.92 0 161.402 0 173.881 0 184 8.102 184 18.097c0 9.995-10.118 18.097-22.599 18.097-4.528 0-8.744-1.066-12.28-2.902z"
-          />
-          <g className="ant-empty-img-4" transform="translate(149.65 15.383)">
-            <ellipse cx="20.654" cy="3.167" rx="2.849" ry="2.815" />
-            <path d="M5.698 5.63H0L2.898.704zM9.259.704h4.985V5.63H9.259z" />
-          </g>
-        </g>
-      </svg>
-      <Box sx={{ mt: 1 }}>No Rows</Box>
-    </StyledGridOverlay>
-  );
-}
+
+
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
   align-items: center;

@@ -3,10 +3,11 @@ import { GridRowParams } from "@mui/x-data-grid";
 import { Link } from "react-router-dom";
 import Button from "@mui/material/Button";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import { useEffect, useState } from "react"
 import axios from "axios";
+import StyledDataGrid from "../../styles/styledDataGrid";
 
 const ModelGroupData = () => {
   const [data,setData] = useState([])
@@ -30,15 +31,8 @@ const ModelGroupData = () => {
 
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
-      <DataGrid
-        sx={{
-          boxShadow: 2,
-          border: 2,
-          borderColor: "primary.light",
-          "& .MuiDataGrid-cell:hover": {
-            color: "primary.main",
-          },
-        }}
+      <StyledDataGrid
+      
         rows={data}
         rowHeight={40}
         columns={columns}

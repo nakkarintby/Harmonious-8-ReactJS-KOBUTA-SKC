@@ -10,16 +10,19 @@ const DropzoneArea = ({
   sequence,
   inspectionItemId,
   activeIns,
+  isAdd,
 }: {
   sequence: number;
   inspectionItemId: number;
-  activeIns : boolean
+  activeIns : boolean;
+  isAdd :boolean;
 }) => {
   const [files, setFiles] = React.useState<InsItemImageModel[]>([]);
   const [maxImage, setMaxImage] = React.useState<number>(0);
 
   React.useEffect(() => {
     const FetchMenu = async () => {
+      if(!isAdd){
       await GetConstantAPI().then(async (rs) => {
         if (rs.status === "success") {
           setMaxImage(Number(rs.data.find((item: any) => item.code === "MAX")?.text ?? "0"));
@@ -39,6 +42,7 @@ const DropzoneArea = ({
           setFiles(ddlModel);
         }
       });
+    }
     };
   
     FetchMenu();
@@ -157,10 +161,6 @@ const DropzoneArea = ({
                   />
                 </IconButton>
               )}
-
-              <Typography variant="body2" color="textSecondary">
-                {file.fileName}
-              </Typography>
             </Box>
           </Grid>
         ))}

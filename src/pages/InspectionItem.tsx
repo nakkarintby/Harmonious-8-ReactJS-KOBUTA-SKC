@@ -29,135 +29,14 @@ import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
 import { useState } from "react";
-import instanceAxios from "../api/axios/instanceAxios";
 import _ from "lodash";
 import { useLocation } from "react-router-dom";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ActiveInsGroupAPI, GetInsGroupAPI, GetLineAPI, GetModelGroupAPI, GetScheduledLineAPI, GetStationAPI, SaveInsGroupAPI } from "@api/axios/inspectionGroupAPI";
 
-interface DDLModel {
-  label: string;
-  value: string;
-}
 
-async function GetInsGroupAPI(InsId: number) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/InspectionGroup/GetInspectionGroupById?inspectionGroupId=${InsId}`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err : any) {
-    toastAlert("error", err, 5000);
-  }
-  return dataApi;
-}
 
-async function ActiveInsGroupAPI(InsId: number) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/InspectionGroup/UpdateStatus?inspectionGroupId=${InsId}`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-        toastAlert(response.data.status, response.data.message, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err : any) {
-    toastAlert("error", err, 5000);
-  }
-  return dataApi;
-}
-
-async function GetScheduledLineAPI() {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
-
-async function GetModelGroupAPI() {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-         toastAlert("error", error, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
-
-async function SaveInsGroupAPI(body: any) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .put("/InspectionGroup/UpdateInspectionGroup", body)
-      .then(async function (response: any) {
-        return (dataApi = response.data);
-      });
-  } catch (err : any) {
-    toastAlert("error", err, 5000);
-  }
-  return dataApi;
-}
-
-async function GetLineAPI(scheduledLineCode: string) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(
-        `/Line/GetLineByScheduledLineCode?scheduledLineCode=${scheduledLineCode}`
-      )
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
-
-async function GetStationAPI(lineId: number) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/Station/GetStationByLineId?lineId=${lineId}`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
 
 export function InspectionItem() {
   const authRequest = {
@@ -331,8 +210,14 @@ export function InspectionItem() {
   }
 
   async function ActiveInsGroupPage(insId: number) {
-    await ActiveInsGroupAPI(insId);
-    InsGroupPage();
+    await ActiveInsGroupAPI(insId).then((rs) => {
+      console.log(rs)
+      if (rs.status == "success") {
+        toastAlert(rs.status, rs.message, 5000);
+        InsGroupPage();
+      }
+    });
+  
   }
 
   React.useEffect(() => {

@@ -33,7 +33,8 @@ export function ScheduleLine() {
       await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.length; i++) {
-            response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm');
+            response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm:ss');
+            response.data.data[i].modifiedOn =  response.data.data[i].modifiedOn == null ? "" : moment(response.data.data[i].modifiedOn).format('YYYY-MM-DD hh:mm:ss');
           }
           setData(response.data.data)
         }
@@ -59,7 +60,7 @@ export function ScheduleLine() {
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
-              <ActiveLastBreadcrumb prm1="masterData" prm2="scheduleLine" prm3="" />
+              <ActiveLastBreadcrumb prm1="Master Data" prm2="Schedule Line" prm3="" />
             </Box>
           </Grid>
         </Grid>
@@ -90,8 +91,8 @@ const columns: GridColDef[] = [
   {
     field: "action1",
     headerName: "",
-    minWidth: 150,
-    flex: 1,
+    minWidth: 100,
+    flex: 0.5,
     renderCell: ({ row }: Partial<GridRowParams>) => {
       return (
         <>
@@ -99,8 +100,8 @@ const columns: GridColDef[] = [
             to={`/masterData/scheduleLine/model`}
             state={{ data: row }}
           >
-            <Button>
-              <VisibilityIcon />
+            <Button  sx={{ minWidth: 0, padding: "4px" }} >
+              <VisibilityIcon fontSize="small" />
             </Button>
           </Link>
         </>

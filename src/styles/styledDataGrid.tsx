@@ -6,13 +6,15 @@ const commonStyles: SxProps = {
   border: 2,
   borderColor: 'primary.light',
   width: '100%',
+  maxHeight: '30vw',
+  height: '30vw',
+  overflow: 'auto',
   '& .MuiDataGrid-columnHeader': {
     backgroundColor: '#19857B',
-    width: '100%', // Ensures column headers expand to full width
   },
   '& .MuiDataGrid-columnHeaderTitle': {
-    color: '#FFFFFF', // Changes header text color to white
-    fontWeight: 'bold', // Makes header text bold
+    color: '#FFFFFF',
+    fontWeight: 'bold',
   },
   '& .MuiDataGrid-cell:hover': {
     color: 'primary.main',

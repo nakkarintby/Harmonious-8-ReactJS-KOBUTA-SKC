@@ -8,6 +8,9 @@ export default defineConfig({
     outDir: 'dist'
   },
   resolve: {
+    alias: {
+      '@api': '/src/api', // ปรับเส้นทางให้ตรงกับโครงสร้างของคุณ
+    },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   }
 });

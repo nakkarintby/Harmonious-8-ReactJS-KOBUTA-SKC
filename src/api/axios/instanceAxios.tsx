@@ -10,7 +10,7 @@ const instanceAxios = axios.create({
 
 // Function to set the Authorization token
 const setAuthToken = (token: string) => {
-
+  sessionStorage.setItem('authToken', `Bearer ${token}`);
   if (token) {
     instanceAxios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
@@ -21,10 +21,11 @@ const setAuthToken = (token: string) => {
 // Interceptor to ensure the token is included in every request
 instanceAxios.interceptors.request.use(
   (config) => {
-    const token = instanceAxios.defaults.headers.common['Authorization'];
-    if (token) {
-      config.headers['Authorization'] = token;
-    }
+    let tokenSession =  sessionStorage.getItem('authToken')
+    // const token = instanceAxios.defaults.headers.common['Authorization'];
+    // if (token) {
+      config.headers['Authorization'] = tokenSession;
+    // }
     return config;
   },
   (error) => {

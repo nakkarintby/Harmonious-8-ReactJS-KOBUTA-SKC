@@ -222,8 +222,8 @@ export function ModelGroup() {
     {
       field: "action1",
       headerName: "",
-      minWidth: 150,
-      flex : 1,
+      minWidth: 100,
+      flex : 0.5,
       renderCell: (params: any) => {
         return (
           <>
@@ -233,13 +233,13 @@ export function ModelGroup() {
                 modelGroupId: params.row.modelGroupId,
               }}
             >
-              <Button>
-                <VisibilityIcon />
+              <Button  sx={{ minWidth: 0, padding: "4px" }} >
+                <VisibilityIcon fontSize="small" />
               </Button>
             </Link>
 
-            <Button onClick={() => deleteModelGroup(params.row.modelGroupId)} >
-              <DeleteIcon />
+            <Button onClick={() => deleteModelGroup(params.row.modelGroupId)}  sx={{ minWidth: 0, padding: "4px" }} >
+              <DeleteIcon fontSize="small" />
             </Button></>
         );
       },
@@ -328,10 +328,8 @@ export function ModelGroup() {
 
         <Box sx={{ height: "100%", width: "100%", marginTop: "10px" }}>
           <StyledDataGrid
-           
             rows={dataModelGroup}
             getRowId={(dataModelGroup) => dataModelGroup.modelGroupId}
-            rowHeight={40}
             columns={columns}
             initialState={{
               pagination: {

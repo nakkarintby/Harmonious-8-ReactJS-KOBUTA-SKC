@@ -2,7 +2,6 @@
 import { GridRowParams } from "@mui/x-data-grid";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import { grey } from "@mui/material/colors";
 import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 import MuiAccordionSummary, {
   AccordionSummaryProps,
@@ -20,178 +19,27 @@ import {
   MenuItem,
   Select,
   Switch,
+  Tab,
+  Tabs,
   Typography,
 } from "@mui/material";
 import MuiAccordion, {
   AccordionProps,
 } from "@mui/material/Accordion";
 import {  GridColDef } from "@mui/x-data-grid";
-import instanceAxios from "../../api/axios/instanceAxios";
 import React from "react";
 import { TextField } from "@mui/material";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import _ from "lodash";
-import { styled, css } from "@mui/system";
+import { styled } from "@mui/system";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import toastAlert from "../SweetAlert2/toastAlert";
 import moment from "moment";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import StyledDataGrid from "../../styles/styledDataGrid";
-
-interface InspectionItem {
-  id: number;
-  inspectionGroupId: number;
-  sequence: number;
-  topic: string;
-  remark: string;
-  type: string;
-  typeName: string;
-  min: string;
-  max: string;
-  target: string;
-  unit: string;
-  isRequired: boolean;
-  isPinCode: boolean;
-  isDeleted: boolean;
-  createdOn: string;
-  createdBy: string;
-  modifiedOn: string;
-  modifiedBy: string;
-}
-
-interface QRCodeModel {
-  id: number | null;
-  value: string | null;
-  text: string | null;
-  cell: string | null;
-}
-
-interface DDLModel {
-  label: string;
-  value: string;
-}
-
-async function GetInsItemAPI(insItemID: number) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(
-        `/InspectionItem/GetInspectionItemByInspectionGroupId?inspectionGroupId=${insItemID}`
-      )
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
-
-async function UpdateInsItemAPI(body: any) {
-  try {
-    await instanceAxios
-      .put(`/InspectionItem/UpdateInspectionItem`, body)
-      .then(async function (response: any) {
-        toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    toastAlert(`error`, `${err}`, 5000);
-  }
-}
-
-async function CreateInsItemAPI(body: any) {
-  try {
-    await instanceAxios
-      .post(`/InspectionItem/CreateInspectionItem`, body)
-      .then(async function (response: any) {
-        toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (error) {
-    toastAlert(`error`, `Admin`, 5000);
-  }
-}
-
-async function ValidateQRCodeAPI(qrcode: any[]) {
-  let dataAPI: any;
-  try {
-    await instanceAxios
-      .post(`/qrCodeCheck/ValidateImportQrCode`, qrcode)
-      .then(async function (response: any) {
-        dataAPI = response.data;
-        // toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    toastAlert(`error`, `${err}`, 5000);
-  }
-  return dataAPI;
-}
-
-async function DeletedInsItemAPI(insItemId: number) {
-  try {
-    await instanceAxios
-      .put(`/InspectionItem/RemoveInspectionItem?inspectionItemId=${insItemId}`)
-      .then(async function (response: any) {
-        toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    toastAlert(`error`, `${err}`, 5000);
-  }
-}
-
-async function GetQRCodeItemAPI(insItemId: number) {
-  let dataAPI: any;
-  console.log(insItemId);
-  try {
-    await instanceAxios
-      .get(
-        `/qrCodeCheck/SelectQRCodeByInspectionItemId?inspectionItemId=${insItemId}`
-      )
-      .then(async function (response: any) {
-        dataAPI = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    toastAlert(`error`, `${err}`, 5000);
-  }
-
-  return dataAPI;
-}
-
-async function GetConstantByGrpAPI(grp: string) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/Constant/GetConstantByGRP?grp=${grp}`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
+import DropzoneArea from "./inspectionItemImage";
+import { CreateInsItemAPI, DeletedInsItemAPI, GetConstantByGrpAPI, GetInsItemAPI, GetQRCodeItemAPI, UpdateInsItemAPI, ValidateQRCodeAPI } from "@api/axios/inspectionItemAPI";
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
@@ -555,7 +403,6 @@ export default function InspectionItemData(props: {
   }
   const [errorQRCodeValue, setErrorQRCodeValue] = React.useState(false);
   const [errorQRCodeText, setErrorQRCodeText] = React.useState(false);
-
   async function AddQRCodeInsItem() {
     if (insItemQRValue.trim() === "" || insItemQRText.trim() === "") {
       return;
@@ -590,56 +437,57 @@ export default function InspectionItemData(props: {
       headerAlign: "center",
       align: "left",
       minWidth: 150,
-      flex: 1,
+      flex: 0.5,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
-          <Button
-                onClick={() => {
-                  setLabelModal("Edit Inspection Group Item");
-                  handleOpen();
-                  SetUpDataEdit(row.id);
-                }}
-              >
-                <EditIcon />
-              </Button>
-          {!activeIns && (
-            <>
-              <Button
-                onClick={() => {
-                  Swal.fire({
-                    title: "Are you sure?",
-                    text: `${row.topic}`,
-                    icon: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#3085d6",
-                    cancelButtonColor: "#d33",
-                    confirmButtonText: "Yes, delete it!",
-                  }).then((result) => {
-                    if (result.isConfirmed) {
-                      DeletedInsItem(row.id);
-                    }
-                  });
-                }}
-              >
-                <DeleteIcon />
-              </Button>
-            </>
-          )}
-        </>
+    <Button
+      onClick={() => {
+        setLabelModal("Edit Inspection Group Item");
+        handleOpen();
+        SetUpDataEdit(row.id);
+        setValue(0)
+      }}
+      sx={{ minWidth: 0, padding: "4px" }}
+    >
+      <EditIcon fontSize="small" />
+    </Button>
+    {!activeIns && (
+      <Button
+        onClick={() => {
+          Swal.fire({
+            title: "Are you sure?",
+            text: `${row.topic}`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+          }).then((result) => {
+            if (result.isConfirmed) {
+              DeletedInsItem(row.id);
+            }
+          });
+        }}
+        sx={{ minWidth: 0, padding: "4px", marginLeft: "4px" }}
+      >
+        <DeleteIcon fontSize="small" />
+      </Button>
+    )}
+  </>
       ),
     },
     {
       field: "sequence",
       headerName: "Sequence",
-      minWidth: 150,
-      flex: 1,
+      minWidth: 100,
+      flex: 0.5,
       headerAlign: "center",
       align: "center",
     },
     {
       field: "topic",
-      headerName: "topic",
+      headerName: "Topic",
       minWidth: 150,
       flex: 1,
       headerAlign: "center",
@@ -889,6 +737,34 @@ export default function InspectionItemData(props: {
   const [minError, setMinError] = React.useState<boolean>(false);
   const [maxError, setMaxError] = React.useState<boolean>(false);
   const [targetError, setTargetError] = React.useState<boolean>(false);
+  const [value, setValue] = React.useState(0);
+
+  function CustomTabPanel(props: TabPanelProps) {
+    const { children, value, index, ...other } = props;
+  
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      </div>
+    );
+  }
+  
+  function a11yProps(index: number) {
+    return {
+      id: `simple-tab-${index}`,
+      'aria-controls': `simple-tabpanel-${index}`,
+    };
+  }
+
+  const handleChange = ( newValue: number) => {
+    setValue(newValue);
+  };
 
   return (
     <>
@@ -924,7 +800,6 @@ export default function InspectionItemData(props: {
               <Grid item xs={12} md={12} container>
                 <Box sx={{ height: "100%", width: "100%" }}>
                   <StyledDataGrid
-                 
                     rows={dataPageList}
                     rowHeight={40}
                     columns={columns}
@@ -950,381 +825,432 @@ export default function InspectionItemData(props: {
         disableEscapeKeyDown
         slots={{ backdrop: StyledBackdrop }}
       >
-        <ModalContent sx={{ width: "40vw" }}>
+        <ModalContent >
           <h2 id="unstyled-modal-title" className="modal-title">
             {lableModal}
           </h2>
-          <Grid container spacing={2}>
-            <Grid item xs={6} md={12}>
-              <TextField
-                disabled={activeIns ? true : false}
-                label={
-                  <span>
-                    <span style={{ color: "red" }}>*</span> Sequence
-                  </span>
-                }
-                id="outlined-size-small"
-                size="small"
-                defaultValue={insItemSeq}
-                style={{ width: "100%" }}
-                onChange={(e) => {
-                  setInsItemSeq(Number(e.target.value));
-                }}
-              />
-            </Grid>
-            <Grid item xs={6} md={12}>
-              <TextField
-                label={
-                  <span>
-                    <span style={{ color: "red" }}>*</span> Topic
-                  </span>
-                }
-                // label="Topic"
-                
-                id="topic-size-small"
-                disabled={activeIns ? true : false}
-                defaultValue={insItemTopic}
-                size="small"
-                style={{ width: "100%" }}
-                onChange={(e) => {
-                  setInsItemTopic(e.target.value);
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={12}>
-              <TextField
-                label="Remark"
-                id="remark-size-small"
-                defaultValue={insItemRemark}
-                disabled={activeIns ? true : false}
-                size="small"
-                style={{ width: "100%" }}
-                onChange={(e) => {
-                  setInsItemRemark(e.target.value);
-                }}
-              />
-            </Grid>
+          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+            <Tabs
+              value={value}
+              onChange={(_,value) => handleChange(value)}
+              aria-label="basic tabs example"
+            >
+              <Tab label="Detail" {...a11yProps(0)} />
+              <Tab label="Images" {...a11yProps(1)} />
+            </Tabs>
+          </Box>
+          <CustomTabPanel value={value} index={0}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  disabled={activeIns ? true : false}
+                  label={
+                    <span>
+                      <span style={{ color: "red" }}>*</span> Sequence
+                    </span>
+                  }
+                  id="outlined-size-small"
+                  size="small"
+                  defaultValue={insItemSeq}
+                  style={{ width: "100%" }}
+                  onChange={(e) => {
+                    setInsItemSeq(Number(e.target.value));
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  label={
+                    <span>
+                      <span style={{ color: "red" }}>*</span> Topic
+                    </span>
+                  }
+                  // label="Topic"
 
-            <Grid item xs={12} md={12}>
-              <FormControl fullWidth>
-                <InputLabel id="insType-simple-select-helper-label">
-                  Inspection Type
-                </InputLabel>
-                <Select
-                  labelId="insType-simple-select-label"
-                  id="insType-simple-select"
-                  defaultValue={insType}
+                  id="topic-size-small"
                   disabled={activeIns ? true : false}
-                  label="InspectionType"
-                  onChange={handleChangeInspectionType}
-                  size="small"
-                >
-                  {_.map(insTypeDDL, function (i: DDLModel) {
-                    return (
-                      <MenuItem key={i.value} value={i.value}>
-                        {i.label}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-              </FormControl>
-            </Grid>
-            {showMeasurement && (
-              <Grid item xs={6} md={4}>
-                <TextField
-                  label={
-                    <span>
-                      <span style={{ color: "red" }}>*</span> Min
-                    </span>
-                  }
-                  id="min-size-small"
-                  disabled={activeIns ? true : false}
+                  defaultValue={insItemTopic}
                   size="small"
                   style={{ width: "100%" }}
-                  defaultValue={insItemMin}
-                  inputProps={{
-                    inputMode: "decimal",
-                    pattern: "[0-9]*[.]?[0-9]*",
-                  }}
-                  onInput={handleInput}
-                  error={minError} // Apply error state to TextField
-                  helperText={
-                    minError
-                      ? "Min value must not be greater than Max value."
-                      : ""
-                  }
                   onChange={(e) => {
-                    const value = e.target.value;
-                    const numericMinValue = parseFloat(value);
-                    const numericMaxValue = parseFloat(insItemMax);
-                    if (
-                      value === "" ||
-                      (!isNaN(numericMinValue) &&
-                        (insItemMax === "" ||
-                          numericMinValue <= numericMaxValue))
-                    ) {
-                      setMinError(false); // Reset error state
-                    } else {
-                      setMinError(true); // Set error state
-                    }
-                    setInsItemMin(value);
+                    setInsItemTopic(e.target.value);
                   }}
                 />
               </Grid>
-            )}
+              <Grid item xs={12} md={12}>
+                <TextField
+                  label="Remark"
+                  id="remark-size-small"
+                  defaultValue={insItemRemark}
+                  disabled={activeIns ? true : false}
+                  size="small"
+                  style={{ width: "100%" }}
+                  onChange={(e) => {
+                    setInsItemRemark(e.target.value);
+                  }}
+                />
+              </Grid>
 
-            {showMeasurement && (
-              <Grid item xs={6} md={4}>
-                <TextField
-                  label={
-                    <span>
-                      <span style={{ color: "red" }}>*</span> Max
-                    </span>
-                  }
-                  id="outlined-size-small"
-                  defaultValue={insItemMax}
-                  size="small"
-                  style={{ width: "100%" }}
-                  inputProps={{
-                    inputMode: "decimal",
-                    pattern: "[0-9]*[.]?[0-9]*",
-                  }}
-                  onInput={handleInput}
-                  disabled={activeIns ? true : false}
-                  error={maxError} // Apply error state to TextField
-                  helperText={
-                    maxError ? "Max value must not be less than Min value." : ""
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const numericMaxValue = parseFloat(value);
-                    const numericMinValue = parseFloat(insItemMin);
-                    if (
-                      value === "" ||
-                      (!isNaN(numericMaxValue) &&
-                        (insItemMin === "" ||
-                          numericMaxValue >= numericMinValue))
-                    ) {
-                      setMaxError(false); // Reset error state
-                    } else {
-                      setMaxError(true);
-                    }
-                    setInsItemMax(value);
-                  }}
-                />
-              </Grid>
-            )}
-            {showMeasurement && (
-              <Grid item xs={6} md={4}>
-                <TextField
-                  label={
-                    <span>
-                      <span style={{ color: "red" }}>*</span> Target
-                    </span>
-                  }
-                  id="outlined-size-small"
-                  defaultValue={insItemTarget}
-                  size="small"
-                  style={{ width: "100%" }}
-                  disabled={activeIns ? true : false}
-                  inputProps={{
-                    inputMode: "decimal",
-                    pattern: "[0-9]*[.]?[0-9]*",
-                  }}
-                  onInput={handleInput}
-                  error={targetError} // Apply error state to TextField
-                  helperText={
-                    targetError
-                      ? "Target value must not be less than Min value and must not be greater than Max value."
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const numericTargetValue = parseFloat(value);
-                    const numericMaxValue = parseFloat(insItemMax);
-                    const numericMinValue = parseFloat(insItemMin);
-                    if (
-                      value === "" ||
-                      (!isNaN(numericTargetValue) &&
-                        numericTargetValue <= numericMaxValue &&
-                        numericTargetValue >= numericMinValue)
-                    ) {
-                      setTargetError(false); // Reset error state
-                    } else {
-                      setTargetError(true); // Set error state
-                    }
-                    setInsItemTarget(value);
-                  }}
-                />
-              </Grid>
-            )}
-            {showMeasurement && (
-              <Grid item xs={6} md={12}>
-                <TextField
-                  label={
-                    <span>
-                      <span style={{ color: "red" }}>*</span> Unit
-                    </span>
-                  }
-                  id="outlined-size-small"
-                  disabled={activeIns ? true : false}
-                  defaultValue={insItemUnit}
-                  size="small"
-                  style={{ width: "100%" }}
-                  onChange={(e) => {
-                    setInsItemUnit(e.target.value);
-                  }}
-                />
-              </Grid>
-            )}
-            {showRecord && (
-              <Grid item xs={6} md={12}>
-                <FormControlLabel
-                  control={<Switch />}
-                  checked={insItemReq}
-                  label="Required"
-                  onChange={(_, value) => {
-                    setInsItemReq(value);
-                  }}
-                  disabled={activeIns ? true : false}
-                />
-              </Grid>
-            )}
-            {showQRCodeList && (
-              <>
-                <Grid item xs={6} md={6}>
-                  <Button
-                    component="label"
-                    variant="contained"
-                    tabIndex={-1}
-                    startIcon={<CloudUploadIcon />}
-                    onChange={handleFileChange}
+              <Grid item xs={12} md={12}>
+                <FormControl fullWidth>
+                  <InputLabel id="insType-simple-select-helper-label">
+                    Inspection Type
+                  </InputLabel>
+                  <Select
+                    labelId="insType-simple-select-label"
+                    id="insType-simple-select"
+                    defaultValue={insType}
                     disabled={activeIns ? true : false}
+                    label="InspectionType"
+                    onChange={handleChangeInspectionType}
+                    size="small"
                   >
-                    Upload file
-                    <VisuallyHiddenInput type="file" />
-                  </Button>
+                    {_.map(insTypeDDL, function (i: DDLModel) {
+                      return (
+                        <MenuItem key={i.value} value={i.value}>
+                          {i.label}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              </Grid>
+              {showMeasurement && (
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    label={
+                      <span>
+                        <span style={{ color: "red" }}>*</span> Min
+                      </span>
+                    }
+                    id="min-size-small"
+                    disabled={activeIns ? true : false}
+                    size="small"
+                    style={{ width: "100%" }}
+                    defaultValue={insItemMin}
+                    inputProps={{
+                      inputMode: "decimal",
+                      pattern: "[0-9]*[.]?[0-9]*",
+                    }}
+                    onInput={handleInput}
+                    error={minError} // Apply error state to TextField
+                    helperText={
+                      minError
+                        ? "Min value must not be greater than Max value."
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numericMinValue = parseFloat(value);
+                      const numericMaxValue = parseFloat(insItemMax);
+                      if (
+                        value === "" ||
+                        (!isNaN(numericMinValue) &&
+                          (insItemMax === "" ||
+                            numericMinValue <= numericMaxValue))
+                      ) {
+                        setMinError(false); // Reset error state
+                      } else {
+                        setMinError(true); // Set error state
+                      }
+                      setInsItemMin(value);
+                    }}
+                  />
                 </Grid>
-                <Grid item xs={6} md={6}>
-                  <Box>
-                    <Typography variant="body1">File : {fileName}</Typography>
-                  </Box>
+              )}
+
+              {showMeasurement && (
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    label={
+                      <span>
+                        <span style={{ color: "red" }}>*</span> Max
+                      </span>
+                    }
+                    id="outlined-size-small"
+                    defaultValue={insItemMax}
+                    size="small"
+                    style={{ width: "100%" }}
+                    inputProps={{
+                      inputMode: "decimal",
+                      pattern: "[0-9]*[.]?[0-9]*",
+                    }}
+                    onInput={handleInput}
+                    disabled={activeIns ? true : false}
+                    error={maxError} // Apply error state to TextField
+                    helperText={
+                      maxError
+                        ? "Max value must not be less than Min value."
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numericMaxValue = parseFloat(value);
+                      const numericMinValue = parseFloat(insItemMin);
+                      if (
+                        value === "" ||
+                        (!isNaN(numericMaxValue) &&
+                          (insItemMin === "" ||
+                            numericMaxValue >= numericMinValue))
+                      ) {
+                        setMaxError(false); // Reset error state
+                      } else {
+                        setMaxError(true);
+                      }
+                      setInsItemMax(value);
+                    }}
+                  />
                 </Grid>
+              )}
+              {showMeasurement && (
+                <Grid item xs={6} md={4}>
+                  <TextField
+                    label={
+                      <span>
+                         Target
+                      </span>
+                    }
+                    id="outlined-size-small"
+                    defaultValue={insItemTarget}
+                    size="small"
+                    style={{ width: "100%" }}
+                    disabled={activeIns ? true : false}
+                    inputProps={{
+                      inputMode: "decimal",
+                      pattern: "[0-9]*[.]?[0-9]*",
+                    }}
+                    onInput={handleInput}
+                    error={targetError} // Apply error state to TextField
+                    helperText={
+                      targetError
+                        ? "Target value must not be less than Min value and must not be greater than Max value."
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numericTargetValue = parseFloat(value);
+                      const numericMaxValue = parseFloat(insItemMax);
+                      const numericMinValue = parseFloat(insItemMin);
+                      if (
+                        value === "" ||
+                        (!isNaN(numericTargetValue) &&
+                          numericTargetValue <= numericMaxValue &&
+                          numericTargetValue >= numericMinValue)
+                      ) {
+                        setTargetError(false); // Reset error state
+                      } else {
+                        setTargetError(true); // Set error state
+                      }
+                      setInsItemTarget(value);
+                    }}
+                  />
+                </Grid>
+              )}
+              {showMeasurement && (
+                <Grid item xs={6} md={12}>
+                  <TextField
+                    label={
+                      <span>
+                        <span style={{ color: "red" }}>*</span> Unit
+                      </span>
+                    }
+                    id="outlined-size-small"
+                    disabled={activeIns ? true : false}
+                    defaultValue={insItemUnit}
+                    size="small"
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      setInsItemUnit(e.target.value);
+                    }}
+                  />
+                </Grid>
+              )}
+              {showRecord && (
                 <Grid item xs={6} md={12}>
                   <FormControlLabel
                     control={<Switch />}
-                    checked={insItemPin}
-                    label="PinCode"
-                    disabled={activeIns ? true : false}
+                    checked={insItemReq}
+                    label="Required"
                     onChange={(_, value) => {
-                      setInsItemPin(value);
+                      setInsItemReq(value);
                     }}
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    label="Value"
-                    id="outlined-size-small"
-                    size="small"
-                    value={insItemQRValue}
-                    error={errorQRCodeValue}
                     disabled={activeIns ? true : false}
-                    helperText={errorQRCodeValue ? "Value already exists" : ""}
-                    style={{ width: "100%" }}
-                    onChange={(e) => {
-                      setInsItemQRValue(e.target.value);
-                      setErrorQRCodeValue(false);
-                    }}
                   />
                 </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    label="Text"
-                    id="outlined-size-small"
-                    size="small"
-                    style={{ width: "100%" }}
-                    value={insItemQRText}
-                    error={errorQRCodeText}
-                    disabled={activeIns ? true : false}
-                    helperText={errorQRCodeText ? "Text already exists" : ""}
-                    onChange={(e) => {
-                      setInsItemQRText(e.target.value);
-                      setErrorQRCodeText(false);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <Button
-                    component="label"
-                    variant="contained"
-                    tabIndex={-1}
-                    style={{ width: "100%" }}
-                    disabled={isAddButtonDisabled || activeIns ? true : false}
-                    
-                    onClick={() => {
-                      AddQRCodeInsItem();
-                    }}
-                  >
-                    ADD QR Code
-                  </Button>
-                </Grid>
-              </>
-            )}
-            {showQRCodeList && (
-              <Grid item xs={12} md={12}>
-                <StyledDataGrid
-                  rows={qrCodeList}
-                  columns={activeIns ? columnsQR.filter((col) => col.field !== "action" ) : columnsQR}
-                  initialState={{
-                    pagination: {
-                      paginationModel: {
-                        pageSize: 5,
-                      },
-                    },
-                  }}
-                  autoHeight
-                />
-              </Grid>
-            )}
-            <Grid item xs={6} md={6} container justifyContent="flex-start">
-              <Box display="flex" gap={2}>
-                <Button variant="outlined" onClick={handleClose}>
-                  Close
-                </Button>
-              </Box>
-            </Grid>
-
-            <Grid item xs={6} md={6} container justifyContent="flex-end">
-              <Box display="flex" gap={2}>
-                <ButtonGroup
-                  variant="contained"
-                  aria-label="Basic button group"
-                >
-                  {showQRCodeList && (
+              )}
+              {showQRCodeList && (
+                <>
+                  <Grid item xs={6} md={6}>
                     <Button
                       component="label"
                       variant="contained"
                       tabIndex={-1}
                       startIcon={<CloudUploadIcon />}
-                      onClick={ValidateQRCode}
+                      onChange={handleFileChange}
                       disabled={activeIns ? true : false}
                     >
-                      Validate Data
+                      Upload file
+                      <VisuallyHiddenInput type="file" />
                     </Button>
-                  )}
-                  <Button
-                    variant="contained"
-                    onClick={handleButtonSubmitClick}
-                    disabled={disabledBtn || activeIns ? true : false}
-                  >
-                    {isAdd ? "Create" : "Save"}
+                  </Grid>
+                  <Grid item xs={6} md={6}>
+                    <Box>
+                      <Typography variant="body1">File : {fileName}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} md={12}>
+                    <FormControlLabel
+                      control={<Switch />}
+                      checked={insItemPin}
+                      label="PinCode"
+                      disabled={activeIns ? true : false}
+                      onChange={(_, value) => {
+                        setInsItemPin(value);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <TextField
+                      label="Value"
+                      id="outlined-size-small"
+                      size="small"
+                      value={insItemQRValue}
+                      error={errorQRCodeValue}
+                      disabled={activeIns ? true : false}
+                      helperText={
+                        errorQRCodeValue ? "Value already exists" : ""
+                      }
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        setInsItemQRValue(e.target.value);
+                        setErrorQRCodeValue(false);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <TextField
+                      label="Text"
+                      id="outlined-size-small"
+                      size="small"
+                      style={{ width: "100%" }}
+                      value={insItemQRText}
+                      error={errorQRCodeText}
+                      disabled={activeIns ? true : false}
+                      helperText={errorQRCodeText ? "Text already exists" : ""}
+                      onChange={(e) => {
+                        setInsItemQRText(e.target.value);
+                        setErrorQRCodeText(false);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <Button
+                      component="label"
+                      variant="contained"
+                      tabIndex={-1}
+                      style={{ width: "100%" }}
+                      disabled={isAddButtonDisabled || activeIns ? true : false}
+                      onClick={() => {
+                        AddQRCodeInsItem();
+                      }}
+                    >
+                      ADD QR Code
+                    </Button>
+                  </Grid>
+                </>
+              )}
+              {showQRCodeList && (
+                <Grid item xs={12} md={12}>
+                  <StyledDataGrid
+                    rows={qrCodeList}
+                    columns={
+                      activeIns
+                        ? columnsQR.filter((col) => col.field !== "action")
+                        : columnsQR
+                    }
+                    initialState={{
+                      pagination: {
+                        paginationModel: {
+                          pageSize: 5,
+                        },
+                      },
+                    }}
+                    autoHeight
+                  />
+                </Grid>
+              )}
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
+                <Box display="flex" gap={2}>
+                  <Button variant="outlined" onClick={handleClose}>
+                    Close
                   </Button>
-                </ButtonGroup>
-              </Box>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <ButtonGroup
+                    variant="contained"
+                    aria-label="Basic button group"
+                  >
+                    {showQRCodeList && (
+                      <Button
+                        component="label"
+                        variant="contained"
+                        tabIndex={-1}
+                        startIcon={<CloudUploadIcon />}
+                        onClick={ValidateQRCode}
+                        disabled={activeIns ? true : false}
+                      >
+                        Validate Data
+                      </Button>
+                    )}
+                    <Button
+                      variant="contained"
+                      onClick={handleButtonSubmitClick}
+                      disabled={disabledBtn || activeIns ? true : false}
+                    >
+                      {isAdd ? "Create" : "Save"}
+                    </Button>
+                  </ButtonGroup>
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+          <Grid container spacing={2}>
+              <Grid item xs={12} md={12}>
+                <TextField
+                  disabled={true}
+                  label={
+                    <span>
+                      <span style={{ color: "red" }}>*</span> Sequence
+                    </span>
+                  }
+                  id="outlined-size-small"
+                  size="small"
+                  defaultValue={insItemSeq}
+                  style={{ width: "100%" }}
+                  onChange={(e) => {
+                    setInsItemSeq(Number(e.target.value));
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={12}>
+                <DropzoneArea sequence={insItemSeq}  inspectionItemId={insItemId} />
+              </Grid>
+              <Grid item xs={12} md={12} container justifyContent="flex-start">
+                <Box display="flex" gap={2}>
+                  <Button variant="outlined" onClick={handleClose}>
+                    Close
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </CustomTabPanel>
         </ModalContent>
       </Modal>
+
+    
     </>
   );
 }
@@ -1357,41 +1283,54 @@ const StyledBackdrop = styled(Backdrop)`
   -webkit-tap-highlight-color: transparent;
 `;
 
-const ModalContent = styled("div")(
-  ({ theme }) => css`
-    font-family: "IBM Plex Sans", sans-serif;
-    font-weight: 500;
-    text-align: start;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow: auto;
-    background-color: ${theme.palette.mode === "dark" ? grey[900] : "#fff"};
-    border-radius: 8px;
-    border: 1px solid ${theme.palette.mode === "dark" ? grey[700] : grey[200]};
-    box-shadow: 0 4px 12px
-      ${theme.palette.mode === "dark" ? "rgb(0 0 0 / 0.5)" : "rgb(0 0 0 / 0.2)"};
-    padding: 24px;
-    color: ${theme.palette.mode === "dark" ? grey[50] : grey[900]};
-    max-height: 90vh;
-    max-width: 90vw;
-
-    & .modal-title {
-      margin: 0;
-      line-height: 1.5rem;
-      margin-bottom: 8px;
-    }
-
-    & .modal-description {
-      margin: 0;
-      line-height: 1.5rem;
-      font-weight: 400;
-      color: ${theme.palette.mode === "dark" ? grey[400] : grey[800]};
-      margin-bottom: 4px;
-    }
-  `
-);
+// Define the styled component for modal content
+const ModalContent = styled("div")(({ theme }) => ({
+  fontFamily: "IBM Plex Sans, sans-serif",
+  fontWeight: 500,
+  textAlign: "start",
+  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+  overflow: "auto", 
+  backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
+  borderRadius: 8,
+  border: `1px solid ${theme.palette.mode === "dark" ? "#666" : "#ccc"}`,
+  boxShadow: `0 4px 12px ${theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
+    }`,
+  padding: 20,
+  color: theme.palette.mode === "dark" ? "#fff" : "#000",
+  width: "70vw",
+  height : "45vw",
+  maxWidth: "80vw",
+  maxHeight : "40vw",
+  "& .modal-title": {
+    margin: 0,
+    lineHeight: "1.5rem",
+    marginBottom: 8,
+  },
+  "& .modal-description": {
+    margin: 0,
+    lineHeight: "1.5rem",
+    fontWeight: 400,
+    color: theme.palette.mode === "dark" ? "#ccc" : "#666",
+    marginBottom: 4,
+  },
+  // ปรับแต่ง scrollbar
+  "&::-webkit-scrollbar": {
+    width: "8px",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: theme.palette.mode === "dark" ? "#666" : "#ccc",
+    borderRadius: "4px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": {
+    backgroundColor: theme.palette.mode === "dark" ? "#555" : "#bbb",
+  },
+  "&::-webkit-scrollbar-track": {
+    backgroundColor: theme.palette.mode === "dark" ? "#333" : "#f0f0f0",
+  },
+}));
 
 const Accordion = styled((props: AccordionProps) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />

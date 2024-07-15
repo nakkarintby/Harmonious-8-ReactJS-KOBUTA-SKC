@@ -7,66 +7,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import {  GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import React from "react";
-import instanceAxios from "../../api/axios/instanceAxios";
 import moment from "moment";
-import toastAlert from "../SweetAlert2/toastAlert";
 import Swal from "sweetalert2";
 import StyledDataGrid from "../../styles/styledDataGrid";
+import { DeleteInspectionGroupApi, GetInspectionGroupApi } from "@api/axios/inspectionGroupAPI";
 
-interface InspectionGroupModel{
-  inspectionGroupName: string,
-  id: number,
-  modelGroup: string,
-  Status: string,
-  createdBy: string,
-  modifiedBy: string,
-  scheduledLineCode : string,
-  scheduledLineName : string,
-  modelGroupName : string , 
-  stationId : number , 
-  stationName : string,
-  lineId: number,
-  lineName : string,
-  version: number,
-  taktTime: string,
-  createdOn: string,
-  modifiedOn: string,
-}
 
-async function GetInspectionGroupApi(){
-  let dataApi:any ;
-  try {
-    await instanceAxios
-      .get(`/InspectionGroup/GetInspectionGroup?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err : any) {
-    toastAlert("error", err, 5000);
-  }
-  return dataApi;
-}
-
-async function DeleteInspectionGroupApi(insGroupId : number){
-  let dataApi:any ;
-  try {
-    await instanceAxios
-      .put(`/InspectionGroup/RemoveInspectionGroupAndItem?inspectionGroupId=${insGroupId}`)
-      .then(async function (response: any) {
-        dataApi = response.data
-        toastAlert(response.data.status , response.data.message, 5000);
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error.response.data.message, 5000);
-      });
-  } catch (err) {
-    console.log(err);
-  }
-  return dataApi;
-}
 
 export default function InspectionGroupData(props : {
   createData : boolean,
@@ -119,7 +65,8 @@ export default function InspectionGroupData(props : {
       headerName: "",
       headerAlign: "center",
       align: "left",
-      minWidth: 150,
+      minWidth: 100,
+      flex: 0.5,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
@@ -127,12 +74,12 @@ export default function InspectionGroupData(props : {
             to="/masterData/inspectiongroups/inspectionitem"
             state={{ data: row }}
           >
-            <Button>
-              <VisibilityIcon />
+            <Button     sx={{ minWidth: 0, padding: "4px" }} >
+              <VisibilityIcon  fontSize="small"  />
             </Button>
           </Link>
           {row.status !== "Active" && (
-            <Button
+            <Button     sx={{ minWidth: 0, padding: "4px" }}
               onClick={() => {
                 Swal.fire({
                   title: "Are you sure?",
@@ -155,7 +102,7 @@ export default function InspectionGroupData(props : {
                 });
               }}
             >
-              <DeleteIcon />
+              <DeleteIcon  fontSize="small" />
             </Button>
           )}
         </>
@@ -178,8 +125,8 @@ export default function InspectionGroupData(props : {
     },
     {
       field: "scheduledLineName",
-      headerName: "scheduledLine",
-      minWidth: 200,
+      headerName: "Scheduled Line",
+      minWidth: 150,
       flex : 1,
       headerAlign: "center",
       align: "center",
@@ -187,7 +134,7 @@ export default function InspectionGroupData(props : {
     {
       field: "lineName",
       headerName: "Line",
-      minWidth: 200,
+      minWidth: 150,
       flex : 1,
       headerAlign: "center",
       align: "center",
@@ -195,7 +142,7 @@ export default function InspectionGroupData(props : {
     {
       field: "stationName",
       headerName: "Station",
-      minWidth: 200,
+      minWidth: 150,
       flex : 1,
       headerAlign: "center",
       align: "center",
@@ -257,7 +204,6 @@ export default function InspectionGroupData(props : {
   return (
     <Box sx={{ height: "100%", width: "100%" }}>
       <StyledDataGrid
-      
         rowHeight={40}
         rows={dataList}
         columns={columns}

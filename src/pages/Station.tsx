@@ -743,17 +743,17 @@ export function Station() {
       headerName: "",
       headerAlign: "center",
       sortable: false,
-      minWidth: 150,
-      flex: 1,
+      minWidth: 100,
+      flex: 0.5,
       renderCell: (params: any) => {
         return (
           <>
-            <Button>
-              <EditIcon onClick={() => setValueModalEdit(params.row)} />
+            <Button sx={{ minWidth: 0, padding: "4px" }} >
+              <EditIcon onClick={() => setValueModalEdit(params.row)}  fontSize="small" />
             </Button>
 
-            <Button>
-              <DeleteIcon onClick={() => deleteStation(params.row.stationId)} />
+            <Button sx={{ minWidth: 0, padding: "4px" }} >
+              <DeleteIcon onClick={() => deleteStation(params.row.stationId)} fontSize="small" />
             </Button>
           </>
         );

@@ -218,7 +218,7 @@ export function Line() {
     {
       field: "action1",
       headerName: "",
-      width: 170,
+      minWidth: 100,
       renderCell: (params: any) => {
         return (
           <>
@@ -229,13 +229,12 @@ export function Line() {
                 scheduledLineCode: params.row.scheduledLineCode,
               }}
             >
-              <Button>
-                <VisibilityIcon />
+              <Button  sx={{ minWidth: 0, padding: "4px" }} >
+                <VisibilityIcon fontSize="small" />
               </Button>
             </Link>
-
-            <Button>
-              <DeleteIcon onClick={() => deleteLine(params.row.lineId)} />
+            <Button  sx={{ minWidth: 0, padding: "4px" }} >
+              <DeleteIcon onClick={() => deleteLine(params.row.lineId)}  fontSize="small"  />
             </Button>
           </>
         );
@@ -296,7 +295,7 @@ export function Line() {
         <Grid container spacing={2}>
           <Grid item xs={6} md={8}>
             <Box>
-              <ActiveLastBreadcrumb prm1="masterData" prm2="line" prm3="" />
+              <ActiveLastBreadcrumb prm1="Master Data" prm2="Line" prm3="" />
             </Box>
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">

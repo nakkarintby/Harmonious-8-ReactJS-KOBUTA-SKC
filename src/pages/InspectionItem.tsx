@@ -207,7 +207,7 @@ export function InspectionItem() {
   const [loadingModelGroupDDL, setLoadingModelGroupDDL] = useState(false);
 
   const insGroupId = data.id;
-  const [activeIns , setActiveIns] = useState<Boolean>(data.status === "Active")
+  const [activeIns , setActiveIns] = useState<boolean>(data.status === "Active")
   const [activeInsDisplay , setActiveInsDisplay] = useState<string>(data.status)
 
   function GetModelGroupDDL(LineId: number) {

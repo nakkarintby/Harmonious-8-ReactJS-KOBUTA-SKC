@@ -9,14 +9,14 @@ import { CreateImageInsItemAPI, DeleteImageInsItemAPI, GetConstantAPI, GetImageI
 const DropzoneArea = ({
   sequence,
   inspectionItemId,
+  activeIns,
 }: {
   sequence: number;
   inspectionItemId: number;
-
+  activeIns : boolean
 }) => {
   const [files, setFiles] = React.useState<InsItemImageModel[]>([]);
   const [maxImage, setMaxImage] = React.useState<number>(0);
-
 
   React.useEffect(() => {
     const FetchMenu = async () => {
@@ -101,29 +101,30 @@ const DropzoneArea = ({
 
   return (
     <Box>
-      {files.length < maxImage && (
-        <Box
-          {...getRootProps()}
-          sx={{
-            border: "2px dashed #1976d2",
-            borderRadius: 2,
-            padding: 3,
-            textAlign: "center",
-            backgroundColor: isDragActive ? "#e3f2fd" : "transparent",
-            transition: "background-color 0.3s",
-            cursor: "pointer",
-            marginBottom: 2,
-          }}
-        >
-          <input {...getInputProps()} />
-          <CloudUploadIcon sx={{ fontSize: 40, color: "#1976d2" }} />
-          <Typography variant="body1" color="textSecondary">
-            {isDragActive
-              ? "Drop the image files here ..."
-              : "Drag & drop image files .png, .jpg here, or click to select files"}
-          </Typography>
-        </Box>
-      )}
+      {activeIns ||
+        (files.length < maxImage && (
+          <Box
+            {...getRootProps()}
+            sx={{
+              border: "2px dashed #1976d2",
+              borderRadius: 2,
+              padding: 3,
+              textAlign: "center",
+              backgroundColor: isDragActive ? "#e3f2fd" : "transparent",
+              transition: "background-color 0.3s",
+              cursor: "pointer",
+              marginBottom: 2,
+            }}
+          >
+            <input {...getInputProps()} />
+            <CloudUploadIcon sx={{ fontSize: 40, color: "#1976d2" }} />
+            <Typography variant="body1" color="textSecondary">
+              {isDragActive
+                ? "Drop the image files here ..."
+                : "Drag & drop image files .png, .jpg here, or click to select files"}
+            </Typography>
+          </Box>
+        ))}
       <Grid container spacing={2}>
         {files.map((file: InsItemImageModel) => (
           <Grid
@@ -142,18 +143,21 @@ const DropzoneArea = ({
                   style={{ width: "100%", borderRadius: 8 }}
                 />
               </a>
-              <IconButton
-                sx={{ position: "absolute", top: 8, right: 8 }}
-                onClick={() => handleDelete(file.inspectionItemPictureId)}
-              >
-                <DeleteIcon
-                  sx={{
-                    color: "white",
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    borderRadius: "50%",
-                  }}
-                />
-              </IconButton>
+              {!activeIns && (
+                <IconButton
+                  sx={{ position: "absolute", top: 8, right: 8 }}
+                  onClick={() => handleDelete(file.inspectionItemPictureId)}
+                >
+                  <DeleteIcon
+                    sx={{
+                      color: "white",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </IconButton>
+              )}
+
               <Typography variant="body2" color="textSecondary">
                 {file.fileName}
               </Typography>

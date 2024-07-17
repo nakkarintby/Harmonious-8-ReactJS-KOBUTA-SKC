@@ -784,6 +784,7 @@ export default function InspectionItemData(props: {
                         setLabelModal("Create Inspection Group Item");
                         SetUpDataCreate();
                         handleOpen();
+                        setValueTab(0);
                       }}
                     >
                       Add
@@ -830,7 +831,7 @@ export default function InspectionItemData(props: {
               aria-label="basic tabs example"
             >
               <Tab label="Detail" {...a11yProps(0)} />
-              <Tab label="Picture" {...a11yProps(1)} />
+              {!isAdd && <Tab label="Picture" {...a11yProps(1)} />}
             </Tabs>
           </Box>
           <div
@@ -1089,7 +1090,10 @@ export default function InspectionItemData(props: {
                   </Grid>
                   <Grid item xs={4} md={4}>
                     <Box>
-                      <Typography variant="body1">  {fileName.length > 0 ? `File : ${fileName}` : ''}</Typography>
+                      <Typography variant="body1">
+                        {" "}
+                        {fileName.length > 0 ? `File : ${fileName}` : ""}
+                      </Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={4} md={4}>
@@ -1180,8 +1184,8 @@ export default function InspectionItemData(props: {
                   </Button>
                 </Box>
               </Grid>
-              <Grid item xs={6} md={6} container justifyContent="flex-end" >
-                <Box display="flex" gap={2} >
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
                   <ButtonGroup
                     variant="contained"
                     aria-label="Basic button group"
@@ -1238,6 +1242,7 @@ export default function InspectionItemData(props: {
                   sequence={insItemSeq}
                   inspectionItemId={insItemId}
                   activeIns={activeIns}
+                  isAdd={isAdd}
                 />
               </Grid>
               <Grid item xs={12} md={12} container justifyContent="flex-start">

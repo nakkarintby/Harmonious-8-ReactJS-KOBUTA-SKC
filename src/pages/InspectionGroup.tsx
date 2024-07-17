@@ -21,80 +21,9 @@ import TextField from "@mui/material/TextField";
 import instanceAxios from "../api/axios/instanceAxios";
 import _ from 'lodash';
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import { GetLineAPI, GetModelGroupAPI, GetScheduledLineAPI, GetStationAPI } from "@api/axios/inspectionGroupAPI";
 
-interface DDLModel {
-  label: string;
-  value: string;
-}
-async function GetScheduledLineAPI() {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error ,5000)
-      });
-  } catch (err : any) {
-    toastAlert("error", err ,5000)
-  }
-  return dataApi;
-}
 
-async function GetModelGroupAPI() {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/ModelGroup/GetModelGroup?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error ,5000)
-      });
-  } catch (err : any) {
-    toastAlert("error", err ,5000)
-  }
-  return dataApi;
-}
-
-async function GetLineAPI(scheduledLineCode: string) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(
-        `/Line/GetLineByScheduledLineCode?scheduledLineCode=${scheduledLineCode}`
-      )
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error ,5000)
-      });
-  } catch (err : any) {
-    toastAlert("error", err ,5000)
-  }
-  return dataApi;
-}
-
-async function GetStationAPI(lineId: number) {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/Station/GetStationByLineId?lineId=${lineId}`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error ,5000)
-      });
-  } catch (err : any) {
-    toastAlert("error", err ,5000)
-  }
-  return dataApi;
-}
 
 export function InspectionGroup() {
   const authRequest = {

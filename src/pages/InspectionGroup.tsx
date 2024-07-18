@@ -31,7 +31,16 @@ export function InspectionGroup() {
   };
 
   const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
+  const handleOpen = () => {
+    setOpen(true);
+    setLineDDLDisplay(null)
+    setSelectedLine(0)
+    setModelGroupDDLDisplay(null)
+    setSelectedModelGroupDDL(0)
+    setSelectedStation(0)
+    setStationDDLDisplay(null)
+    setSelectedTaktTime("")
+  } 
   const handleClose = () => setOpen(false);
   const [createData, setCreateData] = React.useState(false);
   const [selectedInsGroupName, setInsGroupName] = React.useState<string>("");
@@ -47,7 +56,7 @@ export function InspectionGroup() {
   const [selectedStation, setSelectedStation] = React.useState<number>(0);
   const [selectedmodelGroupDDL, setSelectedModelGroupDDL] =
     React.useState<number>(0);
-  const [selectedTrackTime, setSelectedTrackTime] = React.useState<string>("");
+  const [selectedTaktTime, setSelectedTaktTime] = React.useState<string>("");
 
   const [loadingDDL, setLoadingDDL] = React.useState(false);
   const [loadingLineDDL, setLoadingLineDDL] = React.useState(false);
@@ -154,7 +163,50 @@ export function InspectionGroup() {
       }
     });
   }
+  const [lineDDLDisplay , setLineDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [modelGroupDDLDisplay , setModelGroupDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [stationDDLDisplay , setStationDDLDisplay] = React.useState<DDLModel | null>(null);
+  React.useEffect(() => {
+    setLineDDLDisplay(
+      lineDDL.find((it) => it.value == selectedLine.toString()) ?? null
+    );
+    setSelectedStation(0)
+    setStationDDL([])
+    setStationDDLDisplay(null)
+  }, [selectedLine]);
 
+  React.useEffect(() => {
+    setModelGroupDDLDisplay(
+      modelGroupDDL.find(
+        (it) => it.value == selectedmodelGroupDDL.toString()
+      ) ?? null
+    );
+  }, [selectedmodelGroupDDL]);
+  React.useEffect(() => {
+    setStationDDLDisplay(
+      stationDDL.find((it) => it.value == selectedStation.toString()) ?? null
+    );
+  }, [selectedStation]);
+
+  React.useEffect(() => {
+    // setLineDDLDisplay(null);
+    // setModelGroupDDLDisplay(null);
+    // setStationDDLDisplay(null);
+    setLineDDLDisplay(null)
+    setLineDDL([])
+    setSelectedLine(0)
+    setModelGroupDDLDisplay(null)
+    setModelGroupDDL([])
+    setSelectedModelGroupDDL(0)
+    setSelectedStation(0)
+    setStationDDL([])
+    setStationDDLDisplay(null)
+    setSelectedTaktTime("")
+  }, [selectedScheduledLine]);
+
+  const isCreate =  selectedInsGroupName.length > 0 && selectedScheduledLine.length >0
+   && selectedLine >0 && selectedmodelGroupDDL > 0
+    && selectedStation >0 && selectedTaktTime.length >0
   return (
     <>
       <MsalAuthenticationTemplate
@@ -175,7 +227,7 @@ export function InspectionGroup() {
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" onClick={handleOpen}>
+              <Button variant="outlined" onClick={handleOpen} >
                 Create
               </Button>
             </Box>
@@ -188,7 +240,6 @@ export function InspectionGroup() {
           aria-labelledby="unstyled-modal-title"
           aria-describedby="unstyled-modal-description"
           open={open}
-        
           disableBackdropClick
           disableEscapeKeyDown
           slots={{ backdrop: StyledBackdrop }}
@@ -259,7 +310,8 @@ export function InspectionGroup() {
                   onClose={() => setLoadingLineDDL(false)}
                   options={lineDDL}
                   loading={loadingLineDDL}
-                  onChange={(_, value) => setSelectedLine(Number(value?.value ?? 0))}
+                  onChange={async (_, value) => await setSelectedLine(Number(value?.value ?? 0))}
+                  value={lineDDLDisplay}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -297,6 +349,7 @@ export function InspectionGroup() {
                   onChange={(_, value) =>
                     setSelectedModelGroupDDL(Number(value?.value ?? 0))
                   }
+                  value={modelGroupDDLDisplay}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -332,6 +385,7 @@ export function InspectionGroup() {
                   options={stationDDL}
                   loading={loadingStationDDL}
                   onChange={(_, value) => setSelectedStation(Number(value?.value ?? 0))}
+                  value={stationDDLDisplay}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -365,7 +419,7 @@ export function InspectionGroup() {
                   fullWidth
                   inputProps={{ maxLength: 200 }}
                   onChange={(e) => {
-                    setSelectedTrackTime(e.target.value);
+                    setSelectedTaktTime(e.target.value);
                   }}
                 />
               </Grid>
@@ -376,6 +430,7 @@ export function InspectionGroup() {
                   </Button>
                   <Button
                     variant="contained"
+                    disabled={!isCreate}
                     onClick={() => {
                       CreateInsGroup(
                         selectedInsGroupName,
@@ -383,7 +438,7 @@ export function InspectionGroup() {
                         selectedLine,
                         selectedStation,
                         selectedmodelGroupDDL,
-                        selectedTrackTime
+                        selectedTaktTime
                       );
                       handleClose();
                     }}

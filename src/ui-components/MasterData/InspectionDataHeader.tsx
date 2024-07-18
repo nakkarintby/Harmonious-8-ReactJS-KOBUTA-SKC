@@ -116,7 +116,7 @@ export default function InspectionDataHeader(props: {
         getRowId={(row) => row.inspectId}
         initialState={{
           pagination: {
-            paginationModel: { page: pagination.pageNo, pageSize: pagination.pageSize },
+            paginationModel: { page: pagination.pageNo, pageSize: pagination.pageSize  },
           },
         }}
       />

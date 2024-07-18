@@ -19,8 +19,12 @@ const commonStyles: SxProps = {
   '& .MuiDataGrid-cell:hover': {
     color: 'primary.main',
   },
+  '& .NG' :{
+    backgroundColor: 'lightcoral',
+  }
 };
 
 export default function StyledDataGrid(props: DataGridProps) {
+  
   return <DataGrid sx={commonStyles} {...props} />;
 }

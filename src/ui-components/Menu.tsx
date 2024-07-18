@@ -160,8 +160,8 @@ export default function TemporaryDrawer() {
         }
       >
         {menuDataList?.headers.map((row) => (
-          <div key={row.nameEN}>
-            <ListItemButton
+         <>
+           <ListItemButton
               key={row.menuId}
               onClick={() => {
                 console.log(row.menuGroup)
@@ -207,6 +207,7 @@ export default function TemporaryDrawer() {
                   }
                   timeout="auto"
                   unmountOnExit
+                  key={row.menuGroup}
                 >
                   <List component="div" disablePadding>
                     <ListItemButton
@@ -221,7 +222,8 @@ export default function TemporaryDrawer() {
                   </List>
                 </Collapse>
               ))}
-          </div>
+         </>
+          
         ))}
       </List>
     </Box>

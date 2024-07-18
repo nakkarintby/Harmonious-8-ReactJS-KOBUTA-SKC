@@ -39,6 +39,7 @@ export default function InspectionData() {
   const [dataList, setDataList] = React.useState<InspectionDataModel[]>([]);
   const [dateFromValue, setDateFromValue] = React.useState<Dayjs | null>( dayjs().subtract(7, "day"));
   const [dateToValue, setDateToValue] = React.useState<Dayjs | null>(dayjs());
+  const [selectedIDNo , setSelectedIDNo] = React.useState<string>("");
   const [filterData, setFilterData] = React.useState<FilterModal>({
     dateFrom: moment().subtract(7, "days").format("YYYY-MM-DD"),
     dateTo: moment().format("YYYY-MM-DD"),
@@ -104,43 +105,53 @@ export default function InspectionData() {
 
  
   async function GetInspectionDataPage() {
-    await GetInspectionDataAPI(1, 10, filterData).then((rs) => {
+    await GetInspectionDataAPI(1, 500, filterData).then((rs) => {
       if (rs.status === "success") {
-        const dataAPI: InspectionDataModel[] = rs.data.data.map((item: any) => ({
-          inspectId: item.inspectId ,
-          scheduledLineName: `${item.scheduledLineCode} : ${item.scheduledLineName}` ,
-          scheduledLineCode: item.scheduledLineCode ,
-          lineName: item.lineName ,
-          stationName: item.stationName ,
-          inspectionGroupId: item.inspectionGroupId ,
-          inspectionGroupName: item.inspectionGroupName ,
-          id_no: item.id_no ,
-          pinCode : item.pinCode,
-          modelGroupName: item.modelGroupName ,
-          modelName: item.modelName ,
-          createdBy: item.createdBy ,
-          createdOn:
-            item.createdOn == null
-              ? ""
-              : moment(item.createdOn).format("DD-MM-YYYY HH:mm:ss"),
-          modifiedBy: item.modifiedBy ,
-          modifiedOn:
-            item.modifiedOn == null
-              ? ""
-              : moment(item.modifiedOn).format("DD-MM-YYYY HH:mm:ss"),
-        }));
-        const paginationAPI : PaginationModel ={ 
-          pageCount : rs.data.pagination.pageCount,
-          pageNo : rs.data.pagination.pageNo,
-          pageSize : rs.data.pagination.pageSize,
-          totalRecords : rs.data.pagination.totalRecords
+        if (rs.data) {
+          const dataAPI: InspectionDataModel[] = rs.data.data.map(
+            (item: any) => ({
+              inspectId: item.inspectId,
+              scheduledLineName: `${item.scheduledLineCode} : ${item.scheduledLineName}`,
+              scheduledLineCode: item.scheduledLineCode,
+              lineName: item.lineName,
+              stationName: item.stationName,
+              inspectionGroupId: item.inspectionGroupId,
+              inspectionGroupName: item.inspectionGroupName,
+              id_no: item.id_no,
+              pinCode: item.pinCode,
+              modelGroupName: item.modelGroupName,
+              modelName: item.modelName,
+              createdBy: item.createdBy,
+              createdOn:
+                item.createdOn == null
+                  ? ""
+                  : moment(item.createdOn).format("DD-MM-YYYY HH:mm:ss"),
+              modifiedBy: item.modifiedBy,
+              modifiedOn:
+                item.modifiedOn == null
+                  ? ""
+                  : moment(item.modifiedOn).format("DD-MM-YYYY HH:mm:ss"),
+            })
+          );
+
+          const paginationAPI: PaginationModel = {
+            pageCount: rs.data.pagination.pageCount,
+            pageNo: rs.data.pagination.pageNo,
+            pageSize: rs.data.pagination.pageSize,
+            totalRecords: rs.data.pagination.totalRecords,
+          };
+          setDataList(dataAPI);
+          setPaginationValue(paginationAPI);
+          setOpenBackDrop(false);
+        }else{
+          setOpenBackDrop(false);
+          setDataList([]);
         }
-        setDataList(dataAPI);
-        setPaginationValue(paginationAPI);
-        setOpenBackDrop(false)
-      }else{
-        toastAlert(rs.status, rs.message , 5000)
-        setOpenBackDrop(false)
+
+      } else {
+        toastAlert(rs.status, rs.message, 5000);
+        setDataList([]);
+        setOpenBackDrop(false);
       }
     });
   }
@@ -155,9 +166,11 @@ export default function InspectionData() {
       filterData.modelGroupId = selectedmodelGroup;
       filterData.scheduledLineCode = selectedScheduledLine;
       filterData.stationId = selectedStation;
+      filterData.id_no = selectedIDNo;
       await GetInspectionDataPage();
-    } catch (error) {
+    } catch (error : any) {
       setOpenBackDrop(false)
+      setDataList([])
       console.error("Error in filterAction:", error);
     }
   };
@@ -210,7 +223,6 @@ export default function InspectionData() {
   };
   async function GetStationDDL(LineId: number) {
     await GetStationAPI(LineId).then(async (x) => {
-      console.log(x);
       if (x.status == "success") {
         const ddlStation: DDLModel[] = x.data.map((item: any) => ({
           label: `${item.name}`,
@@ -287,7 +299,7 @@ export default function InspectionData() {
         errorComponent={ErrorComponent}
         loadingComponent={Loading}
       >
-          <Backdrop
+        <Backdrop
           sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
           open={openBackDrop}
         >
@@ -306,7 +318,7 @@ export default function InspectionData() {
                 onChange={handleDateFromChange}
                 shouldDisableDate={disableDateFrom}
                 slotProps={{
-                  textField: { size: "small"  , fullWidth : true , error: false},
+                  textField: { size: "small", fullWidth: true, error: false },
                   field: {
                     clearable: true,
                     onClear: () => {
@@ -333,7 +345,7 @@ export default function InspectionData() {
                 onChange={handleDateToChange}
                 shouldDisableDate={disableDateTo}
                 slotProps={{
-                  textField: { size: "small" , fullWidth : true , error: false},
+                  textField: { size: "small", fullWidth: true, error: false },
                   field: {
                     clearable: true,
                     onClear: () => {
@@ -364,7 +376,7 @@ export default function InspectionData() {
               options={scheduledLineDDL}
               loading={loadingDDL}
               onChange={async (_, value) => {
-                setSelectedScheduledLine(value?.value ?? "0");
+                setSelectedScheduledLine(value?.value ?? "");
               }}
               isOptionEqualToValue={(option, value) =>
                 option.value === value.value
@@ -543,7 +555,14 @@ export default function InspectionData() {
             />
           </Grid>
           <Grid item xs={6} md={2}>
-          <TextField id="outlined-basic" label="ID No" variant="outlined" size="small" fullWidth />
+            <TextField
+              id="idNO-basic"
+              label="ID No"
+              variant="outlined"
+              size="small"
+              fullWidth
+              onChange={(e) => setSelectedIDNo(e.target?.value ?? "")}
+            />
           </Grid>
           <Grid item xs={12} md={1} container justifyContent="flex-end">
             <Box>
@@ -553,7 +572,10 @@ export default function InspectionData() {
             </Box>
           </Grid>
           <Grid item xs={12} md={12} container>
-          <InspectionDataHeader data={dataList} pagination={paginationValue} />
+            <InspectionDataHeader
+              data={dataList}
+              pagination={paginationValue}
+            />
           </Grid>
         </Grid>
       </MsalAuthenticationTemplate>

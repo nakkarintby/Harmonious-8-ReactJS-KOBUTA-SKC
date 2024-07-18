@@ -101,7 +101,7 @@ export default function InspectionDataDetail() {
       );
       if (filteredData.isPinCode) {
         dataListQRMaster.push({
-          label: pinCode,
+          label: `${pinCode} (Pin Code)`,
           value: pinCode,
         });
       }
@@ -216,44 +216,53 @@ export default function InspectionDataDetail() {
     title: React.ReactNode,
     itemsMaster: readonly DDLModel[],
     items: readonly DDLModel[]
-  ) => (
-    <Card>
-      <StyledCardHeader title={title} sx={{ px: 2, py: 1 }} />
-      <Divider />
-      <List
-        sx={{
-          width: "100%",
-          maxHeight: "70vh",
-          height: "30vh",
-          bgcolor: "background.paper",
-          overflow: "auto",
-        }}
-        dense
-        component="div"
-        role="list"
-      >
-        {items.map((value: DDLModel) => {
-          const labelId = `transfer-list-all-item-${value}-label`;
-          const isMatched = itemsMaster.some(
-            (masterItem) => masterItem.value === value.value
-          );
+  ) => {
+    const sortedItems = [...items].sort((a, b) => {
+      const aMatched = itemsMaster.some((masterItem) => masterItem.value === a.value);
+      const bMatched = itemsMaster.some((masterItem) => masterItem.value === b.value);
+      return aMatched === bMatched ? 0 : aMatched ? -1 : 1;
+    });
   
-          return (
-            <ListItemButton
-              key={`cus_${value.value}`}
-              role="listitem"
-              sx={{
-                py: 0,
-                backgroundColor: isMatched ? "lightgreen" : "lightcoral",
-              }}
-            >
-              <ListItemText id={labelId} primary={`${value.label}`} />
-            </ListItemButton>
-          );
-        })}
-      </List>
-    </Card>
-  );
+    return (
+      <Card>
+        <StyledCardHeader title={title} sx={{ px: 2, py: 1 }} />
+        <Divider />
+        <List
+          sx={{
+            width: "100%",
+            maxHeight: "70vh",
+            height: "30vh",
+            bgcolor: "background.paper",
+            overflow: "auto",
+          }}
+          dense
+          component="div"
+          role="list"
+        >
+          {sortedItems.map((value: DDLModel) => {
+            const labelId = `transfer-list-all-item-${value.value}-label`;
+            const isMatched = itemsMaster.some(
+              (masterItem) => masterItem.value === value.value
+            );
+  
+            return (
+              <ListItemButton
+                key={`cus_${value.value}`}
+                role="listitem"
+                sx={{
+                  py: 0,
+                  backgroundColor: isMatched ? "lightgreen" : "lightcoral",
+                }}
+              >
+                <ListItemText id={labelId} primary={value.label} />
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </Card>
+    );
+  };
+  
   
 
   const columns: GridColDef[] = [
@@ -267,6 +276,7 @@ export default function InspectionDataDetail() {
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
+        
           {row.inspectionQRCodeMasterList.length > 0 && (
             <Button
               sx={{ minWidth: 0, padding: "4px" }}
@@ -415,7 +425,7 @@ export default function InspectionDataDetail() {
             <Box>
               <ActiveLastBreadcrumb
                 prm1="Inspection Data"
-                prm2="Inspection Detail"
+                prm2="inspection DataDetail"
                 prm3=""
               />
             </Box>
@@ -560,6 +570,9 @@ export default function InspectionDataDetail() {
                         rowHeight={40}
                         rows={dataDetail}
                         columns={columns}
+                        getRowClassName={(params) =>
+                          params.row.judgement === 'NG' ? 'NG' : ''
+                        }
                         getRowId={(row) => row.inspectItemId}
                         initialState={{
                           pagination: {

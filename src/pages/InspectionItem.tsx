@@ -73,7 +73,7 @@ export function InspectionItem() {
   const [stationDisplay, setStationDisplay] = React.useState<string>("");
   const [modelGroupDisplay, setModelGroupDisplay] = React.useState<string>("");
   const [taktTimeDisplay, setTaktTimeDisplay] = React.useState<string>("");
-
+  const [insGruopVersion , setInGroupVersion] = React.useState<string>("");
   const [InsGroupName, setInsGroupName] = React.useState<string>("");
   const [selectedScheduledLine, setSelectedScheduledLine] = React.useState<
     string | null
@@ -197,7 +197,6 @@ export function InspectionItem() {
     let dataInsGroup: any;
     await GetInsGroupAPI(data.id).then(async (x) => {
       if (x.status == "success") {
-        
         setInsGroupNameDisplay(x.data.name);
         setSelectedLine(x.data.lineId);
         setLineDisplay(x.data.lineName);
@@ -216,6 +215,7 @@ export function InspectionItem() {
         setActiveInsDisplay(x.data.status);
         setSelectedModelGroup(x.data.modelGroupId);
         setSelectedTaktTime(x.data.taktTime);
+        setInGroupVersion(x.data.version);
       }
       dataInsGroup = x;
     });
@@ -317,16 +317,17 @@ export function InspectionItem() {
                     color:
                       data.status === "Active" ? "green" : "text.secondary",
                     marginLeft: "auto",
+                    marginRight: 1, 
                   }}
                 >
-                  <b>{activeInsDisplay}</b>
+                  <b>{activeInsDisplay} </b>
                 </Typography>
                 <Typography
                   sx={{
                     color: "text.secondary",
                   }}
                 >
-                  <b>:</b>Version:<b>{data.version}</b>
+                  <b>{insGruopVersion ? `| Version : ${insGruopVersion}` : ""}</b>
                 </Typography>
               </AccordionSummary>
               <AccordionDetails
@@ -508,9 +509,7 @@ export function InspectionItem() {
                   onChange={(_, value) => {
                     setSelectedLine(Number(value?.value));
                     setLineDDLDisplay(
-                      lineDDL.find(
-                        (it) => it.value == value?.value
-                      ) ?? null
+                      lineDDL.find((it) => it.value == value?.value) ?? null
                     );
                     setSelectedStation(0);
                     setSelectedModelGroup(0);
@@ -518,7 +517,6 @@ export function InspectionItem() {
                     setModelGroupDDLDisplay(null);
                     setStationDDL([]);
                     setStationDDLDisplay(null);
-             
                   }}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -558,9 +556,8 @@ export function InspectionItem() {
                   onChange={(_, value) => {
                     setSelectedModelGroup(Number(value?.value));
                     setModelGroupDDLDisplay(
-                      modelGroupDDL.find(
-                        (it) => it.value == value?.value
-                      ) ?? null
+                      modelGroupDDL.find((it) => it.value == value?.value) ??
+                        null
                     );
                   }}
                   isOptionEqualToValue={(option, value) =>
@@ -656,7 +653,6 @@ export function InspectionItem() {
                   <Button
                     variant="contained"
                     disabled={isSave}
-                    
                     onClick={() => {
                       handleCloseInsGroup();
                       setOpenBackDrop(true);

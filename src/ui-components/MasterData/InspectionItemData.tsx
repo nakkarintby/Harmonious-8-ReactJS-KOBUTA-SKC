@@ -64,7 +64,7 @@ export default function InspectionItemData(props: {
   const [insType, setInsType] = React.useState<string>("1");
   const [insItemMin, setInsItemMin] = React.useState<string>("");
   const [insItemMax, setInsItemMax] = React.useState<string>("");
-  const [insItemTarget, setInsItemTarget] = React.useState<string>("");
+  const [insItemTarget, setInsItemTarget] = React.useState<string | null>("");
   const [insItemUnit, setInsItemUnit] = React.useState<string>("");
   const [insItemRemark, setInsItemRemark] = React.useState<string>("");
   const [insItemSeq, setInsItemSeq] = React.useState<number>(0);
@@ -180,7 +180,7 @@ export default function InspectionItemData(props: {
     setInsItemReq(dataSetUp?.isRequired ?? false);
     setInsItemMin(dataSetUp?.min ?? "0.00");
     setInsItemMax(dataSetUp?.max ?? "0.00");
-    setInsItemTarget(dataSetUp?.target ?? "0.00");
+    setInsItemTarget(dataSetUp?.target ?? "");
     setInsItemPin(dataSetUp?.isPinCode ?? false);
     setInsItemUnit(dataSetUp?.unit ?? "");
     SetUpInsType(dataSetUp?.type ?? "0");
@@ -276,7 +276,7 @@ export default function InspectionItemData(props: {
     const target =
       insItemTarget !== null && insItemTarget.length > 0
         ? parseFloat(insItemTarget).toFixed(3)
-        : insItemTarget;
+        : null ;
     let body;
     switch (insType) {
       case "1":
@@ -635,11 +635,14 @@ export default function InspectionItemData(props: {
 
   React.useEffect(() => {
     // Validate Min, Max, Target when component mounts or values change
+    if(open){
     validateMinMaxTarget();
+    }
   }, [insItemMin, insItemMax]);
 
   React.useEffect(() => {
     // Check if Type is 2 and set initial button state
+    if(open){
     if (insType === "2") {
       validateMinMaxTarget();
     } else if (insType === "4") {
@@ -647,13 +650,14 @@ export default function InspectionItemData(props: {
     } else {
       setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0);
     }
-  }, [insType, insItemTopic , insItemSeq , insItemUnit]);
+  }
+  }, [ open,insType, insItemTopic , insItemSeq , insItemUnit]);
 
   const validateMinMaxTarget = () => {
     const numericMin = parseFloat(insItemMin);
     const numericMax = parseFloat(insItemMax);
-    const numericTarget = parseFloat(insItemTarget);
-
+   
+    let targetCheck = false;
     // Validate Min
     if (
       insItemMin === "" ||
@@ -673,26 +677,36 @@ export default function InspectionItemData(props: {
     } else {
       setMaxError(true);
     }
-
+ 
     // Validate Target
+    if(insItemTarget){
+      const numericTarget = parseFloat(insItemTarget);
+  
     if (
       insItemTarget === "" ||
       (!isNaN(numericTarget) &&
         numericTarget <= numericMax &&
         numericTarget >= numericMin)
     ) {
+    
       setTargetError(false);
+      setDisabledBtn(false);
+      targetCheck = false;
     } else {
       setTargetError(true);
+      targetCheck = true;
     }
 
     let d =
-      insItemTopic.trim() === "" ||
-      insItemSeq === 0 ||
-      insItemMax === "" ||
-      insItemMin === "" ||
-      insItemUnit === "";
-    setDisabledBtn(d);
+    insItemTopic.trim() === "" ||
+    insItemSeq === 0 ||
+    insItemMax === "" ||
+    insItemMin === "" ||
+    insItemUnit === "" || 
+    targetCheck ;
+  setDisabledBtn(d);
+  }
+
   };
 
   const isAddButtonDisabled =
@@ -1032,7 +1046,9 @@ export default function InspectionItemData(props: {
                           numericTargetValue >= numericMinValue)
                       ) {
                         setTargetError(false); // Reset error state
+                        setDisabledBtn(false);
                       } else {
+                        setDisabledBtn(true);
                         setTargetError(true); // Set error state
                       }
                       setInsItemTarget(value);

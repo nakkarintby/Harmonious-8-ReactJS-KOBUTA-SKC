@@ -36,7 +36,7 @@ export function InspectionGroup() {
     setLineDDLDisplay(null)
     setSelectedLine(0)
     setModelGroupDDLDisplay(null)
-    setSelectedModelGroupDDL(0)
+    setSelectedModelGroup(0)
     setSelectedStation(0)
     setStationDDLDisplay(null)
     setSelectedTaktTime("")
@@ -54,7 +54,7 @@ export function InspectionGroup() {
     React.useState<string>("");
   const [selectedLine, setSelectedLine] = React.useState<number>(0);
   const [selectedStation, setSelectedStation] = React.useState<number>(0);
-  const [selectedmodelGroupDDL, setSelectedModelGroupDDL] =
+  const [selectedmodelGroup, setSelectedModelGroup] =
     React.useState<number>(0);
   const [selectedTaktTime, setSelectedTaktTime] = React.useState<string>("");
 
@@ -178,10 +178,10 @@ export function InspectionGroup() {
   React.useEffect(() => {
     setModelGroupDDLDisplay(
       modelGroupDDL.find(
-        (it) => it.value == selectedmodelGroupDDL.toString()
+        (it) => it.value == selectedmodelGroup.toString()
       ) ?? null
     );
-  }, [selectedmodelGroupDDL]);
+  }, [selectedmodelGroup]);
   React.useEffect(() => {
     setStationDDLDisplay(
       stationDDL.find((it) => it.value == selectedStation.toString()) ?? null
@@ -197,7 +197,7 @@ export function InspectionGroup() {
     setSelectedLine(0)
     setModelGroupDDLDisplay(null)
     setModelGroupDDL([])
-    setSelectedModelGroupDDL(0)
+    setSelectedModelGroup(0)
     setSelectedStation(0)
     setStationDDL([])
     setStationDDLDisplay(null)
@@ -205,7 +205,7 @@ export function InspectionGroup() {
   }, [selectedScheduledLine]);
 
   const isCreate =  selectedInsGroupName.length > 0 && selectedScheduledLine.length >0
-   && selectedLine >0 && selectedmodelGroupDDL > 0
+   && selectedLine >0 && selectedmodelGroup > 0
     && selectedStation >0 && selectedTaktTime.length >0
   return (
     <>
@@ -347,7 +347,7 @@ export function InspectionGroup() {
                   options={modelGroupDDL}
                   loading={loadingModelGroupDDL}
                   onChange={(_, value) =>
-                    setSelectedModelGroupDDL(Number(value?.value ?? 0))
+                    setSelectedModelGroup(Number(value?.value ?? 0))
                   }
                   value={modelGroupDDLDisplay}
                   isOptionEqualToValue={(option, value) =>
@@ -437,7 +437,7 @@ export function InspectionGroup() {
                         selectedScheduledLine,
                         selectedLine,
                         selectedStation,
-                        selectedmodelGroupDDL,
+                        selectedmodelGroup,
                         selectedTaktTime
                       );
                       handleClose();

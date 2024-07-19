@@ -46,8 +46,17 @@ export function InspectionItem() {
   const { data } = location.state || {};
   const [openBackDrop, setOpenBackDrop] = React.useState(true);
 
-  const handleOpenInsGroup = () => setOpenInsGroup(true);
-  const handleCloseInsGroup = () => setOpenInsGroup(false);
+  const handleOpenInsGroup = () => {
+    setLineDDLDisplay({label : lineDisplay , value : selectedLine?.toString() ?? ""})
+    setModelGroupDDLDisplay({label : modelGroupDisplay , value : selectedModelGroup?.toString() ?? ""})
+    setStationDDLDisplay({label : stationDisplay , value : selectedStation?.toString() ?? ""})
+    setOpenInsGroup(true);
+   
+
+  }
+  const handleCloseInsGroup = () => {setOpenInsGroup(false);
+ 
+  }
   const [openInsGroup, setOpenInsGroup] = React.useState(false);
   const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
     []
@@ -73,7 +82,7 @@ export function InspectionItem() {
   const [selectedStation, setSelectedStation] = React.useState<number | null>(
     null
   );
-  const [selectedModelGroup, setselectedModelGroup] = React.useState<
+  const [selectedModelGroup, setSelectedModelGroup] = React.useState<
     number | null
   >(null);
   const [selectedTaktTime, setSelectedTaktTime] = React.useState<string | null>(
@@ -88,6 +97,7 @@ export function InspectionItem() {
   const insGroupId = data.id;
   const [activeIns , setActiveIns] = useState<boolean>(data.status === "Active")
   const [activeInsDisplay , setActiveInsDisplay] = useState<string>(data.status)
+
 
   function GetModelGroupDDL(LineId: number) {
     GetModelGroupAPI().then((x) => {
@@ -187,22 +197,25 @@ export function InspectionItem() {
     let dataInsGroup: any;
     await GetInsGroupAPI(data.id).then(async (x) => {
       if (x.status == "success") {
+        
         setInsGroupNameDisplay(x.data.name);
+        setSelectedLine(x.data.lineId);
         setLineDisplay(x.data.lineName);
+        setSelectedScheduledLine(x.data.scheduledLineCode);
         setScheduledLineDisplay(
           `${x.data.scheduledLineCode} : ${x.data.scheduledLineName}`
         );
         setModelGroupDisplay(x.data.modelGroupName);
+        setInsGroupName(x.data.name);
+
         setTaktTimeDisplay(x.data.taktTime);
         setStationDisplay(x.data.stationName);
-        setActiveIns(x.data.status === "Active")
-        setActiveInsDisplay(x.data.status)
-        setInsGroupName(x.data.name);
-        setSelectedLine(x.data.lineId);
-        setSelectedScheduledLine(x.data.scheduledLineCode);
-        setselectedModelGroup(x.data.modelGroupId);
-        setSelectedTaktTime(x.data.taktTime);
         setSelectedStation(x.data.stationId);
+
+        setActiveIns(x.data.status === "Active");
+        setActiveInsDisplay(x.data.status);
+        setSelectedModelGroup(x.data.modelGroupId);
+        setSelectedTaktTime(x.data.taktTime);
       }
       dataInsGroup = x;
     });
@@ -211,7 +224,6 @@ export function InspectionItem() {
 
   async function ActiveInsGroupPage(insId: number) {
     await ActiveInsGroupAPI(insId).then((rs) => {
-      console.log(rs)
       if (rs.status == "success") {
         toastAlert(rs.status, rs.message, 5000);
         InsGroupPage();
@@ -227,6 +239,38 @@ export function InspectionItem() {
     FetchMenu();
   }, []);
 
+  const [lineDDLDisplay , setLineDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [modelGroupDDLDisplay , setModelGroupDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [stationDDLDisplay , setStationDDLDisplay] = React.useState<DDLModel | null>(null);
+
+  const resetAll = () => {
+    setLineDDLDisplay(null);
+    setLineDDL([]);
+    setSelectedLine(0);
+    setModelGroupDDLDisplay(null);
+    setModelGroupDDL([]);
+    setSelectedModelGroup(0);
+    setSelectedStation(0);
+    setStationDDL([]);
+    setStationDDLDisplay(null);
+  };
+
+  const [isSave, setIsSave] = React.useState<boolean>(false);
+  
+
+  React.useEffect(()=>{
+    if (openInsGroup) {
+      setIsSave(false);
+    }
+
+  },[openInsGroup]);
+
+  React.useEffect(() => {
+    const isSave = 
+    (!InsGroupName) || (!selectedScheduledLine) || (!selectedLine)
+    || (!selectedModelGroup) || (!selectedStation) || (!selectedTaktTime)
+    setIsSave(isSave);
+  }, [InsGroupName, selectedScheduledLine, selectedLine, selectedModelGroup, selectedStation, selectedTaktTime]);
   return (
     <>
       <MsalAuthenticationTemplate
@@ -245,16 +289,16 @@ export function InspectionItem() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-              prm1="Master Data"
-              prm2="Inspection Groups"
-              prm3="Inspection Item"
+                prm1="Master Data"
+                prm2="Inspection Groups"
+                prm3="Inspection Item"
               />
             </Box>
           </Grid>
         </Grid>
         <Grid container spacing={2}>
           <Grid item xs={12} md={12}>
-            <Accordion defaultExpanded >
+            <Accordion defaultExpanded>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls="panel1-content"
@@ -285,10 +329,12 @@ export function InspectionItem() {
                   <b>:</b>Version:<b>{data.version}</b>
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{
-                borderTop: "1px solid rgba(0, 0, 0, .125)",
-              }}>
-                <Grid container >
+              <AccordionDetails
+                sx={{
+                  borderTop: "1px solid rgba(0, 0, 0, .125)",
+                }}
+              >
+                <Grid container>
                   <Grid item xs={12} md={5}>
                     <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
@@ -361,7 +407,7 @@ export function InspectionItem() {
                   <Grid item xs={12} md={7}>
                     <Box display="flex" alignItems="center" mb={2}>
                       <Typography variant="subtitle1" color="textSecondary">
-                       Takt Time:
+                        Takt Time:
                       </Typography>
                       <Typography variant="body1" ml={1}>
                         {taktTimeDisplay}
@@ -420,9 +466,10 @@ export function InspectionItem() {
                   }}
                   options={scheduledLineDDL}
                   loading={loadingDDL}
-                  onChange={(_, value) =>
-                    setSelectedScheduledLine(value?.value ?? "")
-                  }
+                  onChange={(_, value) => {
+                    setSelectedScheduledLine(value?.value ?? "");
+                    resetAll();
+                  }}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -450,18 +497,29 @@ export function InspectionItem() {
                 <Autocomplete
                   id="Line-box-demo"
                   size="small"
-                  onOpen={() => {
+                  onOpen={async () => {
                     setLoadingLineDDL(true);
                     handleOpenLine(selectedScheduledLine ?? "");
                   }}
                   onClose={() => setLoadingLineDDL(false)}
-                  defaultValue={{
-                    label: `${lineDisplay}`,
-                    value: selectedLine?.toString(),
-                  }}
+                  value={lineDDLDisplay}
                   options={lineDDL}
                   loading={loadingLineDDL}
-                  onChange={(_, value) => setSelectedLine(Number(value?.value))}
+                  onChange={(_, value) => {
+                    setSelectedLine(Number(value?.value));
+                    setLineDDLDisplay(
+                      lineDDL.find(
+                        (it) => it.value == value?.value
+                      ) ?? null
+                    );
+                    setSelectedStation(0);
+                    setSelectedModelGroup(0);
+                    setModelGroupDDL([]);
+                    setModelGroupDDLDisplay(null);
+                    setStationDDL([]);
+                    setStationDDLDisplay(null);
+             
+                  }}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -494,15 +552,17 @@ export function InspectionItem() {
                     handleOpenModelGroup(selectedLine as number);
                   }}
                   onClose={() => setLoadingModelGroupDDL(false)}
-                  defaultValue={{
-                    label: `${modelGroupDisplay}`,
-                    value: selectedModelGroup?.toString() ?? "",
-                  }}
+                  value={modelGroupDDLDisplay}
                   options={modelGroupDDL}
                   loading={loadingModelGroupDDL}
-                  onChange={(_, value) =>
-                    setselectedModelGroup(Number(value?.value))
-                  }
+                  onChange={(_, value) => {
+                    setSelectedModelGroup(Number(value?.value));
+                    setModelGroupDDLDisplay(
+                      modelGroupDDL.find(
+                        (it) => it.value == value?.value
+                      ) ?? null
+                    );
+                  }}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -535,15 +595,17 @@ export function InspectionItem() {
                     handleOpenStation(selectedLine as number);
                   }}
                   onClose={() => setLoadingStationDDL(false)}
-                  defaultValue={{
-                    label: `${stationDisplay}`,
-                    value: selectedStation?.toString(),
-                  }}
+                  value={stationDDLDisplay}
                   options={stationDDL}
                   loading={loadingStationDDL}
-                  onChange={(_, value) =>
-                    setSelectedStation(Number(value?.value))
-                  }
+                  onChange={(_, value) => {
+                    setSelectedStation(Number(value?.value));
+                    setStationDDLDisplay(
+                      stationDDL.find(
+                        (it) => it.value == value?.value?.toString()
+                      ) ?? null
+                    );
+                  }}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -572,9 +634,9 @@ export function InspectionItem() {
                 <TextField
                   label="Takt Time"
                   id="outlined-size-small"
-                  defaultValue={`${selectedTaktTime}`}
+                  defaultValue={taktTimeDisplay}
                   size="small"
-                  style={{ width: '100%' }}
+                  style={{ width: "100%" }}
                   inputProps={{ maxLength: 200 }}
                   onChange={(e) => {
                     setSelectedTaktTime(e.target.value);
@@ -593,6 +655,8 @@ export function InspectionItem() {
                   </Button>
                   <Button
                     variant="contained"
+                    disabled={isSave}
+                    
                     onClick={() => {
                       handleCloseInsGroup();
                       setOpenBackDrop(true);

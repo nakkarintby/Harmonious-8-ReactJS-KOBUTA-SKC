@@ -71,12 +71,13 @@ function Pages() {
       <Route path="/masterData/line/station" element={<Station />} />
       <Route path="/masterData/inspectiongroups" element={<InspectionGroup />} />
       <Route path="/masterData/inspectiongroups/inspectionitem" element={<InspectionItem />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/users/detail" element={<UDetail />} />
 
-      <Route path="/systemrole" element={<SystemRole />} />
+      <Route path="/administrator/systemrole" element={<SystemRole />} />
+      <Route path="/administrator/systemrole/detail" element={<SRDetail />} />
+      <Route path="/administrator/users" element={<Users />} />
+      <Route path="/administrator/users/detail" element={<UDetail />} />
       <Route path="/systemsetting" element={<SystemSetting />} />
-      <Route path="/systemrole/detail" element={<SRDetail />} />
+      
       <Route path="/" element={<Home />} />
     </Routes>
   );

@@ -63,7 +63,7 @@ export async function DeleteImageInsItemAPI(insPictureId: any) {
   try {
     await instanceAxios
       .delete(
-        `/InspectionItemPicture/DeleteInspectionItem?inspectionItemPictureId=${insPictureId}`
+        `/InspectionItemPicture/DeleteInspectionItemPicture?inspectionItemPictureId=${insPictureId}`
       )
       .then(async function (response: any) {
         dataApi = response.data;

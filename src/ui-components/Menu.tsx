@@ -25,68 +25,6 @@ import instanceAxios from "../api/axios/instanceAxios";
 import toastAlert from "./SweetAlert2/toastAlert";
 
 
-interface Header {
-  userId: number;
-  empId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  personalId: string;
-  systemRoleId: number;
-  isSuperUser: boolean;
-  menuRoleId: number;
-  menuId: number;
-  code: string;
-  nameTH: string;
-  nameEN: string;
-  icon: string | null;
-  href: string;
-  visible: boolean;
-  menuGroup: string;
-  refCode: string | null;
-  isGrpHd: boolean;
-  canCheckDisplay: boolean;
-  canCheckCreate: boolean;
-  canCheckEdit: boolean;
-  canCheckDelete: boolean;
-  canCheckActive: boolean;
-  canDisplay: boolean;
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-  canActive: boolean;
-  sequence: number;
-}
-
-interface Item {
-  menuRoleId: number;
-  menuId: number;
-  code: string;
-  nameTH: string;
-  nameEN: string;
-  icon: string | null;
-  href: string;
-  visible: boolean;
-  menuGroup: string;
-  refCode: string | null;
-  isGrpHd: boolean;
-  canCheckDisplay: boolean;
-  canCheckCreate: boolean;
-  canCheckEdit: boolean;
-  canCheckDelete: boolean;
-  canCheckActive: boolean;
-  canDisplay: boolean;
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-  canActive: boolean;
-  sequence: number;
-}
-
-interface Menu {
-  headers: Header[];
-  items: Item[];
-}
 
 function convertToMenu(data: any[]): Menu {
   const headers: Header[] = data.filter(item => item.isGrpHd).map(item => ({
@@ -222,23 +160,24 @@ export default function TemporaryDrawer() {
         }
       >
         {menuDataList?.headers.map((row) => (
-          <div key={row.nameEN}>
-            <ListItemButton
+         <>
+           <ListItemButton
               key={row.menuId}
               onClick={() => {
+                console.log(row.menuGroup)
                 if (row.menuGroup === "MASTERDATA") {
                   handleClick();
                 } else if (row.menuGroup === "ADMINISTRATOR") {
                   handleClickAdministrator();
-                } else {
-                  toggleDrawer(false)();
+                }else{
+                  setOpen(false)
                 }
               }}
+              component={Link}
+              to={row.href}
             >
-              <ListItemIcon>
-              {GetIcon(row.icon ??"")}
-              </ListItemIcon>
-              <ListItemText primary={row.nameEN} />
+              <ListItemIcon>{GetIcon(row.icon ?? "")}</ListItemIcon>
+              <ListItemText primary={row.nameEN}  />
               {row.menuGroup == "MASTERDATA" ? (
                 openMaster ? (
                   <ExpandLess />
@@ -258,7 +197,18 @@ export default function TemporaryDrawer() {
             {menuDataList.items
               .filter((item) => item.menuGroup === row.menuGroup)
               .map((item) => (
-                <Collapse in={row.menuGroup == "MASTERDATA" ? openMaster : row.menuGroup == "ADMINISTRATOR" ? openAdministrator : false} timeout="auto" unmountOnExit>
+                <Collapse
+                  in={
+                    row.menuGroup == "MASTERDATA"
+                      ? openMaster
+                      : row.menuGroup == "ADMINISTRATOR"
+                      ? openAdministrator
+                      : false
+                  }
+                  timeout="auto"
+                  unmountOnExit
+                  key={row.menuGroup}
+                >
                   <List component="div" disablePadding>
                     <ListItemButton
                       sx={{ pl: 4 }}
@@ -266,15 +216,14 @@ export default function TemporaryDrawer() {
                       component={Link}
                       to={item.href}
                     >
-                      <ListItemIcon>
-                      {GetIcon(item.icon ??"")}
-                      </ListItemIcon>
+                      <ListItemIcon>{GetIcon(item.icon ?? "")}</ListItemIcon>
                       <ListItemText primary={item.nameEN} />
                     </ListItemButton>
                   </List>
                 </Collapse>
               ))}
-          </div>
+         </>
+          
         ))}
       </List>
     </Box>

@@ -24,6 +24,8 @@ import { SRDetail } from "./pages/SRDetail";
 import { UDetail } from "./pages/UDetail";
 import { SystemSetting } from "./pages/SystemSetting";
 import { setAuthToken } from "./api/axios/instanceAxios";
+import InspectionData from "./pages/InspectionData";
+import InspectionDataDetail from "./ui-components/MasterData/InspectionDataDetail";
 
 type AppProps = {
   pca: IPublicClientApplication;
@@ -71,6 +73,7 @@ function Pages() {
       <Route path="/masterData/line/station" element={<Station />} />
       <Route path="/masterData/inspectiongroups" element={<InspectionGroup />} />
       <Route path="/masterData/inspectiongroups/inspectionitem" element={<InspectionItem />} />
+
 
       <Route path="/administrator/systemrole" element={<SystemRole />} />
       <Route path="/administrator/systemrole/detail" element={<SRDetail />} />

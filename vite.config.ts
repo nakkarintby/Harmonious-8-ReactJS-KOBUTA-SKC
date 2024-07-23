@@ -9,7 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@api': '/src/api', // ปรับเส้นทางให้ตรงกับโครงสร้างของคุณ
+      '@api': '/src/api', 
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   }

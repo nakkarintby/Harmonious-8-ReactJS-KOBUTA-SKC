@@ -19,14 +19,12 @@ import {
   MenuItem,
   Select,
   Switch,
-  Tab,
-  Tabs,
   Typography,
 } from "@mui/material";
-import MuiAccordion, {
-  AccordionProps,
-} from "@mui/material/Accordion";
-import {  GridColDef } from "@mui/x-data-grid";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import MuiAccordion, { AccordionProps } from "@mui/material/Accordion";
+import { GridColDef } from "@mui/x-data-grid";
 import React from "react";
 import { TextField } from "@mui/material";
 import { Modal as BaseModal } from "@mui/base/Modal";
@@ -39,14 +37,21 @@ import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import StyledDataGrid from "../../styles/styledDataGrid";
 import DropzoneArea from "./inspectionItemImage";
-import { CreateInsItemAPI, DeletedInsItemAPI, GetConstantByGrpAPI, GetInsItemAPI, GetQRCodeItemAPI, UpdateInsItemAPI, ValidateQRCodeAPI } from "@api/axios/inspectionItemAPI";
+import {
+  CreateInsItemAPI,
+  DeletedInsItemAPI,
+  GetConstantByGrpAPI,
+  GetInsItemAPI,
+  GetQRCodeItemAPI,
+  UpdateInsItemAPI,
+  ValidateQRCodeAPI,
+} from "@api/axios/inspectionItemAPI";
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
-  activeIns: Boolean;
+  activeIns: boolean;
   OpenBackDrop: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-
   const { dataGroupId, OpenBackDrop, activeIns } = props;
   const [insTypeDDL, setInsTypeDDL] = React.useState<DDLModel[]>([]);
   const [dataPageList, setDataPageList] = React.useState<InspectionItem[]>([]);
@@ -441,40 +446,40 @@ export default function InspectionItemData(props: {
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
-    <Button
-      onClick={() => {
-        setLabelModal("Edit Inspection Group Item");
-        handleOpen();
-        SetUpDataEdit(row.id);
-        setValue(0)
-      }}
-      sx={{ minWidth: 0, padding: "4px" }}
-    >
-      <EditIcon fontSize="small" />
-    </Button>
-    {!activeIns && (
-      <Button
-        onClick={() => {
-          Swal.fire({
-            title: "Are you sure?",
-            text: `${row.topic}`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              DeletedInsItem(row.id);
-            }
-          });
-        }}
-        sx={{ minWidth: 0, padding: "4px", marginLeft: "4px" }}
-      >
-        <DeleteIcon fontSize="small" />
-      </Button>
-    )}
-  </>
+          <Button
+            onClick={() => {
+              setLabelModal("Edit Inspection Group Item");
+              handleOpen();
+              SetUpDataEdit(row.id);
+              setValueTab(0);
+            }}
+            sx={{ minWidth: 0, padding: "4px" }}
+          >
+            <EditIcon fontSize="small" />
+          </Button>
+          {!activeIns && (
+            <Button
+              onClick={() => {
+                Swal.fire({
+                  title: "Are you sure?",
+                  text: `${row.topic}`,
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Yes, delete it!",
+                }).then((result) => {
+                  if (result.isConfirmed) {
+                    DeletedInsItem(row.id);
+                  }
+                });
+              }}
+              sx={{ minWidth: 0, padding: "4px", marginLeft: "4px" }}
+            >
+              <DeleteIcon fontSize="small" />
+            </Button>
+          )}
+        </>
       ),
     },
     {
@@ -536,8 +541,8 @@ export default function InspectionItemData(props: {
       headerName: "",
       headerAlign: "center",
       align: "left",
-      minWidth: 150,
-      flex: 1,
+      minWidth: 80,
+      flex: 0.3,
       sortable: false,
       renderCell: ({ row }: Partial<GridRowParams>) => (
         <>
@@ -545,8 +550,9 @@ export default function InspectionItemData(props: {
             onClick={() => {
               DeleteQRCodeItem(row.value);
             }}
+            sx={{ minWidth: 0, padding: "4px" }}
           >
-            <DeleteIcon />
+            <DeleteIcon fontSize="small" />
           </Button>
         </>
       ),
@@ -636,12 +642,12 @@ export default function InspectionItemData(props: {
     // Check if Type is 2 and set initial button state
     if (insType === "2") {
       validateMinMaxTarget();
-    }else if (insType === "4"){
-      setDisabledBtn(true)
-    }else{
-      setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0)
+    } else if (insType === "4") {
+      setDisabledBtn(true);
+    } else {
+      setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0);
     }
-  }, [insType , insItemTopic , insItemSeq , insItemUnit]);
+  }, [insType, insItemTopic , insItemSeq , insItemUnit]);
 
   const validateMinMaxTarget = () => {
     const numericMin = parseFloat(insItemMin);
@@ -680,26 +686,29 @@ export default function InspectionItemData(props: {
       setTargetError(true);
     }
 
-    let d = insItemTopic.trim() === "" || 
-    insItemSeq === 0  || insItemMax === "" || insItemMin === "" || insItemUnit === ""
-    setDisabledBtn(d)
+    let d =
+      insItemTopic.trim() === "" ||
+      insItemSeq === 0 ||
+      insItemMax === "" ||
+      insItemMin === "" ||
+      insItemUnit === "";
+    setDisabledBtn(d);
   };
 
   const isAddButtonDisabled =
     insItemQRValue.trim() === "" || insItemQRText.trim() === "";
-  
 
-  const handleInput = (e : any) => {
+  const handleInput = (e: any) => {
     const value = e.target.value;
 
     const minusCount = (value.match(/-/g) || []).length;
-    if (minusCount > 1 || (minusCount === 1 && value[0] !== '-')) {
+    if (minusCount > 1 || (minusCount === 1 && value[0] !== "-")) {
       e.target.value = value.slice(0, -1);
       return;
     }
 
-    if (value === '-.') {
-      e.target.value = ''
+    if (value === "-.") {
+      e.target.value = "";
       return;
     }
 
@@ -712,9 +721,9 @@ export default function InspectionItemData(props: {
     }
 
     if (dotCount === 1) {
-      const [integerPart, decimalPart] = value.split('.');
+      const [integerPart, decimalPart] = value.split(".");
       // Limit integer part to 18 digits and decimal part to 3 digits
-      const cleanIntegerPart = integerPart.replace(/[^0-9-]/g, '');
+      const cleanIntegerPart = integerPart.replace(/[^0-9-]/g, "");
       if (cleanIntegerPart.length > 18) {
         e.target.value = `${cleanIntegerPart.slice(0, 18)}.${decimalPart}`;
         return;
@@ -725,45 +734,30 @@ export default function InspectionItemData(props: {
       }
     } else {
       // Limit integer part to 18 digits when there's no dot
-      const cleanValue = value.replace(/[^0-9-]/g, '');
+      const cleanValue = value.replace(/[^0-9-]/g, "");
       if (cleanValue.length > 18) {
         e.target.value = cleanValue.slice(0, 18);
         return;
       }
     }
 
-    e.target.value = value.replace(/[^0-9.-]/g, '');
+    e.target.value = value.replace(/[^0-9.-]/g, "");
   };
   const [minError, setMinError] = React.useState<boolean>(false);
   const [maxError, setMaxError] = React.useState<boolean>(false);
   const [targetError, setTargetError] = React.useState<boolean>(false);
-  const [value, setValue] = React.useState(0);
+  const [valueTab, setValueTab] = React.useState(0);
 
-  function CustomTabPanel(props: TabPanelProps) {
-    const { children, value, index, ...other } = props;
-  
-    return (
-      <div
-        role="tabpanel"
-        hidden={value !== index}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}
-      >
-        {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-      </div>
-    );
-  }
-  
+
   function a11yProps(index: number) {
     return {
       id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
+      "aria-controls": `simple-tabpanel-${index}`,
     };
   }
 
-  const handleChange = ( newValue: number) => {
-    setValue(newValue);
+  const handleChange = (newValue: number) => {
+    setValueTab(newValue);
   };
 
   return (
@@ -790,6 +784,7 @@ export default function InspectionItemData(props: {
                         setLabelModal("Create Inspection Group Item");
                         SetUpDataCreate();
                         handleOpen();
+                        setValueTab(0);
                       }}
                     >
                       Add
@@ -825,21 +820,26 @@ export default function InspectionItemData(props: {
         disableEscapeKeyDown
         slots={{ backdrop: StyledBackdrop }}
       >
-        <ModalContent >
+        <ModalContent>
           <h2 id="unstyled-modal-title" className="modal-title">
             {lableModal}
           </h2>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs
-              value={value}
-              onChange={(_,value) => handleChange(value)}
+              value={valueTab}
+              onChange={(_, value) => handleChange(value)}
               aria-label="basic tabs example"
             >
               <Tab label="Detail" {...a11yProps(0)} />
-              <Tab label="Images" {...a11yProps(1)} />
+              {!isAdd && <Tab label="Picture" {...a11yProps(1)} />}
             </Tabs>
           </Box>
-          <CustomTabPanel value={value} index={0}>
+          <div
+            role="tabpanel"
+            hidden={valueTab !== 0}
+            id={`simple-tabpanel-${0}`}
+            aria-labelledby={`simple-tab-${0}`}
+          >
             <Grid container spacing={2}>
               <Grid item xs={12} md={12}>
                 <TextField
@@ -865,8 +865,6 @@ export default function InspectionItemData(props: {
                       <span style={{ color: "red" }}>*</span> Topic
                     </span>
                   }
-                  // label="Topic"
-
                   id="topic-size-small"
                   disabled={activeIns ? true : false}
                   defaultValue={insItemTopic}
@@ -1005,11 +1003,7 @@ export default function InspectionItemData(props: {
               {showMeasurement && (
                 <Grid item xs={6} md={4}>
                   <TextField
-                    label={
-                      <span>
-                         Target
-                      </span>
-                    }
+                    label={<span>Target</span>}
                     id="outlined-size-small"
                     defaultValue={insItemTarget}
                     size="small"
@@ -1080,25 +1074,29 @@ export default function InspectionItemData(props: {
               )}
               {showQRCodeList && (
                 <>
-                  <Grid item xs={6} md={6}>
+                  <Grid item xs={4} md={4}>
                     <Button
                       component="label"
                       variant="contained"
                       tabIndex={-1}
                       startIcon={<CloudUploadIcon />}
                       onChange={handleFileChange}
+                      size="small"
                       disabled={activeIns ? true : false}
                     >
                       Upload file
                       <VisuallyHiddenInput type="file" />
                     </Button>
                   </Grid>
-                  <Grid item xs={6} md={6}>
+                  <Grid item xs={4} md={4}>
                     <Box>
-                      <Typography variant="body1">File : {fileName}</Typography>
+                      <Typography variant="body1">
+                        {" "}
+                        {fileName.length > 0 ? `File : ${fileName}` : ""}
+                      </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} md={12}>
+                  <Grid item xs={4} md={4}>
                     <FormControlLabel
                       control={<Switch />}
                       checked={insItemPin}
@@ -1109,10 +1107,10 @@ export default function InspectionItemData(props: {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={6} md={4}>
+                  <Grid item xs={4} md={4}>
                     <TextField
                       label="Value"
-                      id="outlined-size-small"
+                      id="valueQR-size-small"
                       size="small"
                       value={insItemQRValue}
                       error={errorQRCodeValue}
@@ -1127,10 +1125,10 @@ export default function InspectionItemData(props: {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={6} md={4}>
+                  <Grid item xs={4} md={4}>
                     <TextField
                       label="Text"
-                      id="outlined-size-small"
+                      id="textQR-size-small"
                       size="small"
                       style={{ width: "100%" }}
                       value={insItemQRText}
@@ -1143,7 +1141,7 @@ export default function InspectionItemData(props: {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={6} md={4}>
+                  <Grid item xs={4} md={4}>
                     <Button
                       component="label"
                       variant="contained"
@@ -1181,7 +1179,7 @@ export default function InspectionItemData(props: {
               )}
               <Grid item xs={6} md={6} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
-                  <Button variant="outlined" onClick={handleClose}>
+                  <Button variant="outlined" onClick={handleClose} size="small">
                     Close
                   </Button>
                 </Box>
@@ -1200,6 +1198,7 @@ export default function InspectionItemData(props: {
                         startIcon={<CloudUploadIcon />}
                         onClick={ValidateQRCode}
                         disabled={activeIns ? true : false}
+                        size="small"
                       >
                         Validate Data
                       </Button>
@@ -1208,6 +1207,7 @@ export default function InspectionItemData(props: {
                       variant="contained"
                       onClick={handleButtonSubmitClick}
                       disabled={disabledBtn || activeIns ? true : false}
+                      size="small"
                     >
                       {isAdd ? "Create" : "Save"}
                     </Button>
@@ -1215,9 +1215,14 @@ export default function InspectionItemData(props: {
                 </Box>
               </Grid>
             </Grid>
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
-          <Grid container spacing={2}>
+          </div>
+          <div
+            role="tabpanel"
+            hidden={valueTab !== 1}
+            id={`simple-tabpanel-${1}`}
+            aria-labelledby={`simple-tab-${1}`}
+          >
+            <Grid container spacing={2}>
               <Grid item xs={12} md={12}>
                 <TextField
                   disabled={true}
@@ -1230,13 +1235,15 @@ export default function InspectionItemData(props: {
                   size="small"
                   defaultValue={insItemSeq}
                   style={{ width: "100%" }}
-                  onChange={(e) => {
-                    setInsItemSeq(Number(e.target.value));
-                  }}
                 />
               </Grid>
               <Grid item xs={12} md={12}>
-                <DropzoneArea sequence={insItemSeq}  inspectionItemId={insItemId} />
+                <DropzoneArea
+                  sequence={insItemSeq}
+                  inspectionItemId={insItemId}
+                  activeIns={activeIns}
+                  isAdd={isAdd}
+                />
               </Grid>
               <Grid item xs={12} md={12} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
@@ -1246,11 +1253,9 @@ export default function InspectionItemData(props: {
                 </Box>
               </Grid>
             </Grid>
-          </CustomTabPanel>
+          </div>
         </ModalContent>
       </Modal>
-
-    
     </>
   );
 }
@@ -1292,18 +1297,18 @@ const ModalContent = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
   gap: 8,
-  overflow: "auto", 
+  overflow: "auto",
   backgroundColor: theme.palette.mode === "dark" ? "#333" : "#fff",
   borderRadius: 8,
   border: `1px solid ${theme.palette.mode === "dark" ? "#666" : "#ccc"}`,
-  boxShadow: `0 4px 12px ${theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
-    }`,
+  boxShadow: `0 4px 12px ${
+    theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.2)"
+  }`,
   padding: 20,
   color: theme.palette.mode === "dark" ? "#fff" : "#000",
   width: "70vw",
-  height : "45vw",
   maxWidth: "80vw",
-  maxHeight : "40vw",
+  maxHeight: "40vw",
   "& .modal-title": {
     margin: 0,
     lineHeight: "1.5rem",

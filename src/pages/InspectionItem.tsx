@@ -416,6 +416,7 @@ export function InspectionItem() {
                         container
                         justifyContent="flex-end"
                       >
+                          {!activeIns && (
                         <ButtonGroup variant="contained" aria-label="btn group">
                           <Button
                             variant="contained"
@@ -430,6 +431,7 @@ export function InspectionItem() {
                             EDIT
                           </Button>
                         </ButtonGroup>
+                        )}
                       </Grid>
                     </Grid>
                   </Grid>

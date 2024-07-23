@@ -317,7 +317,7 @@ export function InspectionItem() {
                     color:
                       data.status === "Active" ? "green" : "text.secondary",
                     marginLeft: "auto",
-                    marginRight: 1, 
+                    marginRight: 1,
                   }}
                 >
                   <b>{activeInsDisplay} </b>
@@ -327,7 +327,9 @@ export function InspectionItem() {
                     color: "text.secondary",
                   }}
                 >
-                  <b>{insGruopVersion ? `| Version : ${insGruopVersion}` : ""}</b>
+                  <b>
+                    {insGruopVersion ? `| Version : ${insGruopVersion}` : ""}
+                  </b>
                 </Typography>
               </AccordionSummary>
               <AccordionDetails
@@ -336,84 +338,100 @@ export function InspectionItem() {
                 }}
               >
                 <Grid container>
-                  <Grid item xs={12} md={5}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        InspectionGroup Name:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {insGroupNameDisplay}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={5}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        Scheduled Line:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {scheduledLineDisplay}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} md={2} container justifyContent="flex-end">
-                    {!activeIns && (
-                      <ButtonGroup variant="contained" aria-label="btn group">
-                        <Button
-                          variant="contained"
-                          onClick={() => ActiveInsGroupPage(insGroupId)}
-                        >
-                          Active
-                        </Button>
-                        <Button variant="outlined" onClick={handleOpenInsGroup}>
-                          EDIT
-                        </Button>
-                      </ButtonGroup>
-                    )}
-                  </Grid>
+                  <Grid item xs={10} md={10} xl={10}>
+                    <Grid container >
+                      <Grid item xs={12} md={5}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            InspectionGroup Name:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {insGroupNameDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} md={7}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Scheduled Line:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {scheduledLineDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                  <Grid item xs={12} md={5}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        Line:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {lineDisplay}
-                      </Typography>
-                    </Box>
-                  </Grid>
+                      <Grid item xs={12} md={5}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Line:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {lineDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                  <Grid item xs={12} md={7}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        Station:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {stationDisplay}
-                      </Typography>
-                    </Box>
-                  </Grid>
+                      <Grid item xs={12} md={7}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Station:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {stationDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                  <Grid item xs={12} md={5}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        Model Group:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {modelGroupDisplay}
-                      </Typography>
-                    </Box>
-                  </Grid>
+                      <Grid item xs={12} md={5}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Model Group:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {modelGroupDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                  <Grid item xs={12} md={7}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <Typography variant="subtitle1" color="textSecondary">
-                        Takt Time:
-                      </Typography>
-                      <Typography variant="body1" ml={1}>
-                        {taktTimeDisplay}
-                      </Typography>
-                    </Box>
+                      <Grid item xs={12} md={7}>
+                        <Box display="flex" alignItems="center">
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Takt Time:
+                          </Typography>
+                          <Typography variant="body1" ml={1}>
+                            {taktTimeDisplay}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                  <Grid item  xs={12} md={2} xl={2}>
+                    <Grid container>
+                      <Grid
+                        item
+                        md={12}
+                        xs={12}
+                        xl={12}
+                        container
+                        justifyContent="flex-end"
+                      >
+                        <ButtonGroup variant="contained" aria-label="btn group">
+                          <Button
+                            variant="contained"
+                            onClick={() => ActiveInsGroupPage(insGroupId)}
+                          >
+                            Active
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            onClick={handleOpenInsGroup}
+                          >
+                            EDIT
+                          </Button>
+                        </ButtonGroup>
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
               </AccordionDetails>

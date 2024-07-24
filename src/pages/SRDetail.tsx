@@ -1,4 +1,3 @@
-import SRDetailData from "../ui-components/AdministratorData/SRDetailData";
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
@@ -11,21 +10,13 @@ import {
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
 import { useLocation } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { AccordionProps, AccordionSlots, Box, Button, darken, Fade, Grid, lighten, styled, SxProps, TextField, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   Backdrop,
   ButtonGroup,
-  Card,
-  CardHeader,
-  Checkbox,
-  CircularProgress,
-  Divider,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText
+  Checkbox
 } from "@mui/material";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import MuiAccordion, {
@@ -40,7 +31,6 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import instanceAxios from "@api/axios/instanceAxios";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { MenuRole, MenuRoleConvert } from "../ui-components/Interface/MenuRole";
-import StyledDataGrid from "../styles/styledDataGrid";
 
 export function SRDetail() {
   const authRequest = {
@@ -634,32 +624,9 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }));
 
 
-const StyledCardHeader = styled(CardHeader)(() => ({
-  backgroundColor: "#19857b",
-  color: "white",
-  "& .MuiCardHeader-avatar": {
-    color: "white",
-  },
-  "& .MuiCardHeader-title": {
-    color: "white",
-  },
-  "& .MuiCardHeader-subheader": {
-    color: "white",
-  },
-}));
-const StyledCheckbox = styled(Checkbox)(() => ({
-  color: "white",
-}));
 
 
 
-const rows = [
-  { id: 1, page: "Schedule Line" },
-  { id: 2, page: "Model Group" },
-  { id: 3, page: "Line" },
-  { id: 4, page: "Inspection Group" },
-  { id: 5, page: "Inspection Data" },
-  { id: 6, page: "Users" },
-  { id: 7, page: "System Role" },
-  { id: 8, page: "System Setting" },
-];
+
+
+

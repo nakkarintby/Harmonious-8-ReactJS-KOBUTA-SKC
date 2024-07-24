@@ -24,8 +24,7 @@ import { SRDetail } from "./pages/SRDetail";
 import { UDetail } from "./pages/UDetail";
 import { SystemSetting } from "./pages/SystemSetting";
 import { setAuthToken } from "./api/axios/instanceAxios";
-import InspectionData from "./pages/InspectionData";
-import InspectionDataDetail from "./ui-components/MasterData/InspectionDataDetail";
+
 
 type AppProps = {
   pca: IPublicClientApplication;

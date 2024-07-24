@@ -62,7 +62,7 @@ export function MGDetail() {
   const [scheduledLineDDLDisplay, setScheduledLineDDLDisplay] = React.useState<DDLModel | null>(null);
   const [lineDDL, setLineDDL] = React.useState<DDLModel[]>([]);
   // State for post
-  const [valueLine, setValueLine] = React.useState<number>(0);
+  // const [valueLine, setValueLine] = React.useState<number>(0);
   const [scheduledLine, setScheduledLine] = React.useState<string>("");
   const [valueModelGroupName, setValueModelGroupName] = React.useState<string>("");
   
@@ -87,7 +87,7 @@ export function MGDetail() {
           setModelGroupNameDisplay(rs.data.modelGroupDetail.name);
           setLineNameDisplay(rs.data.modelGroupDetail.lineName);
           setLineNameDDLDisplay({label : rs.data.modelGroupDetail.lineName , value : rs.data.modelGroupDetail.lineId});
-          setValueLine(rs.data.modelGroupDetail.lineId);
+          // setValueLine(rs.data.modelGroupDetail.lineId);
           setScheduledLine(rs.data.modelGroupDetail.scheduledLineCode);
           setScheduledLineDisplay(
             `${rs.data.modelGroupDetail.scheduledLineCode}:${rs.data.modelGroupDetail.scheduledLineName}`
@@ -621,14 +621,14 @@ export function MGDetail() {
                   options={lineDDL}
                   loading={loadingLine}
                   disabled={true}
-                  onChange={(_, value) => {
-                    setValueLine(Number(value?.value ?? 0));
-                    setLineNameDDLDisplay(
-                      lineDDL.find(
-                        (it) => it.value == value?.value
-                      ) ?? null
-                    );
-                  }}
+                  // onChange={(_, value) => {
+                  //   setValueLine(Number(value?.value ?? 0));
+                  //   setLineNameDDLDisplay(
+                  //     lineDDL.find(
+                  //       (it) => it.value == value?.value
+                  //     ) ?? null
+                  //   );
+                  // }}
 
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value

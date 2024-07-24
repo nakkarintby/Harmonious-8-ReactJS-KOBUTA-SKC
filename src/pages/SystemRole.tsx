@@ -1,4 +1,3 @@
-import SystemRoleData from "../ui-components/AdministratorData/SystemRoleData";
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
@@ -12,7 +11,7 @@ import {
 import { loginRequest } from "../authProviders/authProvider";
 import { Backdrop, Box, Button, Grid, TextField } from "@mui/material";
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from '@mui/icons-material/Delete';
 import React, { useEffect, useState } from "react";

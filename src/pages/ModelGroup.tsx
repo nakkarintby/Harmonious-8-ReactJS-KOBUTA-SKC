@@ -19,7 +19,7 @@ import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from "sweetalert2";

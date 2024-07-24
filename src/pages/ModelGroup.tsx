@@ -225,23 +225,23 @@ export function ModelGroup() {
     {
       field: "action1",
       headerName: "",
-      width: 170,
+      minWidth: 150,
+      flex: 0.5,
       renderCell: (params: any) => {
         return (
           <>
             <Link
               to={`/masterData/modelgroups/detail`}
               state={{
-                modelGroupId: params.row.modelGroupId,
+                data: params.row,
               }}
             >
-              <Button>
-                <VisibilityIcon />
+              <Button  sx={{ minWidth: 0, padding: "4px" }}>
+                <VisibilityIcon fontSize="small"  />
               </Button>
             </Link>
-
-            <Button onClick={() => deleteModelGroup(params.row.modelGroupId)} >
-              <DeleteIcon />
+            <Button sx={{ minWidth: 0, padding: "4px" }} onClick={() => deleteModelGroup(params.row.modelGroupId)} >
+              <DeleteIcon fontSize="small"  />
             </Button></>
         );
       },
@@ -285,6 +285,7 @@ export function ModelGroup() {
     },
   ];
 
+  const isCreate = valueModelGroupName.length > 0 && valueAutoCompleteDropDownScheduledLine != null && valueAutoCompleteDropDownLine != null
   return (
     <>
       <MsalAuthenticationTemplate
@@ -297,8 +298,8 @@ export function ModelGroup() {
           <Grid item xs={6} md={8}>
             <Box>
               <ActiveLastBreadcrumb
-                prm1="masterData"
-                prm2="modelgroups"
+                prm1="Master Data"
+                prm2="Model Groups"
                 prm3=""
               />
             </Box>
@@ -345,7 +346,6 @@ export function ModelGroup() {
             <h2 id="unstyled-modal-title" className="modal-title">
               Create Model Group
             </h2>
-
             <Box>
               <Grid container spacing={2}>
                 <Grid item xs={6} md={12}>
@@ -464,6 +464,7 @@ export function ModelGroup() {
                         variant="contained"
                         onClick={CreateModelGroup}
                         size="small"
+                        disabled={!isCreate}
                       >
                         Create
                       </Button>

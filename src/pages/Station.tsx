@@ -43,54 +43,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import StyledDataGrid from "../styles/styledDataGrid";
 import moment from "moment";
-
-interface StationTypeModel {
-  text: string;
-  code: string;
-}
-
-interface DDLModel {
-  label: string;
-  value: string;
-}
-
-interface StationModel {
-  stationId: number;
-  name: string;
-  lineId: number;
-  sequence: number;
-  type: number;
-  typeName: string;
-  isFirstStation: boolean;
-  refMFG: string;
-  refStation: string;
-  isFinishedStation: boolean;
-  refFinishedMFG: string;
-  scheduledLindCode: string;
-  nextSequence: number;
-  isDeleted: boolean;
-  createdBy: string;
-  createdOn: string;
-  modifiedBy: string;
-  modifiedOn: string;
-}
-
-async function GetScheduledLineAPI() {
-  let dataApi: any;
-  try {
-    await instanceAxios
-      .get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`)
-      .then(async function (response: any) {
-        dataApi = response.data;
-      })
-      .catch(function (error: any) {
-        toastAlert("error", error, 5000);
-      });
-  } catch (err: any) {
-    toastAlert("error", err, 5000);
-  }
-  return dataApi;
-}
+import _ from "lodash";
+import { GetScheduledLineAPI } from "@api/axios/station";
 
 export function Station() {
   const authRequest = {
@@ -643,8 +597,19 @@ export function Station() {
     setShowRefFinish(true);
     setTypeDDL(1);
     setValueStationName(null);
-    setValueSequence(1);
-    setIscheckedFirstStation(true);
+    const lastSequence = _.maxBy(stationList, "sequence")?.sequence ?? 0;
+    let nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10;
+    if (lastSequence == nextMultipleOfTen) {
+      nextMultipleOfTen += 10;
+    }
+    const isFirstStation = _.find(stationList, function(it) {return it.isFirstStation === true})
+    if(!isFirstStation){
+      nextMultipleOfTen = 1 
+      setIscheckedFirstStation(true);
+    }else{
+      setIscheckedFirstStation(false);
+    }
+    setValueSequence(nextMultipleOfTen);
     setIscheckedFinishStation(false);
     setDisalbedSeq(false);
     setDisalbedSwitchFirstStation(false);
@@ -875,29 +840,51 @@ export function Station() {
               <Typography>Line</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid container spacing={0}>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Line Name:
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {displayLineName}
-                    </Typography>
-                  </Box>
+              <Grid container>
+                <Grid item xs={12} md={10} xl={10}>
+                  <Grid container spacing={0}>
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center">
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Line Name:
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {displayLineName}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center" >
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Schedule Line:
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {scheduledLineDisplay}
+                        </Typography>
+                      </Box>
+                    </Grid>
+
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center" >
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Takt Time:
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {displayTaktTime}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Schedule Line:
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {scheduledLineDisplay}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={2} container justifyContent="flex-end">
-                  <ButtonGroup variant="contained" aria-label="btn group">
+                <Grid item xs={12} md={2} xl={2}>
+                  <Grid
+                    item
+                    xs={12}
+                    md={12}
+                    container
+                    justifyContent="flex-end"
+                  >
+                    <ButtonGroup variant="contained" aria-label="btn group">
                     <Button
                       variant="outlined"
                       onClick={handleopenModalLineEdit}
@@ -905,16 +892,7 @@ export function Station() {
                       EDIT
                     </Button>
                   </ButtonGroup>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Takt Time:
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {displayTaktTime}
-                    </Typography>
-                  </Box>
+                  </Grid>
                 </Grid>
               </Grid>
             </AccordionDetails>
@@ -1269,9 +1247,9 @@ export function Station() {
                   }}
                 />
               </Grid>
-         
-                {showSequence && (
-                       <Grid item xs={6} md={6}>
+
+              {showSequence && (
+                <Grid item xs={6} md={6}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Sequence"
@@ -1283,9 +1261,9 @@ export function Station() {
                     inputProps={{ maxLength: 200 }}
                     disabled={disalbedSeq}
                   />
-                     </Grid>
-                )}
-           
+                </Grid>
+              )}
+
               {showFirstStationSwitch && (
                 <Grid item xs={6} md={6}>
                   <FormControlLabel

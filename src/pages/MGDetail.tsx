@@ -44,38 +44,33 @@ import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import { CreateModelItemAPI, GetListAPI, GetModelGroupDetailAPI, GetScheduledLineAPI } from "@api/axios/modelGroupAPI";
 
-
-
-
-
-
 export function MGDetail() {
   const authRequest = {
     ...loginRequest,
   };
   let location = useLocation();
-  const valueModelGroupId = location.state.modelGroupId;
-  const [valueModelGroupName, setValueModelGroupName] =
-    React.useState<string>("");
-  const [openModalModelGroupEdit, setOpenModalModelGroupEdit] =
-    React.useState<boolean>(false);
+  const valueModelGroupId = location.state.data.modelGroupId;
+  const [openModalModelGroupEdit, setOpenModalModelGroupEdit] = React.useState<boolean>(false);
   const [expanded, setExpanded] = React.useState<boolean>(true);
-  const [
-    dropDownScheduledLineAutoComplete,
-    setDropDownScheduledLineAutoComplete,
-  ] = React.useState<DDLModel[]>([]);
-  const [dropDownLineAutoComplete, setDropDownLineAutoComplete] =
-    React.useState<DDLModel[]>([]);
-  const [valueLine, setValueLine] = React.useState<number>(0);
-  const [modelGroupNameDisplay, setModelGroupNameDisplay] =
-    React.useState<string>("");
+  // Display  ModelGroup Detail 
+  const [modelGroupNameDisplay, setModelGroupNameDisplay] = React.useState<string>("");
   const [lineNameDisplay, setLineNameDisplay] = React.useState<string>("");
+  const [scheduledLineDisplay, setScheduledLineDisplay] = React.useState<string>("");
+  // Modal ModelGroup Detail
+  const [scheduledLineDDL,setScheduledLineDDL,] = React.useState<DDLModel[]>([]);
+  const [lineNameDDLDisplay, setLineNameDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [scheduledLineDDLDisplay, setScheduledLineDDLDisplay] = React.useState<DDLModel | null>(null);
+  const [lineDDL, setLineDDL] = React.useState<DDLModel[]>([]);
+  // State for post
+  const [valueLine, setValueLine] = React.useState<number>(0);
   const [scheduledLine, setScheduledLine] = React.useState<string>("");
-  const [scheduledLineDisplay, setScheduledLineDisplay] =
-    React.useState<string>("");
+  const [valueModelGroupName, setValueModelGroupName] = React.useState<string>("");
+  
+  // loading DDL
   const [loadingSL, setLoadingSL] = React.useState<boolean>(false);
   const [loadingLine, setLoadingLine] = React.useState<boolean>(false);
 
+  // Transfer List
   const [addModel , setAddModel] = React.useState<string[]>([]);
   const [removeModel , setRemoveModel] = React.useState<string[]>([]);
   const [modelData , setModelData] = React.useState<DDLModel[]>([]);
@@ -86,12 +81,12 @@ export function MGDetail() {
 
   async function fetchData() {
     try {
-
       await GetModelGroupDetailAPI(valueModelGroupId).then(async (rs) => {
         if (rs.status === "success") {
           setValueModelGroupName(rs.data.modelGroupDetail.name);
           setModelGroupNameDisplay(rs.data.modelGroupDetail.name);
           setLineNameDisplay(rs.data.modelGroupDetail.lineName);
+          setLineNameDDLDisplay({label : rs.data.modelGroupDetail.lineName , value : rs.data.modelGroupDetail.lineId});
           setValueLine(rs.data.modelGroupDetail.lineId);
           setScheduledLine(rs.data.modelGroupDetail.scheduledLineCode);
           setScheduledLineDisplay(
@@ -129,16 +124,12 @@ export function MGDetail() {
     setValueModelGroupName(e.target.value);
   }
 
-
-
   async function saveHeader() {
     try {
       await instanceAxios
         .put(`ModelGroup/UpdateModelGroup`, {
           modelGroupId: valueModelGroupId,
-          name: valueModelGroupName,
-          lineId: valueLine,
-          scheduledLineCode: scheduledLine
+          name: valueModelGroupName
         })
         .then(
           async (response) => {
@@ -159,8 +150,6 @@ export function MGDetail() {
     }
   }
 
- 
-
   async function fetchDataDropDownScheduledLine() {
     try {
       await GetScheduledLineAPI().then(async (rsScheduledLine) => {
@@ -171,7 +160,7 @@ export function MGDetail() {
               value: item.scheduledLineCode,
             })
           );
-          setDropDownScheduledLineAutoComplete(scheduledLineDDLModel);
+          await  setScheduledLineDDL(scheduledLineDDLModel);
           setLoadingSL(false);
         } else {
           setLoadingSL(false);
@@ -189,29 +178,27 @@ export function MGDetail() {
         if(rs.status === "success"){
           const ddlList: DDLModel[] = rs.data.map(
             (item: any) => ({
-              label: item.label,
+              label: `${item.label}`,
               value: item.value,
             })
           );
-         await setDropDownLineAutoComplete(ddlList);
-         console.log(dropDownLineAutoComplete)
+         await setLineDDL(ddlList);
           setLoadingLine(false)
         }else{
           setLoadingLine(false)
         }
-
       })
-     
     } catch (error) {
       console.log('error', error)
     }
   }
 
-
-  async function handleopenModalModelGroup() {
+  async function handleOpenModalModelGroup() {
+    setIsSave(false)
     setOpenModalModelGroupEdit(true);
+    setValueModelGroupName(modelGroupNameDisplay);
+    setScheduledLineDDLDisplay({label : scheduledLineDisplay , value : scheduledLine})
   }
-
 
   const [checked, setChecked] = React.useState<readonly DDLModel[]>([]);
   const [left, setLeft] = React.useState<readonly DDLModel[]>([]);
@@ -301,7 +288,6 @@ export function MGDetail() {
   ]);
   };
 
-
   const modelDetailList = (title: React.ReactNode, items: readonly DDLModel[]) => (
     <Card>
       <StyledCardHeader
@@ -374,8 +360,11 @@ export function MGDetail() {
     </Card>
   );
 
-
-
+  const [isSave, setIsSave] = React.useState<boolean>(false);
+  React.useEffect(() => {
+    const isSave = !valueModelGroupName.trim();
+    setIsSave(isSave);
+  }, [valueModelGroupName]);
   return (
     <>
       <MsalAuthenticationTemplate
@@ -418,46 +407,59 @@ export function MGDetail() {
               <Typography sx={{ flexShrink: 0 }}>Model Group</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid container spacing={0}>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Model Group Name :
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {modelGroupNameDisplay}
-                    </Typography>
-                  </Box>
+              <Grid container>
+                <Grid item xs={12} md={10} xl={10}>
+                  <Grid container spacing={0}>
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center">
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Model Group Name :
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {modelGroupNameDisplay}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center">
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Scheduled Line:
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {scheduledLineDisplay}
+                        </Typography>
+                      </Box>
+                    </Grid>
+
+                    <Grid item xs={12} md={5}>
+                      <Box display="flex" alignItems="center">
+                        <Typography variant="subtitle1" color="textSecondary">
+                          Line:
+                        </Typography>
+                        <Typography variant="body1" ml={1}>
+                          {lineNameDisplay}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Scheduled Line:
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {scheduledLineDisplay}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={2} container justifyContent="flex-end">
-                  <ButtonGroup variant="contained" aria-label="btn group">
-                    <Button
-                      variant="outlined"
-                      onClick={() => handleopenModalModelGroup()}
-                    >
-                      EDIT
-                    </Button>
-                  </ButtonGroup>
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Typography variant="subtitle1" color="textSecondary">
-                      Line:
-                    </Typography>
-                    <Typography variant="body1" ml={1}>
-                      {lineNameDisplay}
-                    </Typography>
-                  </Box>
+                <Grid item xs={12} md={2} xl={2}>
+                  <Grid
+                    item
+                    xs={12}
+                    md={12}
+                    container
+                    justifyContent="flex-end"
+                  >
+                    <ButtonGroup variant="contained" aria-label="btn group">
+                      <Button
+                        variant="outlined"
+                        onClick={() => handleOpenModalModelGroup()}
+                      >
+                        EDIT
+                      </Button>
+                    </ButtonGroup>
+                  </Grid>
                 </Grid>
               </Grid>
             </AccordionDetails>
@@ -486,9 +488,14 @@ export function MGDetail() {
                   justifyContent="flex-end"
                   alignItems="center"
                 >
-                  <Button variant="contained" onClick={()=>{
-                    SaveModel();
-                  }}>Save</Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => {
+                      SaveModel();
+                    }}
+                  >
+                    Save
+                  </Button>
                 </Grid>
                 <Grid item md={5} xs={5}>
                   {modelDetailList("Model Items", left)}
@@ -550,26 +557,33 @@ export function MGDetail() {
               </Grid>
               <Grid item xs={6} md={12}>
                 <Autocomplete
+                  id="combo-SCLine-box-demo"
                   sx={{ width: "100%" }}
                   size="small"
-                  onOpen={() => {
+                  onOpen={async () => {
                     setLoadingSL(true);
-                    fetchDataDropDownScheduledLine();
+                    await fetchDataDropDownScheduledLine();
                   }}
-                  onClose={() => setLoadingSL(false)}
+                  disabled={true}
                   loading={loadingSL}
-                  onChange={(_, newValue) => {
-                    setScheduledLine(newValue?.value ?? "");
+                  options={scheduledLineDDL}
+                  value={scheduledLineDDLDisplay}
+                  onChange={(_, value) => {
+                    if (value?.value) {
+                      setScheduledLine(value?.value ?? "");
+                      setScheduledLineDDLDisplay(
+                        scheduledLineDDL.find(
+                          (it) => it.value == value?.value
+                        ) ?? null
+                      );
+                    }
+                   
                   }}
-                  id="combo-box-demo"
-                  defaultValue={{
-                    label: `${scheduledLineDisplay}`,
-                    value: scheduledLine,
-                  }}
-                  options={dropDownScheduledLineAutoComplete}
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
+                  getOptionLabel={(options: any) => `${options.label}`}
+                  onClose={() => setLoadingSL(false)}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -603,13 +617,19 @@ export function MGDetail() {
                   onClose={() => setLoadingLine(false)}
                   size="small"
                   id="Line-box"
-                  defaultValue={{
-                    label: `${lineNameDisplay}`,
-                    value: valueLine,
-                  }}
-                  options={dropDownLineAutoComplete}
+                  value={lineNameDDLDisplay}
+                  options={lineDDL}
                   loading={loadingLine}
-                  onChange={(_, value) => setValueLine(Number(value?.value))}
+                  disabled={true}
+                  onChange={(_, value) => {
+                    setValueLine(Number(value?.value ?? 0));
+                    setLineNameDDLDisplay(
+                      lineDDL.find(
+                        (it) => it.value == value?.value
+                      ) ?? null
+                    );
+                  }}
+
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
                   }
@@ -651,6 +671,7 @@ export function MGDetail() {
                       variant="contained"
                       onClick={saveHeader}
                       size="small"
+                      disabled={isSave}
                     >
                       SAVE
                     </Button>

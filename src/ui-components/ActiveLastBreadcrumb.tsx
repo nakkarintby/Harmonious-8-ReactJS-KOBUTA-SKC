@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Link } from '@mui/material';
+import { Box, Breadcrumbs, Link, Typography } from '@mui/material';
 
 export default function ActiveLastBreadcrumb({
   prm1,
@@ -14,15 +14,12 @@ export default function ActiveLastBreadcrumb({
     <Box sx={{ height: "100%", width: "100%" }}>
       <div role="presentation">
         <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            underline="hover"
+        <Typography
             color="inherit"
-            href={"/" + formatString(prm1)}
             aria-current="page"
-         
           >
             {prm1}
-          </Link>
+          </Typography>
           <Link
             underline="hover"
             color="text.primary"
@@ -31,21 +28,12 @@ export default function ActiveLastBreadcrumb({
           >
             {prm2}
           </Link>
-          <Link
-            underline="hover"
+          <Typography
             color="text.primary"
-            href={
-              "/" +
-              formatString(prm1) +
-              "/" +
-              formatString(prm2) +
-              "/" +
-              formatString(prm3)
-            }
             aria-current="page"
           >
             {prm3}
-          </Link>
+          </Typography>
         </Breadcrumbs>
       </div>
       <div>

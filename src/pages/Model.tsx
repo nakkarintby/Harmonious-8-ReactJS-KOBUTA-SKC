@@ -63,7 +63,7 @@ export function Model() {
           <Grid container spacing={2}>
             <Grid item xs={6} md={8}>
               <Box>
-              <ActiveLastBreadcrumb prm1="masterData" prm2="scheduleLine" prm3="model" />
+              <ActiveLastBreadcrumb prm1="Master Data" prm2="Schedule Line" prm3="Model" />
               </Box>
             </Grid>
           </Grid>

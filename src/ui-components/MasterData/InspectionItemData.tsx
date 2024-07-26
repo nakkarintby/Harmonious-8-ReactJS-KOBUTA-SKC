@@ -46,6 +46,7 @@ import {
   UpdateInsItemAPI,
   ValidateQRCodeAPI,
 } from "@api/axios/inspectionItemAPI";
+import AddBoxIcon from '@mui/icons-material/AddBox';
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
@@ -656,7 +657,7 @@ export default function InspectionItemData(props: {
   const validateMinMaxTarget = () => {
     const numericMin = parseFloat(insItemMin);
     const numericMax = parseFloat(insItemMax);
-   
+
     let targetCheck = false;
     // Validate Min
     if (
@@ -677,36 +678,34 @@ export default function InspectionItemData(props: {
     } else {
       setMaxError(true);
     }
- 
+
     // Validate Target
-    if(insItemTarget){
+    if (insItemTarget) {
       const numericTarget = parseFloat(insItemTarget);
-  
-    if (
-      insItemTarget === "" ||
-      (!isNaN(numericTarget) &&
-        numericTarget <= numericMax &&
-        numericTarget >= numericMin)
-    ) {
-    
-      setTargetError(false);
-      setDisabledBtn(false);
-      targetCheck = false;
-    } else {
-      setTargetError(true);
-      targetCheck = true;
+
+      if (
+        insItemTarget === "" ||
+        (!isNaN(numericTarget) &&
+          numericTarget <= numericMax &&
+          numericTarget >= numericMin)
+      ) {
+        setTargetError(false);
+        setDisabledBtn(false);
+        targetCheck = false;
+      } else {
+        setTargetError(true);
+        targetCheck = true;
+      }
+
+      let d =
+        insItemTopic.trim() === "" ||
+        insItemSeq === 0 ||
+        insItemMax === "" ||
+        insItemMin === "" ||
+        insItemUnit === "" ||
+        targetCheck;
+      setDisabledBtn(d);
     }
-
-    let d =
-    insItemTopic.trim() === "" ||
-    insItemSeq === 0 ||
-    insItemMax === "" ||
-    insItemMin === "" ||
-    insItemUnit === "" || 
-    targetCheck ;
-  setDisabledBtn(d);
-  }
-
   };
 
   const isAddButtonDisabled =
@@ -754,14 +753,12 @@ export default function InspectionItemData(props: {
         return;
       }
     }
-
     e.target.value = value.replace(/[^0-9.-]/g, "");
   };
   const [minError, setMinError] = React.useState<boolean>(false);
   const [maxError, setMaxError] = React.useState<boolean>(false);
   const [targetError, setTargetError] = React.useState<boolean>(false);
   const [valueTab, setValueTab] = React.useState(0);
-
 
   function a11yProps(index: number) {
     return {
@@ -794,6 +791,7 @@ export default function InspectionItemData(props: {
                   <Box>
                     <Button
                       variant="contained"
+                      startIcon={<AddBoxIcon />}
                       onClick={() => {
                         setLabelModal("Create Inspection Group Item");
                         SetUpDataCreate();
@@ -825,7 +823,6 @@ export default function InspectionItemData(props: {
           </AccordionDetails>
         </Accordion>
       </div>
-
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"

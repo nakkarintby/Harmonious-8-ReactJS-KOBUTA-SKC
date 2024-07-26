@@ -308,7 +308,7 @@ export function ModelGroup() {
             <Box>
               <Button
                 variant="outlined"
-                endIcon={<AddBoxIcon />}
+                startIcon={<AddBoxIcon />}
                 onClick={handleOpenModalCreateModelGroup}
               >
                 Create
@@ -348,7 +348,7 @@ export function ModelGroup() {
             </h2>
             <Box>
               <Grid container spacing={2}>
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Model Group Name"
@@ -360,18 +360,20 @@ export function ModelGroup() {
                   />
                 </Grid>
 
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <Autocomplete
                     sx={{ width: "100%" }}
                     size="small"
                     onOpen={() => {
                       setLoadingSL(true);
-                      fetchDataDropDownScheduledLine()
+                      fetchDataDropDownScheduledLine();
                     }}
                     onClose={() => setLoadingSL(false)}
                     loading={loadingSL}
                     onChange={(_, newValue) => {
-                      handleChangeValueDropDownScheduledLineAutoComplete(newValue);
+                      handleChangeValueDropDownScheduledLineAutoComplete(
+                        newValue
+                      );
                     }}
                     id="combo-box-demo"
                     value={valueAutoCompleteDropDownScheduledLine}
@@ -379,7 +381,9 @@ export function ModelGroup() {
                       (dropDownScheduledLineAutoComplete) =>
                         dropDownScheduledLineAutoComplete
                     )}
-                    getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
+                    getOptionLabel={(options: any) =>
+                      `${options.scheduledLineCode} - ${options.name}`
+                    }
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -405,13 +409,19 @@ export function ModelGroup() {
                   />
                 </Grid>
 
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <Autocomplete
                     sx={{ width: "100%" }}
                     size="small"
                     onOpen={() => {
                       setLoadingLine(true);
-                      fetchDataDropDownLine(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+                      fetchDataDropDownLine(
+                        valueAutoCompleteDropDownScheduledLine
+                          ? valueAutoCompleteDropDownScheduledLine[
+                              "scheduledLineCode"
+                            ]
+                          : null
+                      );
                     }}
                     onClose={() => setLoadingLine(false)}
                     loading={loadingLine}
@@ -421,8 +431,7 @@ export function ModelGroup() {
                     id="combo-box-demo"
                     value={valueAutoCompleteDropDownLine}
                     options={dropDownLineAutoComplete.map(
-                      (dropDownLineAutoComplete) =>
-                        dropDownLineAutoComplete
+                      (dropDownLineAutoComplete) => dropDownLineAutoComplete
                     )}
                     getOptionLabel={(options: any) => `${options.label}`}
                     renderInput={(params) => (
@@ -447,29 +456,31 @@ export function ModelGroup() {
                         maxHeight: "10vw",
                       },
                     }}
-
                   />
                 </Grid>
-
-                <Grid item xs={12}>
-                  <Grid item xs={6} md={12} container justifyContent="flex-end">
-                    <Box display="flex" gap={2}>
-                      <Button
-                        variant="outlined"
-                        onClick={handleCloseModalCreateModelGroup}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={CreateModelGroup}
-                        size="small"
-                        disabled={!isCreate}
-                      >
-                        Create
-                      </Button>
-                    </Box>
-                  </Grid>
+                <Grid item xs={6} md={6} container justifyContent="flex-start">
+                  <Box display="flex" gap={2}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        handleCloseModalCreateModelGroup();
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={6} container justifyContent="flex-end">
+                  <Box display="flex" gap={2}>
+                    <Button
+                      variant="contained"
+                      onClick={CreateModelGroup}
+                      size="small"
+                      disabled={!isCreate}
+                    >
+                      Create
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
             </Box>

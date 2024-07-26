@@ -115,7 +115,7 @@ export function Line() {
     // Check if all required fields have values
     setDisalbedCreate(
       valueLineName === null ||
-        valueLineName === "" ||
+        valueLineName.trim() === "" ||
         valueAutoCompletedropDownScheduledLineList === null ||
         valueAutoCompletedropDownScheduledLineList === "" ||
         valueTaktTime === null ||
@@ -302,7 +302,7 @@ export function Line() {
             <Box>
               <Button
                 variant="outlined"
-                endIcon={<AddBoxIcon />}
+                startIcon={<AddBoxIcon />}
                 onClick={handleOpenModalCreateLine}
               >
                 Create

@@ -22,7 +22,7 @@ import instanceAxios from "../api/axios/instanceAxios";
 import _ from 'lodash';
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import { GetLineAPI, GetModelGroupAPI, GetScheduledLineAPI, GetStationAPI } from "@api/axios/inspectionGroupAPI";
-
+import AddBoxIcon from '@mui/icons-material/AddBox';
 
 
 export function InspectionGroup() {
@@ -227,7 +227,7 @@ export function InspectionGroup() {
           </Grid>
           <Grid item xs={6} md={4} container justifyContent="flex-end">
             <Box>
-              <Button variant="outlined" onClick={handleOpen} >
+              <Button variant="outlined"  startIcon={<AddBoxIcon/>} onClick={handleOpen} >
                 Create
               </Button>
             </Box>

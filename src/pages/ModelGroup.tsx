@@ -56,9 +56,9 @@ export function ModelGroup() {
         if (response.data.status == "success") {
           for (let i = 0; i < response.data.data.modelGroup.length; i++) {
             if (response.data.data.modelGroup[i].createdOn != null)
-              response.data.data.modelGroup[i].createdOn = moment(response.data.data.modelGroup[i].createdOn).format('YYYY-MM-DD hh:mm');
+              response.data.data.modelGroup[i].createdOn = moment(response.data.data.modelGroup[i].createdOn).format('YYYY-MM-DD hh:mm:ss');
             if (response.data.data.modelGroup[i].modifiedOn != null)
-              response.data.data.modelGroup[i].modifiedOn = moment(response.data.data.modelGroup[i].modifiedOn).format('YYYY-MM-DD hh:mm');
+              response.data.data.modelGroup[i].modifiedOn = moment(response.data.data.modelGroup[i].modifiedOn).format('YYYY-MM-DD hh:mm:ss');
           }
           setDataModelGroup(response.data.data.modelGroup)
         }

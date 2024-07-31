@@ -36,11 +36,12 @@ export async function GetInsItemAPI(insItemID: number) {
   }
   
   export async function CreateInsItemAPI(body: any) {
+    let dataAPI : any ;
     try {
       await instanceAxios
         .post(`/InspectionItem/CreateInspectionItem`, body)
         .then(async function (response: any) {
-          toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
+          dataAPI = response.data;
         })
         .catch(function (error: any) {
           toastAlert("error", error.response.data.message, 5000);
@@ -48,16 +49,16 @@ export async function GetInsItemAPI(insItemID: number) {
     } catch (error) {
       toastAlert(`error`, `Admin`, 5000);
     }
+    return dataAPI;
   }
   
-  export async function ValidateQRCodeAPI(qrcode: any[]) {
+  export async function ValidateQRCodeAPI(action : string,qrcode: any[]) {
     let dataAPI: any;
     try {
       await instanceAxios
-        .post(`/qrCodeCheck/ValidateImportQrCode`, qrcode)
+        .post(`/qrCodeCheck/ValidateImportQrCode?action=${action}`, qrcode)
         .then(async function (response: any) {
           dataAPI = response.data;
-          // toastAlert(`${response.data.status}`, `${response.data.message}`, 5000);
         })
         .catch(function (error: any) {
           toastAlert("error", error.response.data.message, 5000);

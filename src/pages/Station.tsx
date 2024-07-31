@@ -31,11 +31,10 @@ import MuiAccordionSummary, {
 } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import Swal from "sweetalert2";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
-import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
 import { GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -44,13 +43,20 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import StyledDataGrid from "../styles/styledDataGrid";
 import moment from "moment";
 import _ from "lodash";
-import { GetScheduledLineAPI } from "@api/axios/station";
+import { GetLineByID, GetScheduledLineAPI } from "@api/axios/station";
 import BorderColorIcon from '@mui/icons-material/BorderColor';
+import { GetConstantByGrpAPI } from "@api/axios/inspectionItemAPI";
+import Swal from "sweetalert2";
+import dayjs from 'dayjs';
+import 'dayjs/locale/th'; // นำเข้าภาษาไทย
+dayjs.locale('th');
 
 export function Station() {
   const authRequest = {
     ...loginRequest,
   };
+  const now = dayjs();
+
 
   let location = useLocation();
   const [expanded, setExpanded] = React.useState(true);
@@ -71,10 +77,13 @@ export function Station() {
   const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
     []
   );
+
+  
+
   const handleopenModalLineEdit = async () => {
     setopenModalLineEdit(true);
     setDisalbedEdit(false);
-    await fetchDataHeader();
+    CheckTaktTime();
   };
   const [selectedScheduledLine, setSelectedScheduledLine] =
     React.useState<string>("");
@@ -83,7 +92,6 @@ export function Station() {
   // Station Create
   const handleopenModalCreate = () => setopenModalCreate(true);
   const handlecloseModalCreate = () => setopenModalCreate(false);
-  const [isCreateStation, setIsCreateStation] = React.useState<boolean>(false);
   const [valueStationName, setValueStationName] = React.useState<string>("");
   const [selectedStationType, setSelectedStationType] =
     React.useState<string>("");
@@ -140,6 +148,7 @@ export function Station() {
   useEffect(() => {
     const FetchPage = async () => {
       await fetchDataDropDownStationListAutoComplete();
+ 
       await fetchDataHeader();
     };
     FetchPage();
@@ -149,25 +158,27 @@ export function Station() {
     fetchDataDetail();
   }, [stationTypeList]);
 
+  const [isEditTaktTime , setIsEditTaktTime] = React.useState<boolean>(true);
+  const [endTime , setEndTime] = React.useState<string>("23:59");
+  const [startTime , setStartTime] = React.useState<string>("20:00");
   async function fetchDataHeader() {
     setOpenBackDrop(true);
     try {
-      await instanceAxios
-        .get(`/Line/GetLineById?lineId=${location.state.lineId}`)
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
+   
+      await GetLineByID(location.state.lineId)
+        .then( async (response : any) => {
+            if (response.status == "success") {
               //Set Header
               setValueLineId(location.state.lineId);
               setValueScheduledLineCode(location.state.scheduledLineCode);
               setSelectedScheduledLine(location.state.scheduledLineCode);
               setScheduledLineDisplay(
-                `${response.data.data.scheduledLineCode} : ${response.data.data.scheduledLineName}`
+                `${response.data.scheduledLineCode} : ${response.data.scheduledLineName}`
               );
-              setValueLineName(response.data.data.name);
-              setDisplayLineName(response.data.data.name);
-              setValueTaskTime(response.data.data.taktTime);
-              setDisplayTaskTime(response.data.data.taktTime);
+              setValueLineName(response.data.name);
+              setDisplayLineName(response.data.name);
+              setValueTaskTime(response.data.taktTime);
+              setDisplayTaskTime(response.data.taktTime);
               setOpenBackDrop(false);
             } else {
               toastAlert("error", "Error call api", 5000);
@@ -179,6 +190,7 @@ export function Station() {
             setOpenBackDrop(false);
           }
         );
+      
     } catch (error) {
       console.log("error", error);
       setOpenBackDrop(false);
@@ -307,6 +319,7 @@ export function Station() {
   async function handlecloseModalLineEdit() {
     setopenModalLineEdit(false);
     setValueLineName(valueLineName);
+ 
   }
 
   async function handleChangeStationType(e: any) {
@@ -571,7 +584,18 @@ export function Station() {
                   await fetchDataDetail();
                   toastAlert("error", "Deleted Station!", 5000);
                 } else {
-                  toastAlert("error", "Error Call Api RemoveStation!", 5000);
+                  Swal.fire({
+                    icon: "error",
+                    title: response.data.message,
+                    html: generateHtmlMessage(response.data.data),
+                    width: '60%',
+                    customClass: {
+                      title: 'swal2-title',
+                      footer: 'swal2-footer',
+                    },
+                    background: '#ffffff',
+                    confirmButtonColor: '#19857b'
+                  });
                 }
               },
               (error) => {
@@ -586,7 +610,7 @@ export function Station() {
   }
 
   async function setValueModalCreate() {
-    setIsCreateStation(true);
+ 
     setShowSequence(true);
     setShowFirstStationSwitch(true);
     setShowFinishStationSwitch(true);
@@ -699,6 +723,29 @@ export function Station() {
       }
     });
   }
+
+  async function CheckTaktTime (){
+    await GetConstantByGrpAPI("TAKTTIME").then(async (rs) => {
+      if (rs.status === "success") {
+        let starttakrtTimeAPI = _.find(rs.data, function (xs) {
+          return xs.code === "TIME";
+        });
+        let endtakrtTimeAPI = _.find(rs.data, function (xs) {
+          return xs.code === "ENDTIME";
+        });
+        const currentTime = moment(now.format("HH:mm"), "HH:mm");
+        var startTimeCheck = moment(starttakrtTimeAPI.text, "HH:mm");
+        var endTimeCheck = moment(endtakrtTimeAPI.text, "HH:mm");
+        await setIsEditTaktTime(
+          !currentTime.isSameOrAfter(startTimeCheck) ||
+            !currentTime.isBefore(endTimeCheck)
+        );
+        setStartTime(starttakrtTimeAPI.text);
+        setEndTime(endtakrtTimeAPI.text);
+      }
+    });
+  }
+  
 
   const columns: GridColDef[] = [
     {
@@ -832,6 +879,7 @@ export function Station() {
       (valueStationName === null || valueStationName.trim() === "")) ||
     (selectedStationType === "4" &&
       (valueStationName === null || valueStationName.trim() === ""));
+
   return (
     <>
       <MsalAuthenticationTemplate
@@ -1055,6 +1103,13 @@ export function Station() {
                   size="small"
                   style={{ width: "100%" }}
                   onChange={handleChangeValueTaktTime}
+                  disabled={isEditTaktTime}
+                  error={isEditTaktTime} // Apply error state to TextField
+                  helperText={
+                    isEditTaktTime
+                      ? `Cannot change takt time before ${startTime}. Editing is allowed from ${startTime} to ${endTime}`
+                      : ""
+                  }
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>

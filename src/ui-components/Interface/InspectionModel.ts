@@ -41,9 +41,11 @@ interface InspectionItem {
 
 interface QRCodeModel {
   id: number | null;
+  inspectionItemId : number | null;
   value: string | null;
   text: string | null;
   cell: string | null;
+  msg : string | null;
 }
 
 interface TabPanelProps {

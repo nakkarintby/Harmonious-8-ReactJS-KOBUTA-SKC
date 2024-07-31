@@ -24,7 +24,11 @@ import { SRDetail } from "./pages/SRDetail";
 import { UDetail } from "./pages/UDetail";
 import { SystemSetting } from "./pages/SystemSetting";
 import { setAuthToken } from "./api/axios/instanceAxios";
-
+import InspectionData from "./pages/InspectionData";
+import InspectionDataDetail from "./ui-components/MasterData/InspectionDataDetail";
+import moment from "moment";
+import 'moment/locale/th';
+moment.locale('th');
 
 type AppProps = {
   pca: IPublicClientApplication;
@@ -72,7 +76,8 @@ function Pages() {
       <Route path="/masterData/line/station" element={<Station />} />
       <Route path="/masterData/inspectiongroups" element={<InspectionGroup />} />
       <Route path="/masterData/inspectiongroups/inspectionitem" element={<InspectionItem />} />
-
+      <Route path="/inspectiondata" element={<InspectionData />} />
+      <Route path="/inspectiondata/inspectiondatadetail" element={<InspectionDataDetail />} />
 
       <Route path="/administrator/systemrole" element={<SystemRole />} />
       <Route path="/administrator/systemrole/detail" element={<SRDetail />} />

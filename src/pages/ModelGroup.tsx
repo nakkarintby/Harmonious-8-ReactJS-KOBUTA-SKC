@@ -15,7 +15,7 @@ import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
-import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -63,10 +63,10 @@ export function ModelGroup() {
           setDataModelGroup(response.data.data.modelGroup)
         }
         else {
-          toastAlert("error", "Error Call Api GetModelGroup!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -82,11 +82,11 @@ export function ModelGroup() {
         }
         else {
           setLoadingSL(false)
-          toastAlert("error", "Error Call Api GetScheduledLine!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
         setLoadingSL(false)
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -109,11 +109,11 @@ export function ModelGroup() {
         }
         else {
           setLoadingLine(false)
-          toastAlert("error", "Error Call Api GetLineByScheduledLineCode!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
         setLoadingLine(false)
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -146,15 +146,15 @@ export function ModelGroup() {
 
   async function validateModelGroup() {
     if (valueModelGroupName == null || valueModelGroupName == '') {
-      toastAlert("error", 'Please Enter ModelGroup Name', 3000)
+      toastAlert("error", 'Please Enter ModelGroup Name', 5000)
       return false;
     }
     if (valueAutoCompleteDropDownScheduledLine == null) {
-      toastAlert("error", 'Please Enter ScheduledLine', 3000)
+      toastAlert("error", 'Please Enter ScheduledLine', 5000)
       return false;
     }
     if (valueAutoCompleteDropDownLine == null) {
-      toastAlert("error", 'Please Enter Line', 3000)
+      toastAlert("error", 'Please Enter Line', 5000)
       return false;
     }
     return true;
@@ -175,13 +175,13 @@ export function ModelGroup() {
           if (response.data.status == "success") {
             await fetchDataModelGroup()
             handleCloseModalCreateModelGroup()
-            toastAlert("success", "Create ModelGroup Success!", 3000)
+            toastAlert("success", response.data.message, 5000)
           }
           else {
-            toastAlert("error", "Error Call Api CreateModelGroup!", 3000)
+            toastAlert("error", response.data.message, 5000)
           }
         }, (error) => {
-          toastAlert("error", error.response.data.message, 3000)
+          toastAlert("error", error.response.data.message, 5000)
         })
       } catch (error) {
         console.log('error', error)
@@ -204,10 +204,21 @@ export function ModelGroup() {
           await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
             if (response.data.status == "success") {
               await fetchDataModelGroup()
-              toastAlert("error", "Deleted ModelGroup!", 3000)
+              toastAlert("error", response.data.message, 5000)
             }
             else {
-              toastAlert("error", "Error Call Api RemoveModelGroup!", 3000)
+              Swal.fire({
+                icon: "error",
+                title: response.data.message,
+                html: generateHtmlMessage(response.data.data),
+                width: '60%',
+                customClass: {
+                  title: 'swal2-title',
+                  footer: 'swal2-footer',
+                },
+                background: '#ffffff',
+                confirmButtonColor: '#19857b'
+              });
             }
           }, (error) => {
             toastAlert("error", error.response.data.message, 3000)

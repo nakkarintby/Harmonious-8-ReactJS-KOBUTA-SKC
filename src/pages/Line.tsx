@@ -25,7 +25,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
 import instanceAxios from "../api/axios/instanceAxios";
 import moment from "moment";
-import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import StyledDataGrid from "../styles/styledDataGrid";
@@ -174,6 +174,8 @@ export function Line() {
     }
   }
 
+ 
+
   async function deleteLine(id: any) {
     Swal.fire({
       title: "Are you sure confirm?",
@@ -188,11 +190,23 @@ export function Line() {
         try {
           await instanceAxios.put(`/Line/RemoveLine?lineId=${id}`).then(
             async (response) => {
+              console.log(response)
               if (response.data.status == "success") {
                 await fetchData();
                 toastAlert("error", "Deleted Line!", 5000);
               } else {
-                toastAlert("error", "Error Call Api RemoveLine!", 5000);
+                Swal.fire({
+                  icon: "error",
+                  title: response.data.message,
+                  html: generateHtmlMessage(response.data.data),
+                  width: '60%',
+                  customClass: {
+                    title: 'swal2-title',
+                    footer: 'swal2-footer',
+                  },
+                  background: '#ffffff',
+                  confirmButtonColor: '#19857b'
+                });
               }
             },
             (error) => {

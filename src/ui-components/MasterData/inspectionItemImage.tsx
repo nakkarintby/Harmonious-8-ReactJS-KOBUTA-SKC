@@ -11,14 +11,16 @@ const DropzoneArea = ({
   inspectionItemId,
   activeIns,
   isAdd,
+  imgSize,
 }: {
   sequence: number;
   inspectionItemId: number;
   activeIns : boolean;
   isAdd :boolean;
+  imgSize : number;
 }) => {
   const [files, setFiles] = React.useState<InsItemImageModel[]>([]);
-  const [maxImage, setMaxImage] = React.useState<number>(0);
+  const [maxImage, setMaxImage] = React.useState<number>(imgSize);
 
   React.useEffect(() => {
     const FetchMenu = async () => {
@@ -51,7 +53,7 @@ const DropzoneArea = ({
 
   const onDrop = React.useCallback(async (acceptedFiles: any) => {
     const filteredFiles = acceptedFiles.filter((file: File) => {
-      const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB
+      const isValidSize = file.size <= imgSize * 1024 * 1024; // MB
       const isValidType = /image\/(png|jpe?g)/.test(file.type);
       return isValidSize && isValidType;
     });
@@ -62,7 +64,7 @@ const DropzoneArea = ({
     }
 
     if (filteredFiles.length === 0) {
-      toastAlert("error", "Only .png, .jpg, and .jpeg files under 2MB are allowed.", 5000);
+      toastAlert("error", `Only .png, .jpg, and .jpeg files under ${maxImage}MB are allowed.`, 5000);
       return;
     }
 

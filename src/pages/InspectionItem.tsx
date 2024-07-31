@@ -345,17 +345,17 @@ export function InspectionItem() {
                 <Grid container>
                   <Grid item xs={10} md={10} xl={10}>
                     <Grid container>
-                      <Grid item xs={12} md={5}>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
-                            InspectionGroup Name:
+                             Name:
                           </Typography>
                           <Typography variant="body1" ml={1}>
                             {insGroupNameDisplay}
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Scheduled Line:
@@ -366,7 +366,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={5}>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Line:
@@ -377,7 +377,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Station:
@@ -388,7 +388,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={5}>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Model Group:
@@ -399,7 +399,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Takt Time:
@@ -429,6 +429,7 @@ export function InspectionItem() {
                               startIcon={<ContentCopyIcon />}
                               onClick={() => CopyInspectionGroup(insGroupId)}
                               sx={{ marginRight: 1 }}
+                              size="small"
                             >
                               Copy
                             </Button>
@@ -439,6 +440,7 @@ export function InspectionItem() {
                                 startIcon={<PlayCircleIcon />}
                                 onClick={() => ActiveInsGroupPage(insGroupId)}
                                 sx={{ marginRight: 1 }}
+                                  size="small"
                               >
                                 Active
                               </Button>
@@ -447,6 +449,7 @@ export function InspectionItem() {
                                 startIcon={<BorderColorIcon />}
                                 onClick={handleOpenInsGroup}
                                 sx={{ marginRight: 1 }}
+                                  size="small"
                               >
                                 Edit
                               </Button>
@@ -680,17 +683,19 @@ export function InspectionItem() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
+                  <Button variant="outlined" onClick={() => {
                       handleCloseInsGroup();
-                    }}
-                  >
+                    }} size="small">
                     Close
                   </Button>
-                  <Button
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+               
+                <Button
                     variant="contained"
                     disabled={isSave}
                     onClick={() => {
@@ -698,11 +703,13 @@ export function InspectionItem() {
                       setOpenBackDrop(true);
                       SaveInsGroup();
                     }}
+                    size="small"
                   >
                     SAVE
                   </Button>
                 </Box>
               </Grid>
+       
             </Grid>
           </ModalContent>
         </Modal>

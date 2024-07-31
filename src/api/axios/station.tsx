@@ -17,4 +17,20 @@ export async function GetScheduledLineAPI() {
     }
     return dataApi;
   }
-  
+
+export async function GetLineByID(lineId: number) {
+  let dataApi: any;
+  try {
+    await instanceAxios
+      .get(`/Line/GetLineById?lineId=${lineId}`)
+      .then(async function (response: any) {
+        dataApi = response.data;
+      })
+      .catch(function (error: any) {
+        toastAlert("error", error, 5000);
+      });
+  } catch (err: any) {
+    toastAlert("error", err, 5000);
+  }
+  return dataApi;
+}

@@ -210,7 +210,6 @@ export function SRDetail() {
 
     }
     setDataMenuRole(MenuRoleModel)
-    console.log(MenuRoleModel)
   }
 
 

@@ -25,7 +25,6 @@ export async function GetInspectionDataAPI(pageNo:number , pageSize : number ,bo
       await instanceAxios
         .post(`/InspectionGroup/GetInspectionGroupByParam`, body)
         .then(async function (response: any) {
-          console.log(response);
           dataApi = response.data;
         })
         .catch(function (error: any) {

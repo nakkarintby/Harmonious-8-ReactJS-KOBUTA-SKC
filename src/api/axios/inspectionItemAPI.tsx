@@ -86,7 +86,6 @@ export async function GetInsItemAPI(insItemID: number) {
   
   export async function GetQRCodeItemAPI(insItemId: number) {
     let dataAPI: any;
-    console.log(insItemId);
     try {
       await instanceAxios
         .get(

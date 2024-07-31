@@ -190,7 +190,6 @@ export function Line() {
         try {
           await instanceAxios.put(`/Line/RemoveLine?lineId=${id}`).then(
             async (response) => {
-              console.log(response)
               if (response.data.status == "success") {
                 await fetchData();
                 toastAlert("error", "Deleted Line!", 5000);

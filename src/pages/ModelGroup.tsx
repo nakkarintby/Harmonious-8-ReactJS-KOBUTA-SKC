@@ -15,11 +15,11 @@ import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
-import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from "sweetalert2";
@@ -63,10 +63,10 @@ export function ModelGroup() {
           setDataModelGroup(response.data.data.modelGroup)
         }
         else {
-          toastAlert("error", "Error Call Api GetModelGroup!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -82,11 +82,11 @@ export function ModelGroup() {
         }
         else {
           setLoadingSL(false)
-          toastAlert("error", "Error Call Api GetScheduledLine!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
         setLoadingSL(false)
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -109,11 +109,11 @@ export function ModelGroup() {
         }
         else {
           setLoadingLine(false)
-          toastAlert("error", "Error Call Api GetLineByScheduledLineCode!", 3000)
+          toastAlert("error", response.data.message, 5000)
         }
       }, (error) => {
         setLoadingLine(false)
-        toastAlert("error", error.response.data.message, 3000)
+        toastAlert("error", error.response.data.message, 5000)
       })
     } catch (error) {
       console.log('error', error)
@@ -146,15 +146,15 @@ export function ModelGroup() {
 
   async function validateModelGroup() {
     if (valueModelGroupName == null || valueModelGroupName == '') {
-      toastAlert("error", 'Please Enter ModelGroup Name', 3000)
+      toastAlert("error", 'Please Enter ModelGroup Name', 5000)
       return false;
     }
     if (valueAutoCompleteDropDownScheduledLine == null) {
-      toastAlert("error", 'Please Enter ScheduledLine', 3000)
+      toastAlert("error", 'Please Enter ScheduledLine', 5000)
       return false;
     }
     if (valueAutoCompleteDropDownLine == null) {
-      toastAlert("error", 'Please Enter Line', 3000)
+      toastAlert("error", 'Please Enter Line', 5000)
       return false;
     }
     return true;
@@ -175,13 +175,13 @@ export function ModelGroup() {
           if (response.data.status == "success") {
             await fetchDataModelGroup()
             handleCloseModalCreateModelGroup()
-            toastAlert("success", "Create ModelGroup Success!", 3000)
+            toastAlert("success", response.data.message, 5000)
           }
           else {
-            toastAlert("error", "Error Call Api CreateModelGroup!", 3000)
+            toastAlert("error", response.data.message, 5000)
           }
         }, (error) => {
-          toastAlert("error", error.response.data.message, 3000)
+          toastAlert("error", error.response.data.message, 5000)
         })
       } catch (error) {
         console.log('error', error)
@@ -204,10 +204,21 @@ export function ModelGroup() {
           await instanceAxios.put(`/ModelGroup/RemoveModelGroup?modelGroupId=${id}`).then(async (response) => {
             if (response.data.status == "success") {
               await fetchDataModelGroup()
-              toastAlert("error", "Deleted ModelGroup!", 3000)
+              toastAlert("error", response.data.message, 5000)
             }
             else {
-              toastAlert("error", "Error Call Api RemoveModelGroup!", 3000)
+              Swal.fire({
+                icon: "error",
+                title: response.data.message,
+                html: generateHtmlMessage(response.data.data),
+                width: '60%',
+                customClass: {
+                  title: 'swal2-title',
+                  footer: 'swal2-footer',
+                },
+                background: '#ffffff',
+                confirmButtonColor: '#19857b'
+              });
             }
           }, (error) => {
             toastAlert("error", error.response.data.message, 3000)
@@ -308,7 +319,7 @@ export function ModelGroup() {
             <Box>
               <Button
                 variant="outlined"
-                endIcon={<AddBoxIcon />}
+                startIcon={<AddBoxIcon />}
                 onClick={handleOpenModalCreateModelGroup}
               >
                 Create
@@ -348,7 +359,7 @@ export function ModelGroup() {
             </h2>
             <Box>
               <Grid container spacing={2}>
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Model Group Name"
@@ -360,18 +371,20 @@ export function ModelGroup() {
                   />
                 </Grid>
 
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <Autocomplete
                     sx={{ width: "100%" }}
                     size="small"
                     onOpen={() => {
                       setLoadingSL(true);
-                      fetchDataDropDownScheduledLine()
+                      fetchDataDropDownScheduledLine();
                     }}
                     onClose={() => setLoadingSL(false)}
                     loading={loadingSL}
                     onChange={(_, newValue) => {
-                      handleChangeValueDropDownScheduledLineAutoComplete(newValue);
+                      handleChangeValueDropDownScheduledLineAutoComplete(
+                        newValue
+                      );
                     }}
                     id="combo-box-demo"
                     value={valueAutoCompleteDropDownScheduledLine}
@@ -379,7 +392,9 @@ export function ModelGroup() {
                       (dropDownScheduledLineAutoComplete) =>
                         dropDownScheduledLineAutoComplete
                     )}
-                    getOptionLabel={(options: any) => `${options.scheduledLineCode} - ${options.name}`}
+                    getOptionLabel={(options: any) =>
+                      `${options.scheduledLineCode} - ${options.name}`
+                    }
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -405,13 +420,19 @@ export function ModelGroup() {
                   />
                 </Grid>
 
-                <Grid item xs={6} md={12}>
+                <Grid item xs={12} md={12}>
                   <Autocomplete
                     sx={{ width: "100%" }}
                     size="small"
                     onOpen={() => {
                       setLoadingLine(true);
-                      fetchDataDropDownLine(valueAutoCompleteDropDownScheduledLine ? valueAutoCompleteDropDownScheduledLine['scheduledLineCode'] : null)
+                      fetchDataDropDownLine(
+                        valueAutoCompleteDropDownScheduledLine
+                          ? valueAutoCompleteDropDownScheduledLine[
+                              "scheduledLineCode"
+                            ]
+                          : null
+                      );
                     }}
                     onClose={() => setLoadingLine(false)}
                     loading={loadingLine}
@@ -421,8 +442,7 @@ export function ModelGroup() {
                     id="combo-box-demo"
                     value={valueAutoCompleteDropDownLine}
                     options={dropDownLineAutoComplete.map(
-                      (dropDownLineAutoComplete) =>
-                        dropDownLineAutoComplete
+                      (dropDownLineAutoComplete) => dropDownLineAutoComplete
                     )}
                     getOptionLabel={(options: any) => `${options.label}`}
                     renderInput={(params) => (
@@ -447,29 +467,31 @@ export function ModelGroup() {
                         maxHeight: "10vw",
                       },
                     }}
-
                   />
                 </Grid>
-
-                <Grid item xs={12}>
-                  <Grid item xs={6} md={12} container justifyContent="flex-end">
-                    <Box display="flex" gap={2}>
-                      <Button
-                        variant="outlined"
-                        onClick={handleCloseModalCreateModelGroup}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        variant="contained"
-                        onClick={CreateModelGroup}
-                        size="small"
-                        disabled={!isCreate}
-                      >
-                        Create
-                      </Button>
-                    </Box>
-                  </Grid>
+                <Grid item xs={6} md={6} container justifyContent="flex-start">
+                  <Box display="flex" gap={2}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        handleCloseModalCreateModelGroup();
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={6} md={6} container justifyContent="flex-end">
+                  <Box display="flex" gap={2}>
+                    <Button
+                      variant="contained"
+                      onClick={CreateModelGroup}
+                      size="small"
+                      disabled={!isCreate}
+                    >
+                      Create
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
             </Box>

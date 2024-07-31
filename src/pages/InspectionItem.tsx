@@ -12,7 +12,6 @@ import {
   Backdrop,
   Box,
   Button,
-  ButtonGroup,
   Grid,
   Typography,
 } from "@mui/material";
@@ -33,10 +32,10 @@ import _ from "lodash";
 import { useLocation } from "react-router-dom";
 import toastAlert from "../ui-components/SweetAlert2/toastAlert";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { ActiveInsGroupAPI, GetInsGroupAPI, GetLineAPI, GetModelGroupAPI, GetScheduledLineAPI, GetStationAPI, SaveInsGroupAPI } from "@api/axios/inspectionGroupAPI";
-
-
-
+import { ActiveInsGroupAPI, CopyInspectionGroupAPI, GetInsGroupAPI, GetLineAPI, GetModelGroupAPI, GetScheduledLineAPI, GetStationAPI, SaveInsGroupAPI } from "@api/axios/inspectionGroupAPI";
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import BorderColorIcon from '@mui/icons-material/BorderColor';
 
 export function InspectionItem() {
   const authRequest = {
@@ -93,9 +92,8 @@ export function InspectionItem() {
   const [loadingLineDDL, setLoadingLineDDL] = useState(false);
   const [loadingStationDDL, setLoadingStationDDL] = useState(false);
   const [loadingModelGroupDDL, setLoadingModelGroupDDL] = useState(false);
-
   const insGroupId = data.id;
-  const [activeIns , setActiveIns] = useState<boolean>(data.status === "Active")
+  const [activeIns , setActiveIns] = useState<boolean>(data.status === "Active" || data.status === "InActive" )
   const [activeInsDisplay , setActiveInsDisplay] = useState<string>(data.status)
 
 
@@ -211,7 +209,7 @@ export function InspectionItem() {
         setStationDisplay(x.data.stationName);
         setSelectedStation(x.data.stationId);
 
-        setActiveIns(x.data.status === "Active");
+        setActiveIns(x.data.status === "Active" || x.data.status === "InActive" );
         setActiveInsDisplay(x.data.status);
         setSelectedModelGroup(x.data.modelGroupId);
         setSelectedTaktTime(x.data.taktTime);
@@ -257,6 +255,13 @@ export function InspectionItem() {
 
   const [isSave, setIsSave] = React.useState<boolean>(false);
   
+ async function CopyInspectionGroup(id: number) {
+   setOpenBackDrop(true);
+   await CopyInspectionGroupAPI(id).then((rs) => {
+     toastAlert(rs.status, rs.message, 5000);
+   });
+   setOpenBackDrop(false);
+ }
 
   React.useEffect(()=>{
     if (openInsGroup) {
@@ -339,18 +344,18 @@ export function InspectionItem() {
               >
                 <Grid container>
                   <Grid item xs={10} md={10} xl={10}>
-                    <Grid container >
-                      <Grid item xs={12} md={5}>
+                    <Grid container>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
-                            InspectionGroup Name:
+                             Name:
                           </Typography>
                           <Typography variant="body1" ml={1}>
                             {insGroupNameDisplay}
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Scheduled Line:
@@ -361,7 +366,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={5}>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Line:
@@ -372,7 +377,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Station:
@@ -383,7 +388,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={5}>
+                      <Grid item xs={12} md={7}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Model Group:
@@ -394,7 +399,7 @@ export function InspectionItem() {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={12} md={7}>
+                      <Grid item xs={12} md={5}>
                         <Box display="flex" alignItems="center">
                           <Typography variant="subtitle1" color="textSecondary">
                             Takt Time:
@@ -406,7 +411,7 @@ export function InspectionItem() {
                       </Grid>
                     </Grid>
                   </Grid>
-                  <Grid item  xs={12} md={2} xl={2}>
+                  <Grid item xs={12} md={2} xl={2}>
                     <Grid container>
                       <Grid
                         item
@@ -416,22 +421,40 @@ export function InspectionItem() {
                         container
                         justifyContent="flex-end"
                       >
-                          {!activeIns && (
-                        <ButtonGroup variant="contained" aria-label="btn group">
-                          <Button
-                            variant="contained"
-                            onClick={() => ActiveInsGroupPage(insGroupId)}
-                          >
-                            Active
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            onClick={handleOpenInsGroup}
-                          >
-                            EDIT
-                          </Button>
-                        </ButtonGroup>
-                        )}
+                       
+                          {data.status === "Active" ||
+                          data.status === "InActive" ? (
+                            <Button
+                              variant="outlined"
+                              startIcon={<ContentCopyIcon />}
+                              onClick={() => CopyInspectionGroup(insGroupId)}
+                              sx={{ marginRight: 1 }}
+                              size="small"
+                            >
+                              Copy
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                variant="outlined"
+                                startIcon={<PlayCircleIcon />}
+                                onClick={() => ActiveInsGroupPage(insGroupId)}
+                                sx={{ marginRight: 1 }}
+                                  size="small"
+                              >
+                                Active
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                startIcon={<BorderColorIcon />}
+                                onClick={handleOpenInsGroup}
+                                sx={{ marginRight: 1 }}
+                                  size="small"
+                              >
+                                Edit
+                              </Button>
+                            </>
+                          )}
                       </Grid>
                     </Grid>
                   </Grid>
@@ -660,17 +683,19 @@ export function InspectionItem() {
                   }}
                 />
               </Grid>
-              <Grid item xs={6} md={12} container justifyContent="flex-end">
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
                 <Box display="flex" gap={2}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
+                  <Button variant="outlined" onClick={() => {
                       handleCloseInsGroup();
-                    }}
-                  >
+                    }} size="small">
                     Close
                   </Button>
-                  <Button
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+               
+                <Button
                     variant="contained"
                     disabled={isSave}
                     onClick={() => {
@@ -678,11 +703,13 @@ export function InspectionItem() {
                       setOpenBackDrop(true);
                       SaveInsGroup();
                     }}
+                    size="small"
                   >
                     SAVE
                   </Button>
                 </Box>
               </Grid>
+       
             </Grid>
           </ModalContent>
         </Modal>

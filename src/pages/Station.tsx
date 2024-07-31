@@ -31,11 +31,10 @@ import MuiAccordionSummary, {
 } from "@mui/material/AccordionSummary";
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-import Swal from "sweetalert2";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import instanceAxios from "../api/axios/instanceAxios";
-import toastAlert from "../ui-components/SweetAlert2/toastAlert";
+import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
 import { GridColDef } from "@mui/x-data-grid";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -44,52 +43,73 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import StyledDataGrid from "../styles/styledDataGrid";
 import moment from "moment";
 import _ from "lodash";
-import { GetScheduledLineAPI } from "@api/axios/station";
+import { GetLineByID, GetScheduledLineAPI } from "@api/axios/station";
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import { GetConstantByGrpAPI } from "@api/axios/inspectionItemAPI";
+import Swal from "sweetalert2";
+import dayjs from 'dayjs';
+import 'dayjs/locale/th'; // นำเข้าภาษาไทย
+dayjs.locale('th');
 
 export function Station() {
   const authRequest = {
     ...loginRequest,
   };
+  const now = dayjs();
+
 
   let location = useLocation();
   const [expanded, setExpanded] = React.useState(true);
-  const [valueLineId, setValueLineId] = React.useState(null);
+  //Line Detail Data
+  const [valueLineId, setValueLineId] = React.useState(location.state.lineId);
   const [valueScheduledLineCode, setValueScheduledLineCode] =
-    React.useState(null);
-  const [valueLineName, setValueLineName] = React.useState(null);
-  const [valueTaktTime, setValueTaskTime] = React.useState(null);
+    React.useState<string>("");
+  const [valueLineName, setValueLineName] = React.useState<string>("");
+  const [valueTaktTime, setValueTaskTime] = React.useState<string>("");
+  //Line Detail Display
   const [displayLineName, setDisplayLineName] = React.useState("");
   const [displayTaktTime, setDisplayTaskTime] = React.useState("");
   const [scheduledLineDisplay, setScheduledLineDisplay] =
     React.useState<string>("");
+  // Line Edit
+  const [openModalLineEdit, setopenModalLineEdit] = React.useState(false);
+  const [openModalCreate, setopenModalCreate] = React.useState(false);
   const [scheduledLineDDL, setScheduledLineDDL] = React.useState<DDLModel[]>(
     []
   );
-  const [stationList, setStationList] = useState<StationModel[]>([]);
-  const [openModalCreate, setopenModalCreate] = React.useState(false);
-  const handleopenModalCreate = () => setopenModalCreate(true);
-  const handlecloseModalCreate = () => setopenModalCreate(false);
-  const [openModalEdit, setopenModalEdit] = React.useState(false);
-  const [openModalLineEdit, setopenModalLineEdit] = React.useState(false);
-  const handleopenModalLineEdit = async () => {setopenModalLineEdit(true)
+
+  
+
+  const handleopenModalLineEdit = async () => {
+    setopenModalLineEdit(true);
     setDisalbedEdit(false);
-    await fetchDataHeader();
+    CheckTaktTime();
   };
-  const handleopenModalEdit = () => setopenModalEdit(true);
-  const handlecloseModalEdit = () => setopenModalEdit(false);
-  const [valueStationName, setValueStationName] = React.useState(null);
-  const [dropDownStationListAutoComplete, setDropDownStationListAutoComplete] =
-    useState([]);
-  const [
-    valueAutoCompletedropDownStationListAutoComplete,
-    setValueAutoCompletedropDownStationListAutoComplete,
-  ] = React.useState(Object);
-  const [valueSequence, setValueSequence] = React.useState<Number>(0);
-  const [valueRefMFG, setValueRefMFG] = React.useState(null);
-  const [valueRefMFGFinish, setValueRefMFGFinish] = React.useState(null);
-  const [valueStationId, setValueStationId] = React.useState(null);
   const [selectedScheduledLine, setSelectedScheduledLine] =
     React.useState<string>("");
+  // Station Type List
+  const [stationList, setStationList] = useState<StationModel[]>([]);
+  // Station Create
+  const handleopenModalCreate = () => setopenModalCreate(true);
+  const handlecloseModalCreate = () => setopenModalCreate(false);
+  const [valueStationName, setValueStationName] = React.useState<string>("");
+  const [selectedStationType, setSelectedStationType] =
+    React.useState<string>("");
+  const [valueSequence, setValueSequence] = React.useState<number>(0);
+  const [valueRefMFG, setValueRefMFG] = React.useState<string | null>(null);
+  const [valueRefMFGFinish, setValueRefMFGFinish] = React.useState<
+    string | null
+  >(null);
+  // Station Edit
+  const [stationTypeListDisplay, setStationTypeListDisplay] =
+    React.useState<StationTypeModel | null>(null);
+  const [stationTypeList, setStationTypeList] = React.useState<
+    StationTypeModel[]
+  >([]);
+  const [openModalEdit, setopenModalEdit] = React.useState(false);
+  const handleopenModalEdit = () => setopenModalEdit(true);
+  const handlecloseModalEdit = () => setopenModalEdit(false);
+  const [valueStationId, setValueStationId] = React.useState(null);
   const [showSequence, setShowSequence] = React.useState(false);
   const [showFirstStationSwitch, setShowFirstStationSwitch] =
     React.useState(false);
@@ -101,9 +121,6 @@ export function Station() {
     React.useState(false);
   const [ischeckedFinishStation, setIscheckedFinishStation] =
     React.useState(false);
-  const [stationTypeList, setStationTypeList] = React.useState<
-    StationTypeModel[]
-  >([]);
   const [disalbedEdit, setDisalbedEdit] = React.useState<boolean>(false);
   const [disalbedSwitchFirstStation, setDisalbedSwitchFirstStation] =
     React.useState<boolean>(false);
@@ -120,7 +137,7 @@ export function Station() {
     // Check if all required fields have values
     setDisalbedEdit(
       valueLineName === null ||
-        valueLineName === "" ||
+        valueLineName.trim() === "" ||
         selectedScheduledLine === null ||
         selectedScheduledLine === "" ||
         valueTaktTime === null ||
@@ -131,6 +148,7 @@ export function Station() {
   useEffect(() => {
     const FetchPage = async () => {
       await fetchDataDropDownStationListAutoComplete();
+ 
       await fetchDataHeader();
     };
     FetchPage();
@@ -140,25 +158,27 @@ export function Station() {
     fetchDataDetail();
   }, [stationTypeList]);
 
+  const [isEditTaktTime , setIsEditTaktTime] = React.useState<boolean>(true);
+  const [endTime , setEndTime] = React.useState<string>("23:59");
+  const [startTime , setStartTime] = React.useState<string>("20:00");
   async function fetchDataHeader() {
     setOpenBackDrop(true);
     try {
-      await instanceAxios
-        .get(`/Line/GetLineById?lineId=${location.state.lineId}`)
-        .then(
-          async (response) => {
-            if (response.data.status == "success") {
+   
+      await GetLineByID(location.state.lineId)
+        .then( async (response : any) => {
+            if (response.status == "success") {
               //Set Header
               setValueLineId(location.state.lineId);
               setValueScheduledLineCode(location.state.scheduledLineCode);
-              setSelectedScheduledLine(location.state.scheduledLineCode)
+              setSelectedScheduledLine(location.state.scheduledLineCode);
               setScheduledLineDisplay(
-                `${response.data.data.scheduledLineCode} : ${response.data.data.scheduledLineName}`
+                `${response.data.scheduledLineCode} : ${response.data.scheduledLineName}`
               );
-              setValueLineName(response.data.data.name);
-              setDisplayLineName(response.data.data.name);
-              setValueTaskTime(response.data.data.taktTime);
-              setDisplayTaskTime(response.data.data.taktTime);
+              setValueLineName(response.data.name);
+              setDisplayLineName(response.data.name);
+              setValueTaskTime(response.data.taktTime);
+              setDisplayTaskTime(response.data.taktTime);
               setOpenBackDrop(false);
             } else {
               toastAlert("error", "Error call api", 5000);
@@ -170,6 +190,7 @@ export function Station() {
             setOpenBackDrop(false);
           }
         );
+      
     } catch (error) {
       console.log("error", error);
       setOpenBackDrop(false);
@@ -240,10 +261,6 @@ export function Station() {
               })
             );
             setStationTypeList(stationTypeList);
-            setDropDownStationListAutoComplete(response.data.data);
-            setValueAutoCompletedropDownStationListAutoComplete(
-              response.data.data[0]
-            );
           } else {
             toastAlert("error", "Error Call Api GetConstantByGRP!", 5000);
           }
@@ -299,17 +316,13 @@ export function Station() {
     setValueTaskTime(e.target.value);
   }
 
-  async function handleChangeValueStationName(e: any) {
-    e.preventDefault();
-    setValueStationName(e.target.value);
-  }
-
   async function handlecloseModalLineEdit() {
     setopenModalLineEdit(false);
     setValueLineName(valueLineName);
+ 
   }
 
-  async function handleChangeValueAutoCompletedropDownStationList(e: any) {
+  async function handleChangeStationType(e: any) {
     setTypeDDL(e["code"]);
     if (e["code"] == 1) {
       setShowSequence(true);
@@ -322,13 +335,6 @@ export function Station() {
       setDisalbedRefFinish(true);
       setDisalbedSwitchFirstStation(false);
       setDisalbedSwitchFinishStation(false);
-      // รอทำ
-      // const lastSequence = _.maxBy(dataPageList, "sequence")?.sequence ?? 0;
-      // let nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10;
-      // if (lastSequence == nextMultipleOfTen) {
-      //   nextMultipleOfTen += 10;
-      // }
-      // setInsItemSeq(nextMultipleOfTen);
       setValueSequence(1);
       setIscheckedFirstStation(true);
       setIscheckedFinishStation(false);
@@ -372,12 +378,12 @@ export function Station() {
       setShowRefFinish(false);
       setValueRefMFGFinish(null);
     }
-    setValueAutoCompletedropDownStationListAutoComplete(e);
+    setSelectedStationType(e.code);
   }
 
   async function handleChangeValueSequence(e: any) {
     e.preventDefault();
-    setValueSequence(e.target.value);
+    setValueSequence(e.target.value ?? 0);
   }
 
   async function handleChangeShowFirstStationSwitch(e: any) {
@@ -394,9 +400,12 @@ export function Station() {
   async function handleChangeShowFinishStationSwitch(e: any) {
     setIscheckedFinishStation(e.target.checked);
     setDisalbedRefFinish(!e.target.checked);
-    // setDisalbedRefMFG(!e.target.checked);
+
+    // if (!ischeckedFirstStation && selectedStationType !== "2") {
+    //   setValueRefMFG(null);
+    // }
+
     setValueRefMFGFinish(null);
-    setValueRefMFG(null);
   }
 
   async function handleChangeValueMFGFinish(e: any) {
@@ -404,7 +413,7 @@ export function Station() {
   }
 
   async function validateStation() {
-    switch (valueAutoCompletedropDownStationListAutoComplete["code"]) {
+    switch (selectedStationType) {
       case "1": {
         if (valueStationName === null || valueStationName === "") {
           toastAlert("error", "Please Enter Station Name", 5000);
@@ -487,7 +496,7 @@ export function Station() {
             lineId: valueLineId,
             scheduledLineCode: valueScheduledLineCode,
             sequence: valueSequence,
-            type: valueAutoCompletedropDownStationListAutoComplete["code"],
+            type: selectedStationType,
             isFirstStation: ischeckedFirstStation,
             isFinishedStation: ischeckedFinishStation,
             refMFG: valueRefMFG,
@@ -500,7 +509,7 @@ export function Station() {
                 handlecloseModalCreate();
                 toastAlert("success", "Create Station Success!", 5000);
               } else {
-                toastAlert("error", "Error Call Api CreateStation!", 5000);
+                toastAlert("error", response.data.message, 5000);
               }
             },
             (error) => {
@@ -528,7 +537,7 @@ export function Station() {
             lineId: valueLineId,
             scheduledLineCode: valueScheduledLineCode,
             sequence: valueSequence,
-            type: valueAutoCompletedropDownStationListAutoComplete["code"],
+            type: selectedStationType,
             isFirstStation: ischeckedFirstStation,
             isFinishedStation: ischeckedFinishStation,
             refMFG: valueRefMFG,
@@ -575,7 +584,18 @@ export function Station() {
                   await fetchDataDetail();
                   toastAlert("error", "Deleted Station!", 5000);
                 } else {
-                  toastAlert("error", "Error Call Api RemoveStation!", 5000);
+                  Swal.fire({
+                    icon: "error",
+                    title: response.data.message,
+                    html: generateHtmlMessage(response.data.data),
+                    width: '60%',
+                    customClass: {
+                      title: 'swal2-title',
+                      footer: 'swal2-footer',
+                    },
+                    background: '#ffffff',
+                    confirmButtonColor: '#19857b'
+                  });
                 }
               },
               (error) => {
@@ -590,56 +610,61 @@ export function Station() {
   }
 
   async function setValueModalCreate() {
+ 
     setShowSequence(true);
     setShowFirstStationSwitch(true);
     setShowFinishStationSwitch(true);
     setShowRefFirst(true);
     setShowRefFinish(true);
     setTypeDDL(1);
-    setValueStationName(null);
+    setValueStationName("");
     const lastSequence = _.maxBy(stationList, "sequence")?.sequence ?? 0;
     let nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10;
     if (lastSequence == nextMultipleOfTen) {
       nextMultipleOfTen += 10;
     }
-    const isFirstStation = _.find(stationList, function(it) {return it.isFirstStation === true})
-    if(!isFirstStation){
-      nextMultipleOfTen = 1 
+    const isFirstStation = _.find(stationList, function (it) {
+      return it.isFirstStation === true;
+    });
+    if (!isFirstStation) {
+      nextMultipleOfTen = 1;
       setIscheckedFirstStation(true);
-    }else{
+      setDisalbedRefMFG(false);
+    } else {
       setIscheckedFirstStation(false);
+      setDisalbedRefMFG(true);
     }
     setValueSequence(nextMultipleOfTen);
     setIscheckedFinishStation(false);
     setDisalbedSeq(false);
     setDisalbedSwitchFirstStation(false);
-    setDisalbedRefMFG(false);
+
     setDisalbedRefFinish(true);
     setValueRefMFG(null);
     setValueRefMFGFinish(null);
-    setValueAutoCompletedropDownStationListAutoComplete(
-      dropDownStationListAutoComplete[0]
-    );
+    setSelectedStationType("1");
     handleopenModalCreate();
   }
 
   async function setValueModalEdit(rows: any) {
+    setStationTypeListDisplay(
+      stationTypeList.find((it) => it.code === rows["type"].toString()) ?? null
+    );
+    setSelectedStationType(rows["type"].toString());
     setValueStationId(rows["stationId"]);
     setValueStationName(rows["name"]);
-    setValueSequence(rows["sequence"]);
+    setValueSequence(0);
     setTypeDDL(rows["type"]);
     if (rows["type"] == 1) {
+      setValueSequence(rows["sequence"]);
       setShowSequence(true);
       setDisalbedSwitchFirstStation(false);
-
       setShowFirstStationSwitch(true);
       setIscheckedFirstStation(rows["isFirstStation"]);
       setShowFinishStationSwitch(true);
       setIscheckedFinishStation(rows["isFinishedStation"]);
-
       setDisalbedSeq(rows["isFirstStation"]);
-      setDisalbedRefMFG(rows["isFirstStation"]);
-
+      setDisalbedRefMFG(!rows["isFirstStation"]);
       setShowRefFirst(true);
       setValueRefMFG(rows["refMFG"]);
       setShowRefFinish(true);
@@ -652,6 +677,7 @@ export function Station() {
       setIscheckedFinishStation(rows["isFinishedStation"]);
       setShowRefFirst(true);
       setValueRefMFG(rows["refMFG"]);
+      setDisalbedRefMFG(false);
       setShowRefFinish(true);
       setValueRefMFGFinish(rows["refFinishedMFG"]);
       setDisalbedRefFinish(!rows["refFinishedMFG"]);
@@ -678,11 +704,7 @@ export function Station() {
       setShowRefFinish(false);
       setValueRefMFGFinish(null);
     }
-    setValueAutoCompletedropDownStationListAutoComplete(
-      dropDownStationListAutoComplete.filter(
-        (item: any) => item["code"] === rows["type"] + ""
-      )[0]
-    );
+
     handleopenModalEdit();
   }
 
@@ -702,6 +724,29 @@ export function Station() {
     });
   }
 
+  async function CheckTaktTime (){
+    await GetConstantByGrpAPI("TAKTTIME").then(async (rs) => {
+      if (rs.status === "success") {
+        let starttakrtTimeAPI = _.find(rs.data, function (xs) {
+          return xs.code === "TIME";
+        });
+        let endtakrtTimeAPI = _.find(rs.data, function (xs) {
+          return xs.code === "ENDTIME";
+        });
+        const currentTime = moment(now.format("HH:mm"), "HH:mm");
+        var startTimeCheck = moment(starttakrtTimeAPI.text, "HH:mm");
+        var endTimeCheck = moment(endtakrtTimeAPI.text, "HH:mm");
+        await setIsEditTaktTime(
+          !currentTime.isSameOrAfter(startTimeCheck) ||
+            !currentTime.isBefore(endTimeCheck)
+        );
+        setStartTime(starttakrtTimeAPI.text);
+        setEndTime(endtakrtTimeAPI.text);
+      }
+    });
+  }
+  
+
   const columns: GridColDef[] = [
     {
       field: "action",
@@ -713,12 +758,18 @@ export function Station() {
       renderCell: (params: any) => {
         return (
           <>
-            <Button sx={{ minWidth: 0, padding: "4px" }} >
-              <EditIcon onClick={() => setValueModalEdit(params.row)}  fontSize="small" />
+            <Button sx={{ minWidth: 0, padding: "4px" }}>
+              <EditIcon
+                onClick={() => setValueModalEdit(params.row)}
+                fontSize="small"
+              />
             </Button>
 
-            <Button sx={{ minWidth: 0, padding: "4px" }} >
-              <DeleteIcon onClick={() => deleteStation(params.row.stationId)} fontSize="small" />
+            <Button sx={{ minWidth: 0, padding: "4px" }}>
+              <DeleteIcon
+                onClick={() => deleteStation(params.row.stationId)}
+                fontSize="small"
+              />
             </Button>
           </>
         );
@@ -793,6 +844,42 @@ export function Station() {
   ];
 
   const [openBackDrop, setOpenBackDrop] = React.useState(true);
+
+  const isSaveDisabled =
+    (selectedStationType === "1" &&
+      (valueStationName === null ||
+        valueStationName.trim() === "" ||
+        valueSequence === null ||
+        valueSequence.toString().trim() === "" ||
+        (ischeckedFirstStation &&
+          (valueRefMFG === null ||
+            valueRefMFG.trim() === "" ||
+            valueStationName === null ||
+            valueStationName.trim() === "" ||
+            valueSequence === null ||
+            valueSequence.toString().trim() === "")) ||
+        (ischeckedFinishStation &&
+          (valueRefMFGFinish === null ||
+            valueRefMFGFinish.trim() === "" ||
+            valueStationName === null ||
+            valueStationName.trim() === "" ||
+            valueSequence === null ||
+            valueSequence.toString().trim() === "")))) ||
+    (selectedStationType === "2" &&
+      (valueStationName === null ||
+        valueStationName.trim() === "" ||
+        valueRefMFG === null ||
+        valueRefMFG.trim() === "" ||
+        (ischeckedFinishStation &&
+          (valueRefMFGFinish === null ||
+            valueRefMFGFinish.trim() === "" ||
+            valueStationName === null ||
+            valueStationName.trim() === "")))) ||
+    (selectedStationType === "3" &&
+      (valueStationName === null || valueStationName.trim() === "")) ||
+    (selectedStationType === "4" &&
+      (valueStationName === null || valueStationName.trim() === ""));
+
   return (
     <>
       <MsalAuthenticationTemplate
@@ -854,7 +941,7 @@ export function Station() {
                       </Box>
                     </Grid>
                     <Grid item xs={12} md={5}>
-                      <Box display="flex" alignItems="center" >
+                      <Box display="flex" alignItems="center">
                         <Typography variant="subtitle1" color="textSecondary">
                           Schedule Line:
                         </Typography>
@@ -865,7 +952,7 @@ export function Station() {
                     </Grid>
 
                     <Grid item xs={12} md={5}>
-                      <Box display="flex" alignItems="center" >
+                      <Box display="flex" alignItems="center">
                         <Typography variant="subtitle1" color="textSecondary">
                           Takt Time:
                         </Typography>
@@ -885,13 +972,14 @@ export function Station() {
                     justifyContent="flex-end"
                   >
                     <ButtonGroup variant="contained" aria-label="btn group">
-                    <Button
-                      variant="outlined"
-                      onClick={handleopenModalLineEdit}
-                    >
-                      EDIT
-                    </Button>
-                  </ButtonGroup>
+                      <Button
+                        variant="outlined"
+                        onClick={handleopenModalLineEdit}
+                        startIcon={<BorderColorIcon />}
+                      >
+                        EDIT
+                      </Button>
+                    </ButtonGroup>
                   </Grid>
                 </Grid>
               </Grid>
@@ -914,7 +1002,7 @@ export function Station() {
                     <Box>
                       <Button
                         variant="outlined"
-                        endIcon={<AddBoxIcon />}
+                        startIcon={<AddBoxIcon />}
                         onClick={setValueModalCreate}
                       >
                         Create
@@ -1015,6 +1103,13 @@ export function Station() {
                   size="small"
                   style={{ width: "100%" }}
                   onChange={handleChangeValueTaktTime}
+                  disabled={isEditTaktTime}
+                  error={isEditTaktTime} // Apply error state to TextField
+                  helperText={
+                    isEditTaktTime
+                      ? `Cannot change takt time before ${startTime}. Editing is allowed from ${startTime} to ${endTime}`
+                      : ""
+                  }
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>
@@ -1065,11 +1160,11 @@ export function Station() {
                 <TextField
                   sx={{ width: "100%" }}
                   label="Station Name"
-                  id="outlined-size-small"
-                  defaultValue=""
-                  value={valueStationName ? valueStationName : ""}
+                  id="stationName-size-small"
                   size="small"
-                  onChange={handleChangeValueStationName}
+                  onChange={async (value) => {
+                    await setValueStationName(value.target.value);
+                  }}
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>
@@ -1077,24 +1172,28 @@ export function Station() {
                 <Autocomplete
                   sx={{ width: "100%" }}
                   size="small"
+                  disableClearable
                   onChange={(_, newValue) => {
-                    handleChangeValueAutoCompletedropDownStationList(newValue);
+                    handleChangeStationType(newValue);
                   }}
-                  id="station-box"
-                  value={valueAutoCompletedropDownStationListAutoComplete}
-                  options={dropDownStationListAutoComplete.map(
-                    (dropDownStationListAutoComplete) =>
-                      dropDownStationListAutoComplete
-                  )}
+                  id="station-Create-box"
+                  defaultValue={stationTypeList[0]}
+                  options={stationTypeList}
                   getOptionLabel={(options: any) => `${options.text}`}
                   renderInput={(params) => (
-                    <TextField {...params} label="Station Type" />
+                    <TextField
+                      {...params}
+                      label="Station Type"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <React.Fragment>
+                            {params.InputProps.endAdornment}
+                          </React.Fragment>
+                        ),
+                      }}
+                    />
                   )}
-                  ListboxProps={{
-                    style: {
-                      maxHeight: "10vw",
-                    },
-                  }}
                 />
               </Grid>
               {showSequence && (
@@ -1189,7 +1288,11 @@ export function Station() {
                     variant="contained"
                     aria-label="Basic button group"
                   >
-                    <Button variant="contained" onClick={createStation}>
+                    <Button
+                      variant="contained"
+                      onClick={createStation}
+                      disabled={isSaveDisabled}
+                    >
                       Create
                     </Button>
                   </ButtonGroup>
@@ -1216,26 +1319,28 @@ export function Station() {
                   sx={{ width: "100%" }}
                   label="Station Name"
                   id="outlined-size-small"
-                  defaultValue=""
-                  value={valueStationName ? valueStationName : ""}
+                  defaultValue={valueStationName}
                   size="small"
-                  onChange={handleChangeValueStationName}
+                  onChange={(value) => {
+                    setValueStationName(value.target.value);
+                  }}
                   inputProps={{ maxLength: 200 }}
                 />
               </Grid>
               <Grid item xs={12} md={typeDDL == 3 || typeDDL == 4 ? 12 : 6}>
                 <Autocomplete
                   sx={{ width: "100%" }}
+                  disableClearable={true}
                   onChange={(_, newValue) => {
-                    handleChangeValueAutoCompletedropDownStationList(newValue);
+                    handleChangeStationType(newValue);
                   }}
                   size="small"
-                  id="combo-box-demo"
-                  value={valueAutoCompletedropDownStationListAutoComplete}
-                  options={dropDownStationListAutoComplete.map(
-                    (dropDownStationListAutoComplete) =>
-                      dropDownStationListAutoComplete
-                  )}
+                  id="combo-Station-box-demo"
+                  defaultValue={stationTypeListDisplay ?? undefined}
+                  isOptionEqualToValue={(option, value) =>
+                    option.code === value.code
+                  }
+                  options={stationTypeList}
                   getOptionLabel={(options: any) => `${options.text}`}
                   renderInput={(params) => (
                     <TextField {...params} label="Station Type" />
@@ -1340,7 +1445,7 @@ export function Station() {
                     variant="contained"
                     aria-label="Basic button group"
                   >
-                    <Button variant="contained" onClick={editStation}>
+                    <Button variant="contained" onClick={editStation} disabled={isSaveDisabled}>
                       Save
                     </Button>
                   </ButtonGroup>

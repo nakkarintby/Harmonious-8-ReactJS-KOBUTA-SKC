@@ -164,7 +164,7 @@ export default function TemporaryDrawer() {
            <ListItemButton
               key={row.menuId}
               onClick={() => {
-                console.log(row.menuGroup)
+           
                 if (row.menuGroup === "MASTERDATA") {
                   handleClick();
                 } else if (row.menuGroup === "ADMINISTRATOR") {
@@ -173,8 +173,8 @@ export default function TemporaryDrawer() {
                   setOpen(false)
                 }
               }}
-              component={Link}
-              to={row.href}
+              component={row.menuGroup === "MASTERDATA" || row.menuGroup === "ADMINISTRATOR" ? "div" : Link}
+              to={row.menuGroup === "MASTERDATA" || row.menuGroup === "ADMINISTRATOR" ?   "": row.href}
             >
               <ListItemIcon>{GetIcon(row.icon ?? "")}</ListItemIcon>
               <ListItemText primary={row.nameEN}  />

@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@api': '/src/api', 
+      '@sweetAlert' : '/src/ui-components/SweetAlert2'
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx']
   }

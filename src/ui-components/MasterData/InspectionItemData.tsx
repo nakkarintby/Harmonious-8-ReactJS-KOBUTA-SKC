@@ -46,6 +46,10 @@ import {
   UpdateInsItemAPI,
   ValidateQRCodeAPI,
 } from "@api/axios/inspectionItemAPI";
+import AddBoxIcon from '@mui/icons-material/AddBox';
+
+import ClearIcon from '@mui/icons-material/Clear';
+import toastAlert from "@sweetAlert/toastAlert";
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
@@ -124,6 +128,11 @@ export default function InspectionItemData(props: {
   const [qrCodeList, setQRCodeList] = React.useState<QRCodeModel[]>([]);
 
   async function GetInsItemPage() {
+    await GetConstantByGrpAPI("IMAGE").then(async (x) => {
+      if (x.status == "success") {
+        setImgSizeMB(_.find(x.data, {code : "SIZE"}).text ?? 3 as number)
+      }
+    });
     await GetConstantByGrpAPI("DD_INSGRP").then(async (x) => {
       if (x.status == "success") {
         const typeDDLModel: DDLModel[] = x.data.map((item: any) => ({
@@ -166,6 +175,8 @@ export default function InspectionItemData(props: {
 
   function SetUpDataEdit(Id: any) {
     const dataSetUp = _.find(dataPageList, { id: Id });
+    setDisabledTabDetail(false);
+    setDisabledTabPicture(false);
     setIsAdd(false);
     setDisabledBtn(String(dataSetUp?.type ?? "") === "4");
     setMaxError(false);
@@ -193,9 +204,11 @@ export default function InspectionItemData(props: {
         if (x.status == "success") {
           const formattedData = _.map(x.data, (item) => ({
             id: item.qrCodeCheckId,
-            cell: "",
+            inspectionItemId : Id,
+            cell: "WEB",
             value: item.value,
             text: item.text,
+            msg : ""
           }));
           setQRCodeList(formattedData);
         }
@@ -208,6 +221,8 @@ export default function InspectionItemData(props: {
     setMaxError(false);
     setMinError(false);
     setTargetError(false);
+    setDisabledTabDetail(true);
+    setDisabledTabPicture(true);
     const lastSequence = _.maxBy(dataPageList, "sequence")?.sequence ?? 0;
     let nextMultipleOfTen = Math.ceil(lastSequence / 10) * 10;
     if (lastSequence == nextMultipleOfTen) {
@@ -278,6 +293,7 @@ export default function InspectionItemData(props: {
         ? parseFloat(insItemTarget).toFixed(3)
         : null ;
     let body;
+    let canUPDATE : boolean = false;
     switch (insType) {
       case "1":
         body = {
@@ -325,6 +341,10 @@ export default function InspectionItemData(props: {
           remark: insItemRemark,
           qrItemValues: qrCodeList,
         };
+        await ValidateQRCode('UPDATE').then((rs)=>{
+          canUPDATE = rs;
+        });
+        if (!canUPDATE) return;
         break;
       default:
         body = null; // Handle other cases if needed
@@ -336,6 +356,7 @@ export default function InspectionItemData(props: {
   }
 
   async function CreateInsItem() {
+    
     const min =
       insItemMin !== null && insItemMin.length > 0
         ? parseFloat(insItemMin).toFixed(3)
@@ -349,6 +370,7 @@ export default function InspectionItemData(props: {
         ? parseFloat(insItemTarget).toFixed(3)
         : null;
     let body;
+    let isCreate : boolean = false;
     switch (insType) {
       case "1":
         body = {
@@ -392,12 +414,26 @@ export default function InspectionItemData(props: {
           remark: insItemRemark,
           qrItemValues: qrCodeList,
         };
+       
+         await ValidateQRCode('CREATE').then((rs)=>{
+          isCreate = rs;
+        });
+        if (!isCreate) return
         break;
       default:
         body = null; // Handle other cases if needed
         break;
     }
-    await CreateInsItemAPI(body);
+  
+    await CreateInsItemAPI(body).then((rs) => {
+      toastAlert(`${rs.status}`, `${rs.message}`, 5000);
+      if (rs.status === "success") {
+        setValueTab(1);
+        setDisabledBtn(true);
+        setDisabledTabDetail(true);
+        setInsItemId(rs.data.inspectionItemId)
+      } 
+    });
     GetInsItemPage();
   }
 
@@ -408,27 +444,27 @@ export default function InspectionItemData(props: {
   }
   const [errorQRCodeValue, setErrorQRCodeValue] = React.useState(false);
   const [errorQRCodeText, setErrorQRCodeText] = React.useState(false);
+
   async function AddQRCodeInsItem() {
-    if (insItemQRValue.trim() === "" || insItemQRText.trim() === "") {
+    if (insItemQRValue.toLowerCase().trim() === "") {
       return;
     }
 
     const isValueDuplicate = qrCodeList.some(
-      (item) => item.value === insItemQRValue
+      (item) => item.value?.toLowerCase().trim() === insItemQRValue.toLowerCase().trim()
     );
-    const isTextDuplicate = qrCodeList.some(
-      (item) => item.text === insItemQRText
-    );
-
-    if (isValueDuplicate || isTextDuplicate) {
+   
+    if (isValueDuplicate) {
       setErrorQRCodeValue(isValueDuplicate);
-      setErrorQRCodeText(isTextDuplicate);
+
     } else {
       const newItem = {
         id: Date.now(),
         cell: "WEB",
         value: insItemQRValue,
         text: insItemQRText,
+        msg : null,
+        inspectionItemId : 0,
       };
       setQRCodeList([...qrCodeList, newItem]);
       setInsItemQRValue("");
@@ -573,7 +609,16 @@ export default function InspectionItemData(props: {
       minWidth: 200,
       flex: 1,
     },
+    {
+      field: "msg",
+      headerName: "Message",
+      headerAlign: "center",
+      align: "center",
+      minWidth: 200,
+      flex: 1,
+    },
   ];
+
 
   const handleFileChange = async (event: any) => {
     const file = event.target.files[0];
@@ -584,24 +629,24 @@ export default function InspectionItemData(props: {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    jsonData.slice(1).map((_row, index) => {
+    const newQRCodeList = jsonData.slice(1).map((row, index) => {
       const cellAddressA = XLSX.utils.encode_cell({ r: index + 1, c: 0 });
       const cellAddressB = XLSX.utils.encode_cell({ r: index + 1, c: 1 });
-      setQRCodeList((prevList) => [
-        ...prevList,
-        {
-          id: Date.now(),
-          cell: cellAddressA,
-          value: worksheet[cellAddressA]?.v,
-          text: worksheet[cellAddressB]?.v,
-        },
-      ]);
+      return {
+        id: Date.now() + index,
+        cell: cellAddressA,
+        value: worksheet[cellAddressA]?.v,
+        text: worksheet[cellAddressB]?.v,
+        msg : null,
+        inspectionItemId : 0,
+      };
     });
+    await  setQRCodeList((prevList) => [...prevList, ...newQRCodeList]);
   };
 
   const handleButtonSubmitClick = async () => {
     OpenBackDrop(true);
-    setOpen(false);
+    // setOpen(false);
     if (isAdd) {
       CreateInsItem();
     } else {
@@ -611,13 +656,33 @@ export default function InspectionItemData(props: {
   };
 
   const [disabledBtn, setDisabledBtn] = React.useState(true);
+  const getRowClassName = (params: { row: { status: string; }; }) => {
+    return params.row.status === 'error' ? 'error-row' : '';
+  };
 
-  function ValidateQRCode() {
-    ValidateQRCodeAPI(qrCodeList).then((x) => {
-      if (x.status == "success") {
-        setDisabledBtn(false);
-      }
+  async function ValidateQRCode(action : string) {
+    let isOK = false;
+    await ValidateQRCodeAPI(action, qrCodeList).then(async (x) => {
+      const allSuccess = x.data.every((item : any) => item.status === "success");
+      const mappedData: QRCodeModel[] = x.data.map((item: any , index : any) => ({
+        id: Date.now + index,
+        inspectionItemId: 0,
+        value: item.value || null,
+        text: item.text || null,
+        cell: item.cell || null,
+        msg: item.message || null,
+        status: item.status
+      }));
+      
+      await setQRCodeList(_.orderBy(mappedData,['msg' ],['asc']));
+      isOK = allSuccess;
+      // if (!allSuccess) {
+      //   setDisabledBtn(true);
+      // } else {
+      //   setDisabledBtn(false);
+      // }
     });
+    return isOK;
   }
 
   function DeleteQRCodeItem(qrValue: string) {
@@ -643,20 +708,21 @@ export default function InspectionItemData(props: {
   React.useEffect(() => {
     // Check if Type is 2 and set initial button state
     if(open){
+  
     if (insType === "2") {
       validateMinMaxTarget();
     } else if (insType === "4") {
-      setDisabledBtn(true);
+      setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0 || qrCodeList.length === 0);
     } else {
       setDisabledBtn(insItemTopic.trim() === "" || insItemSeq === 0);
     }
   }
-  }, [ open,insType, insItemTopic , insItemSeq , insItemUnit]);
+  }, [ open,insType, insItemTopic , insItemSeq , insItemUnit , qrCodeList]);
 
   const validateMinMaxTarget = () => {
     const numericMin = parseFloat(insItemMin);
     const numericMax = parseFloat(insItemMax);
-   
+
     let targetCheck = false;
     // Validate Min
     if (
@@ -677,36 +743,30 @@ export default function InspectionItemData(props: {
     } else {
       setMaxError(true);
     }
- 
+
+    setDisabledBtn(insItemMax === "" ||insItemMin === "")
+
     // Validate Target
-    if(insItemTarget){
+    if (insItemTarget) {
       const numericTarget = parseFloat(insItemTarget);
-  
-    if (
-      insItemTarget === "" ||
-      (!isNaN(numericTarget) &&
-        numericTarget <= numericMax &&
-        numericTarget >= numericMin)
-    ) {
-    
-      setTargetError(false);
-      setDisabledBtn(false);
-      targetCheck = false;
-    } else {
-      setTargetError(true);
-      targetCheck = true;
+
+      if (
+        insItemTarget === "" ||
+        (!isNaN(numericTarget) &&
+          numericTarget <= numericMax &&
+          numericTarget >= numericMin)
+      ) {
+        setTargetError(false);
+        setDisabledBtn(false);
+        targetCheck = false;
+      } else {
+        setTargetError(true);
+        targetCheck = true;
+      }
+
+      const d = insItemTopic.trim() === "" ||insItemSeq === 0 || insItemMax === "" ||insItemMin === "" || targetCheck;
+      setDisabledBtn(d);
     }
-
-    let d =
-    insItemTopic.trim() === "" ||
-    insItemSeq === 0 ||
-    insItemMax === "" ||
-    insItemMin === "" ||
-    insItemUnit === "" || 
-    targetCheck ;
-  setDisabledBtn(d);
-  }
-
   };
 
   const isAddButtonDisabled =
@@ -754,14 +814,12 @@ export default function InspectionItemData(props: {
         return;
       }
     }
-
     e.target.value = value.replace(/[^0-9.-]/g, "");
   };
   const [minError, setMinError] = React.useState<boolean>(false);
   const [maxError, setMaxError] = React.useState<boolean>(false);
   const [targetError, setTargetError] = React.useState<boolean>(false);
   const [valueTab, setValueTab] = React.useState(0);
-
 
   function a11yProps(index: number) {
     return {
@@ -774,6 +832,50 @@ export default function InspectionItemData(props: {
     setValueTab(newValue);
   };
 
+  const [imgSizeMB , setImgSizeMB] = React.useState<number>(3);
+  const [disabledTabDetail , setDisabledTabDetail] = React.useState<boolean>(true);
+  const [disabledTabPicture , setDisabledTabPicture] = React.useState<boolean>(true);
+
+  const handleClearQR = async () => {
+    setFileName("");
+    await setQRCodeList([]);
+  };
+
+  function CustomToolbar() {
+    return (
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        width="100%"
+      >
+        <Box display="flex" alignItems="center">
+          <Button  sx={{ borderRadius:0}}  onClick={handleClearQR} variant="contained" startIcon={<ClearIcon />} size="small" color="error">
+            Clear
+          </Button>
+          <Typography variant="body1" sx={{ marginLeft: 2 }}>
+            {fileName.length > 0 ? `File : ${fileName}` : ""}
+          </Typography>
+        </Box>
+        <Button
+          component="label"
+          variant="contained"
+          tabIndex={-1}
+          startIcon={<CloudUploadIcon />}
+          onChange={handleFileChange}
+          size="small"
+          disabled={activeIns}
+          sx={{
+            borderRadius: 0,
+            backgroundColor: "#0F67B1"
+          }}
+        >
+          Upload
+          <VisuallyHiddenInput type="file" />
+        </Button>
+      </Box>
+    );
+  }
   return (
     <>
       <div>
@@ -794,6 +896,7 @@ export default function InspectionItemData(props: {
                   <Box>
                     <Button
                       variant="contained"
+                      startIcon={<AddBoxIcon />}
                       onClick={() => {
                         setLabelModal("Create Inspection Group Item");
                         SetUpDataCreate();
@@ -825,7 +928,6 @@ export default function InspectionItemData(props: {
           </AccordionDetails>
         </Accordion>
       </div>
-
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"
@@ -844,8 +946,18 @@ export default function InspectionItemData(props: {
               onChange={(_, value) => handleChange(value)}
               aria-label="basic tabs example"
             >
-              <Tab label="Detail" {...a11yProps(0)} />
-              {!isAdd && <Tab label="Picture" {...a11yProps(1)} />}
+              <Tab
+                label="Detail"
+                {...a11yProps(0)}
+                disabled={disabledTabDetail}
+              />
+              {
+                <Tab
+                  label="Picture"
+                  {...a11yProps(1)}
+                  disabled={disabledTabPicture}
+                />
+              }
             </Tabs>
           </Box>
           <div
@@ -902,7 +1014,6 @@ export default function InspectionItemData(props: {
                   }}
                 />
               </Grid>
-
               <Grid item xs={12} md={12}>
                 <FormControl fullWidth>
                   <InputLabel id="insType-simple-select-helper-label">
@@ -928,6 +1039,7 @@ export default function InspectionItemData(props: {
                 </FormControl>
               </Grid>
               {showMeasurement && (
+                <>
                 <Grid item xs={6} md={4}>
                   <TextField
                     label={
@@ -969,9 +1081,6 @@ export default function InspectionItemData(props: {
                     }}
                   />
                 </Grid>
-              )}
-
-              {showMeasurement && (
                 <Grid item xs={6} md={4}>
                   <TextField
                     label={
@@ -1013,8 +1122,6 @@ export default function InspectionItemData(props: {
                     }}
                   />
                 </Grid>
-              )}
-              {showMeasurement && (
                 <Grid item xs={6} md={4}>
                   <TextField
                     label={<span>Target</span>}
@@ -1055,13 +1162,12 @@ export default function InspectionItemData(props: {
                     }}
                   />
                 </Grid>
-              )}
-              {showMeasurement && (
+           
                 <Grid item xs={6} md={12}>
                   <TextField
                     label={
                       <span>
-                        <span style={{ color: "red" }}>*</span> Unit
+                        <span style={{ color: "red" }}></span> Unit
                       </span>
                     }
                     id="outlined-size-small"
@@ -1074,6 +1180,7 @@ export default function InspectionItemData(props: {
                     }}
                   />
                 </Grid>
+                </>
               )}
               {showRecord && (
                 <Grid item xs={6} md={12}>
@@ -1090,29 +1197,7 @@ export default function InspectionItemData(props: {
               )}
               {showQRCodeList && (
                 <>
-                  <Grid item xs={4} md={4}>
-                    <Button
-                      component="label"
-                      variant="contained"
-                      tabIndex={-1}
-                      startIcon={<CloudUploadIcon />}
-                      onChange={handleFileChange}
-                      size="small"
-                      disabled={activeIns ? true : false}
-                    >
-                      Upload file
-                      <VisuallyHiddenInput type="file" />
-                    </Button>
-                  </Grid>
-                  <Grid item xs={4} md={4}>
-                    <Box>
-                      <Typography variant="body1">
-                        {" "}
-                        {fileName.length > 0 ? `File : ${fileName}` : ""}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={4} md={4}>
+                  <Grid item xs={12} md={12}>
                     <FormControlLabel
                       control={<Switch />}
                       checked={insItemPin}
@@ -1182,6 +1267,7 @@ export default function InspectionItemData(props: {
                         ? columnsQR.filter((col) => col.field !== "action")
                         : columnsQR
                     }
+                    getRowClassName={getRowClassName}
                     initialState={{
                       pagination: {
                         paginationModel: {
@@ -1189,6 +1275,7 @@ export default function InspectionItemData(props: {
                         },
                       },
                     }}
+                    slots={{ toolbar: CustomToolbar }}
                     autoHeight
                   />
                 </Grid>
@@ -1206,7 +1293,7 @@ export default function InspectionItemData(props: {
                     variant="contained"
                     aria-label="Basic button group"
                   >
-                    {showQRCodeList && (
+                    {/* {showQRCodeList && (
                       <Button
                         component="label"
                         variant="contained"
@@ -1218,7 +1305,7 @@ export default function InspectionItemData(props: {
                       >
                         Validate Data
                       </Button>
-                    )}
+                    )} */}
                     <Button
                       variant="contained"
                       onClick={handleButtonSubmitClick}
@@ -1259,6 +1346,7 @@ export default function InspectionItemData(props: {
                   inspectionItemId={insItemId}
                   activeIns={activeIns}
                   isAdd={isAdd}
+                  imgSize={imgSizeMB}
                 />
               </Grid>
               <Grid item xs={12} md={12} container justifyContent="flex-start">

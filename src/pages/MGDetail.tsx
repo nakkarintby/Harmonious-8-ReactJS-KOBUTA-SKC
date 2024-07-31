@@ -43,6 +43,8 @@ import MuiAccordionSummary, {
 import MuiAccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import { CreateModelItemAPI, GetListAPI, GetModelGroupDetailAPI, GetScheduledLineAPI } from "@api/axios/modelGroupAPI";
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import SaveIcon from '@mui/icons-material/Save';
 
 export function MGDetail() {
   const authRequest = {
@@ -62,7 +64,7 @@ export function MGDetail() {
   const [scheduledLineDDLDisplay, setScheduledLineDDLDisplay] = React.useState<DDLModel | null>(null);
   const [lineDDL, setLineDDL] = React.useState<DDLModel[]>([]);
   // State for post
-  const [valueLine, setValueLine] = React.useState<number>(0);
+  // const [valueLine, setValueLine] = React.useState<number>(0);
   const [scheduledLine, setScheduledLine] = React.useState<string>("");
   const [valueModelGroupName, setValueModelGroupName] = React.useState<string>("");
   
@@ -87,7 +89,7 @@ export function MGDetail() {
           setModelGroupNameDisplay(rs.data.modelGroupDetail.name);
           setLineNameDisplay(rs.data.modelGroupDetail.lineName);
           setLineNameDDLDisplay({label : rs.data.modelGroupDetail.lineName , value : rs.data.modelGroupDetail.lineId});
-          setValueLine(rs.data.modelGroupDetail.lineId);
+          // setValueLine(rs.data.modelGroupDetail.lineId);
           setScheduledLine(rs.data.modelGroupDetail.scheduledLineCode);
           setScheduledLineDisplay(
             `${rs.data.modelGroupDetail.scheduledLineCode}:${rs.data.modelGroupDetail.scheduledLineName}`
@@ -206,20 +208,16 @@ export function MGDetail() {
 
   const leftChecked = intersection(checked, left);
   const rightChecked = intersection(checked, right);
-
+  
   function not(a: readonly DDLModel[], b: readonly DDLModel[]) {
     return a.filter((value) => b.indexOf(value) === -1);
   }
-  
   function intersection(a: readonly DDLModel[], b: readonly DDLModel[]) {
-
     return a.filter((value) => b.indexOf(value) !== -1);
   }
-  
   function union(a: readonly DDLModel[], b: readonly DDLModel[]) {
     return [...a, ...not(b, a)];
   }
-
   const handleToggle = (value: DDLModel) => () => {
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
@@ -232,7 +230,6 @@ export function MGDetail() {
 
     setChecked(newChecked);
   };
-
   const numberOfChecked = (items: readonly DDLModel[]) =>
     intersection(checked, items).length;
 
@@ -243,7 +240,6 @@ export function MGDetail() {
       setChecked(union(checked, items));
     }
   };
-
   async function SaveModel() {
     let body = {
       modelGroupId: valueModelGroupId,
@@ -254,7 +250,6 @@ export function MGDetail() {
       toastAlert(rs.status, rs.message, 5000);
     });
   }
-
   const handleCheckedRight = () => {
     const leftCheckedValues = leftChecked.map(item => item.value);
     setRight(right.concat(leftChecked));
@@ -271,7 +266,6 @@ export function MGDetail() {
       prevRemoveModel.filter(item => !leftCheckedValues.includes(item))
     );
   };
-
   const handleCheckedLeft = () => {
     const rightCheckedValues = rightChecked.map(item => item.value);
     const rightCheckedValuesModel = modelData
@@ -287,7 +281,6 @@ export function MGDetail() {
     ...rightCheckedValuesModel.filter(item => !prevRemoveModel.includes(item))
   ]);
   };
-
   const modelDetailList = (title: React.ReactNode, items: readonly DDLModel[]) => (
     <Card>
       <StyledCardHeader
@@ -359,12 +352,12 @@ export function MGDetail() {
       </List>
     </Card>
   );
-
   const [isSave, setIsSave] = React.useState<boolean>(false);
   React.useEffect(() => {
     const isSave = !valueModelGroupName.trim();
     setIsSave(isSave);
   }, [valueModelGroupName]);
+
   return (
     <>
       <MsalAuthenticationTemplate
@@ -455,6 +448,7 @@ export function MGDetail() {
                       <Button
                         variant="outlined"
                         onClick={() => handleOpenModalModelGroup()}
+                        startIcon={<BorderColorIcon/>}
                       >
                         EDIT
                       </Button>
@@ -493,6 +487,7 @@ export function MGDetail() {
                     onClick={() => {
                       SaveModel();
                     }}
+                    startIcon={<SaveIcon/>}
                   >
                     Save
                   </Button>
@@ -621,14 +616,14 @@ export function MGDetail() {
                   options={lineDDL}
                   loading={loadingLine}
                   disabled={true}
-                  onChange={(_, value) => {
-                    setValueLine(Number(value?.value ?? 0));
-                    setLineNameDDLDisplay(
-                      lineDDL.find(
-                        (it) => it.value == value?.value
-                      ) ?? null
-                    );
-                  }}
+                  // onChange={(_, value) => {
+                  //   setValueLine(Number(value?.value ?? 0));
+                  //   setLineNameDDLDisplay(
+                  //     lineDDL.find(
+                  //       (it) => it.value == value?.value
+                  //     ) ?? null
+                  //   );
+                  // }}
 
                   isOptionEqualToValue={(option, value) =>
                     option.value === value.value
@@ -658,16 +653,16 @@ export function MGDetail() {
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <Grid item xs={6} md={12} container justifyContent="flex-end">
-                  <Box display="flex" gap={2}>
-                    <Button
-                      variant="outlined"
-                      onClick={handlecloseModalModelGroup}
-                    >
-                      Close
-                    </Button>
-                    <Button
+              <Grid item xs={6} md={6} container justifyContent="flex-start">
+                <Box display="flex" gap={2}>
+                  <Button variant="outlined" onClick={handlecloseModalModelGroup} size="small">
+                    Close
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={6} md={6} container justifyContent="flex-end">
+                <Box display="flex" gap={2}>
+                  <Button
                       variant="contained"
                       onClick={saveHeader}
                       size="small"
@@ -675,9 +670,9 @@ export function MGDetail() {
                     >
                       SAVE
                     </Button>
-                  </Box>
-                </Grid>
+                </Box>
               </Grid>
+          
             </Grid>
           </ModalContent>
         </Modal>

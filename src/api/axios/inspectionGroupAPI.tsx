@@ -155,3 +155,20 @@ export async function GetScheduledLineAPI() {
   }
   return dataApi;
 }
+
+export async function CopyInspectionGroupAPI(id : number) {
+  let dataApi: any;
+  try {
+    await instanceAxios
+      .get(`/InspectionGroup/CopyInspectionGroupAndItem?inspectionGroupId=${id}`)
+      .then(async function (response: any) {
+        dataApi = response.data;
+      })
+      .catch(function (error: any) {
+        toastAlert("error", error, 5000);
+      });
+  } catch (err) {
+    console.log(err);
+  }
+  return dataApi ;
+}

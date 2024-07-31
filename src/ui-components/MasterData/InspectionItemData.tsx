@@ -47,7 +47,6 @@ import {
   ValidateQRCodeAPI,
 } from "@api/axios/inspectionItemAPI";
 import AddBoxIcon from '@mui/icons-material/AddBox';
-
 import ClearIcon from '@mui/icons-material/Clear';
 import toastAlert from "@sweetAlert/toastAlert";
 

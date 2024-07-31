@@ -15,7 +15,7 @@ import { styled, css } from "@mui/system";
 import { Modal as BaseModal } from "@mui/base/Modal";
 import { grey } from "@mui/material/colors";
 import TextField from "@mui/material/TextField";
-import toastAlert, { generateHtmlMessage } from "@sweetAlert/toastAlert";
+import toastAlert from "@sweetAlert/toastAlert";
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -188,6 +188,27 @@ export function ModelGroup() {
       }
     }
   }
+
+   const generateHtmlMessage = (data : any) => {
+    let htmlMessage = `
+      <div style="font-family: Arial, sans-serif; color: #19857b;">
+        <h3 style="border-bottom: 2px solid #19857b; padding-bottom: 5px; margin-bottom: 10px;">Model Group</h3>
+        <ul style="list-style-type: none; padding: 0; margin: 0;">
+    `;
+    data.forEach((group : any) => {
+      htmlMessage += `
+        <li style="background-color: #f1f1f1; margin-bottom: 5px; padding: 10px; border-radius: 5px; color: #000;">
+          ${group}
+        </li>
+      `;
+    });
+    htmlMessage += `
+        </ul>
+      </div>
+    `;
+    return htmlMessage;
+  };
+  
 
   async function deleteModelGroup(id: any) {
     Swal.fire({

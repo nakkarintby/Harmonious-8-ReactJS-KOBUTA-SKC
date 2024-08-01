@@ -53,7 +53,6 @@ export function UDetail() {
   const [expanded, setExpanded] = React.useState<boolean>(true);
 
   let location = useLocation();
-  //const valueUserIdtmp = location.state.userId;
   const [valueUserId, setValueUserId] = React.useState(location.state.userId)
   const [valueEmpId, setValueEmpId] = React.useState(null)
   const [valueFirstName, setValueFirstName] = React.useState(null)
@@ -326,7 +325,7 @@ export function UDetail() {
 
 
   async function SaveModel() {
-    
+
     try {
       await instanceAxios.post(`/MappingUserStation/CreateRemoveMappingUserStation`,
         {

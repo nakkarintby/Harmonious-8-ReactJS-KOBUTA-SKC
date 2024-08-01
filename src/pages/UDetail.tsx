@@ -53,7 +53,8 @@ export function UDetail() {
   const [expanded, setExpanded] = React.useState<boolean>(true);
 
   let location = useLocation();
-  const valueUserId = location.state.userId;
+  //const valueUserIdtmp = location.state.userId;
+  const [valueUserId, setValueUserId] = React.useState(location.state.userId)
   const [valueEmpId, setValueEmpId] = React.useState(null)
   const [valueFirstName, setValueFirstName] = React.useState(null)
   const [valueLastName, setValueLastName] = React.useState(null)
@@ -142,6 +143,7 @@ export function UDetail() {
     try {
       await instanceAxios.get(`/User/GetUserById?userId=${valueUserId}`).then(async (response) => {
         if (response.data.status == "success") {
+          setValueUserId(response.data.data.userInfo['userId'])
           setValueEmpId(response.data.data.userInfo['empId'])
           setValueFirstName(response.data.data.userInfo['firstName'])
           setValueLastName(response.data.data.userInfo['lastName'])
@@ -244,13 +246,7 @@ export function UDetail() {
             }
           ).then(async (response) => {
             if (response.data.status == "success") {
-              setLeft([])
-              setRight([])
-              setModelData([])
-              setAddModel([])
-              setRemoveModel([])
               CloseModalEditUser()
-              fetchDataUser()
               toastAlert("success", "Edit UpdateUser Success!", 3000)
             }
             else {
@@ -275,7 +271,6 @@ export function UDetail() {
           ).then(async (response) => {
             if (response.data.status == "success") {
               CloseModalEditUser()
-              fetchDataUser()
               toastAlert("success", "Edit UpdateUser Success!", 3000)
             }
             else {
@@ -295,23 +290,19 @@ export function UDetail() {
     setExpanded((prevExpanded) => !prevExpanded);
   }
   async function CloseModalEditUser() {
-    setDropDownSystemRoleListAutoComplete([])
-    setValueAutoCompletedropDownSystemRoleList(null)
-    setDropDownScheduledLineListAutoComplete([])
-    setValueAutoCompleteScheduledLineList([])
-    fetchDataUser()
-    fetchDataScheduledLine()
-    fetchDataSystemRole()
     handleCloseModalEditUser()
+    await fetchDataUser()
+    await fetchDataScheduledLine()
+    await fetchDataSystemRole()
   }
   async function handleopenModalEditSystemRole() {
     setDropDownSystemRoleListAutoComplete([])
     setValueAutoCompletedropDownSystemRoleList(null)
     setDropDownScheduledLineListAutoComplete([])
     setValueAutoCompleteScheduledLineList([])
-    fetchDataUser()
-    fetchDataScheduledLine()
-    fetchDataSystemRole()
+    await fetchDataUser()
+    await fetchDataScheduledLine()
+    await fetchDataSystemRole()
     setOpenModalEditUser(true)
   }
 
@@ -335,15 +326,6 @@ export function UDetail() {
 
 
   async function SaveModel() {
-    // console.log(left)
-    // console.log(right)
-    // console.log('-------------ADD-------------------')
-    // console.log(addModel)
-    // console.log('-----------------------------------')
-    // console.log('-------------REMOVE----------------')
-    // console.log(removeModel)
-    // console.log('-----------------------------------')
-
     try {
       await instanceAxios.post(`/MappingUserStation/CreateRemoveMappingUserStation`,
         {
@@ -353,6 +335,11 @@ export function UDetail() {
         }
       ).then(async (response) => {
         if (response.data.status == "success") {
+          setLeft([])
+          setRight([])
+          setModelData([])
+          setAddModel([])
+          setRemoveModel([])
           await fetchDataUser()
           toastAlert("success", "Save MappingUserStatation Success!", 3000)
         }

@@ -326,6 +326,7 @@ export function UDetail() {
 
 
   async function SaveModel() {
+    
     try {
       await instanceAxios.post(`/MappingUserStation/CreateRemoveMappingUserStation`,
         {

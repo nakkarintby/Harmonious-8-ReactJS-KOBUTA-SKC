@@ -49,6 +49,7 @@ import {
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import ClearIcon from '@mui/icons-material/Clear';
 import toastAlert from "@sweetAlert/toastAlert";
+import ImportData from "./InspectionItemImport";
 
 export default function InspectionItemData(props: {
   dataGroupId: number;
@@ -628,7 +629,7 @@ export default function InspectionItemData(props: {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-    const newQRCodeList = jsonData.slice(1).map((row, index) => {
+    const newQRCodeList = jsonData.slice(1).map((_, index) => {
       const cellAddressA = XLSX.utils.encode_cell({ r: index + 1, c: 0 });
       const cellAddressB = XLSX.utils.encode_cell({ r: index + 1, c: 1 });
       return {
@@ -875,6 +876,13 @@ export default function InspectionItemData(props: {
       </Box>
     );
   }
+  const [isModalImportItemOpen, setIsModalImportItemOpen] = React.useState<boolean>(false);
+  const handleOpenModal = () => {
+    setIsModalImportItemOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalImportItemOpen(false);
+  };
   return (
     <>
       <div>
@@ -892,20 +900,31 @@ export default function InspectionItemData(props: {
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} container justifyContent="flex-end">
                 {!activeIns && (
-                  <Box>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddBoxIcon />}
-                      onClick={() => {
-                        setLabelModal("Create Inspection Group Item");
-                        SetUpDataCreate();
-                        handleOpen();
-                        setValueTab(0);
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </Box>
+                  <>
+                    <Box>
+                      <Button
+                        variant="contained"
+                        startIcon={<AddBoxIcon />}
+                        onClick={handleOpenModal}
+                      >
+                        Import
+                      </Button>
+                    </Box>
+                    <Box>
+                      <Button
+                        variant="contained"
+                        startIcon={<AddBoxIcon />}
+                        onClick={() => {
+                          setLabelModal("Create Inspection Group Item");
+                          SetUpDataCreate();
+                          handleOpen();
+                          setValueTab(0);
+                        }}
+                      >
+                        ADD
+                      </Button>
+                    </Box>
+                  </>
                 )}
               </Grid>
               <Grid item xs={12} md={12} container>
@@ -927,6 +946,15 @@ export default function InspectionItemData(props: {
           </AccordionDetails>
         </Accordion>
       </div>
+      {!activeIns && (
+        <ImportData
+          openImportModal={isModalImportItemOpen}
+          inspectionGroupId={dataGroupId}
+          activeIns={activeIns}
+          onClose={handleCloseModal}
+        />
+      )}
+
       <Modal
         aria-labelledby="unstyled-modal-title"
         aria-describedby="unstyled-modal-description"
@@ -1039,146 +1067,146 @@ export default function InspectionItemData(props: {
               </Grid>
               {showMeasurement && (
                 <>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    label={
-                      <span>
-                        <span style={{ color: "red" }}>*</span> Min
-                      </span>
-                    }
-                    id="min-size-small"
-                    disabled={activeIns ? true : false}
-                    size="small"
-                    style={{ width: "100%" }}
-                    defaultValue={insItemMin}
-                    inputProps={{
-                      inputMode: "decimal",
-                      pattern: "[0-9]*[.]?[0-9]*",
-                    }}
-                    onInput={handleInput}
-                    error={minError} // Apply error state to TextField
-                    helperText={
-                      minError
-                        ? "Min value must not be greater than Max value."
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const numericMinValue = parseFloat(value);
-                      const numericMaxValue = parseFloat(insItemMax);
-                      if (
-                        value === "" ||
-                        (!isNaN(numericMinValue) &&
-                          (insItemMax === "" ||
-                            numericMinValue <= numericMaxValue))
-                      ) {
-                        setMinError(false); // Reset error state
-                      } else {
-                        setMinError(true); // Set error state
+                  <Grid item xs={6} md={4}>
+                    <TextField
+                      label={
+                        <span>
+                          <span style={{ color: "red" }}>*</span> Min
+                        </span>
                       }
-                      setInsItemMin(value);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    label={
-                      <span>
-                        <span style={{ color: "red" }}>*</span> Max
-                      </span>
-                    }
-                    id="outlined-size-small"
-                    defaultValue={insItemMax}
-                    size="small"
-                    style={{ width: "100%" }}
-                    inputProps={{
-                      inputMode: "decimal",
-                      pattern: "[0-9]*[.]?[0-9]*",
-                    }}
-                    onInput={handleInput}
-                    disabled={activeIns ? true : false}
-                    error={maxError} // Apply error state to TextField
-                    helperText={
-                      maxError
-                        ? "Max value must not be less than Min value."
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const numericMaxValue = parseFloat(value);
-                      const numericMinValue = parseFloat(insItemMin);
-                      if (
-                        value === "" ||
-                        (!isNaN(numericMaxValue) &&
-                          (insItemMin === "" ||
-                            numericMaxValue >= numericMinValue))
-                      ) {
-                        setMaxError(false); // Reset error state
-                      } else {
-                        setMaxError(true);
+                      id="min-size-small"
+                      disabled={activeIns ? true : false}
+                      size="small"
+                      style={{ width: "100%" }}
+                      defaultValue={insItemMin}
+                      inputProps={{
+                        inputMode: "decimal",
+                        pattern: "[0-9]*[.]?[0-9]*",
+                      }}
+                      onInput={handleInput}
+                      error={minError} // Apply error state to TextField
+                      helperText={
+                        minError
+                          ? "Min value must not be greater than Max value."
+                          : ""
                       }
-                      setInsItemMax(value);
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={6} md={4}>
-                  <TextField
-                    label={<span>Target</span>}
-                    id="outlined-size-small"
-                    defaultValue={insItemTarget}
-                    size="small"
-                    style={{ width: "100%" }}
-                    disabled={activeIns ? true : false}
-                    inputProps={{
-                      inputMode: "decimal",
-                      pattern: "[0-9]*[.]?[0-9]*",
-                    }}
-                    onInput={handleInput}
-                    error={targetError} // Apply error state to TextField
-                    helperText={
-                      targetError
-                        ? "Target value must not be less than Min value and must not be greater than Max value."
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const numericTargetValue = parseFloat(value);
-                      const numericMaxValue = parseFloat(insItemMax);
-                      const numericMinValue = parseFloat(insItemMin);
-                      if (
-                        value === "" ||
-                        (!isNaN(numericTargetValue) &&
-                          numericTargetValue <= numericMaxValue &&
-                          numericTargetValue >= numericMinValue)
-                      ) {
-                        setTargetError(false); // Reset error state
-                        setDisabledBtn(false);
-                      } else {
-                        setDisabledBtn(true);
-                        setTargetError(true); // Set error state
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numericMinValue = parseFloat(value);
+                        const numericMaxValue = parseFloat(insItemMax);
+                        if (
+                          value === "" ||
+                          (!isNaN(numericMinValue) &&
+                            (insItemMax === "" ||
+                              numericMinValue <= numericMaxValue))
+                        ) {
+                          setMinError(false); // Reset error state
+                        } else {
+                          setMinError(true); // Set error state
+                        }
+                        setInsItemMin(value);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <TextField
+                      label={
+                        <span>
+                          <span style={{ color: "red" }}>*</span> Max
+                        </span>
                       }
-                      setInsItemTarget(value);
-                    }}
-                  />
-                </Grid>
-           
-                <Grid item xs={6} md={12}>
-                  <TextField
-                    label={
-                      <span>
-                        <span style={{ color: "red" }}></span> Unit
-                      </span>
-                    }
-                    id="outlined-size-small"
-                    disabled={activeIns ? true : false}
-                    defaultValue={insItemUnit}
-                    size="small"
-                    style={{ width: "100%" }}
-                    onChange={(e) => {
-                      setInsItemUnit(e.target.value);
-                    }}
-                  />
-                </Grid>
+                      id="outlined-size-small"
+                      defaultValue={insItemMax}
+                      size="small"
+                      style={{ width: "100%" }}
+                      inputProps={{
+                        inputMode: "decimal",
+                        pattern: "[0-9]*[.]?[0-9]*",
+                      }}
+                      onInput={handleInput}
+                      disabled={activeIns ? true : false}
+                      error={maxError} // Apply error state to TextField
+                      helperText={
+                        maxError
+                          ? "Max value must not be less than Min value."
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numericMaxValue = parseFloat(value);
+                        const numericMinValue = parseFloat(insItemMin);
+                        if (
+                          value === "" ||
+                          (!isNaN(numericMaxValue) &&
+                            (insItemMin === "" ||
+                              numericMaxValue >= numericMinValue))
+                        ) {
+                          setMaxError(false); // Reset error state
+                        } else {
+                          setMaxError(true);
+                        }
+                        setInsItemMax(value);
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <TextField
+                      label={<span>Target</span>}
+                      id="outlined-size-small"
+                      defaultValue={insItemTarget}
+                      size="small"
+                      style={{ width: "100%" }}
+                      disabled={activeIns ? true : false}
+                      inputProps={{
+                        inputMode: "decimal",
+                        pattern: "[0-9]*[.]?[0-9]*",
+                      }}
+                      onInput={handleInput}
+                      error={targetError} // Apply error state to TextField
+                      helperText={
+                        targetError
+                          ? "Target value must not be less than Min value and must not be greater than Max value."
+                          : ""
+                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const numericTargetValue = parseFloat(value);
+                        const numericMaxValue = parseFloat(insItemMax);
+                        const numericMinValue = parseFloat(insItemMin);
+                        if (
+                          value === "" ||
+                          (!isNaN(numericTargetValue) &&
+                            numericTargetValue <= numericMaxValue &&
+                            numericTargetValue >= numericMinValue)
+                        ) {
+                          setTargetError(false); // Reset error state
+                          setDisabledBtn(false);
+                        } else {
+                          setDisabledBtn(true);
+                          setTargetError(true); // Set error state
+                        }
+                        setInsItemTarget(value);
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={6} md={12}>
+                    <TextField
+                      label={
+                        <span>
+                          <span style={{ color: "red" }}></span> Unit
+                        </span>
+                      }
+                      id="outlined-size-small"
+                      disabled={activeIns ? true : false}
+                      defaultValue={insItemUnit}
+                      size="small"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        setInsItemUnit(e.target.value);
+                      }}
+                    />
+                  </Grid>
                 </>
               )}
               {showRecord && (

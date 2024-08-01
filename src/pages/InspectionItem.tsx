@@ -98,6 +98,7 @@ export function InspectionItem() {
 
 
   function GetModelGroupDDL(LineId: number) {
+    try{
     GetModelGroupAPI().then((x) => {
       if (x.status == "success") {
         const ddlModelGroup = _.chain(x.data.modelGroup)
@@ -113,9 +114,14 @@ export function InspectionItem() {
         setLoadingModelGroupDDL(false);
       }
     });
+  }catch(error){
+    console.log("error",error);
+    setLoadingModelGroupDDL(false);
+  }
   }
 
   async function GetLineDDL(ScheduledLineCode: string) {
+    try{
     await GetLineAPI(ScheduledLineCode).then(async (x) => {
       if (x.status == "success") {
         const ddlLine: DDLModel[] = x.data.map((item: any) => ({
@@ -128,9 +134,14 @@ export function InspectionItem() {
         setLoadingLineDDL(false);
       }
     });
+  }catch(error){
+    console.log("error", error)
+    setLoadingLineDDL(false);
+  }
   }
 
   async function GetStationDDL(LineId: number) {
+    try{
     await GetStationAPI(LineId).then(async (x) => {
       if (x.status == "success") {
         const ddlStation: DDLModel[] = x.data.map((item: any) => ({
@@ -143,8 +154,13 @@ export function InspectionItem() {
         setLoadingStationDDL(false);
       }
     });
+  }catch(error){
+    console.log("error", error)
+    setLoadingStationDDL(false);
+  }
   }
   async function GetScheduledLineDDL() {
+    try{
     await GetScheduledLineAPI().then(async (x) => {
       if (x.status == "success") {
         const ddlSheduLine: DDLModel[] = x.data.map((item: any) => ({
@@ -158,6 +174,10 @@ export function InspectionItem() {
         setLoadingDDL(false);
       }
     });
+  }catch(error){
+    console.log("error", error)
+    setLoadingDDL(false);
+  }
   }
 
   const handleOpenLine = async (selectedScheduledLine: string) => {
@@ -181,52 +201,67 @@ export function InspectionItem() {
       taktTime: selectedTaktTime,
       inspectionGroupId: data.id,
     };
-
-    await SaveInsGroupAPI(body).then((rs) => {
-      if (rs.status == "success") {
-        toastAlert(rs.status, rs.message, 5000);
-        InsGroupPage();
-      }
-    });
+    try {
+      await SaveInsGroupAPI(body).then((rs) => {
+        if (rs.status == "success") {
+          toastAlert(rs.status, rs.message, 5000);
+          InsGroupPage();
+        }
+      });
+    } catch (error) {
+      console.log("error", error);
+    }
     setOpenBackDrop(false);
   }
 
   async function InsGroupPage() {
     let dataInsGroup: any;
-    await GetInsGroupAPI(data.id).then(async (x) => {
-      if (x.status == "success") {
-        setInsGroupNameDisplay(x.data.name);
-        setSelectedLine(x.data.lineId);
-        setLineDisplay(x.data.lineName);
-        setSelectedScheduledLine(x.data.scheduledLineCode);
-        setScheduledLineDisplay(
-          `${x.data.scheduledLineCode} : ${x.data.scheduledLineName}`
-        );
-        setModelGroupDisplay(x.data.modelGroupName);
-        setInsGroupName(x.data.name);
+    try {
+      await GetInsGroupAPI(data.id).then(async (x) => {
+        if (x.status == "success") {
+          setInsGroupNameDisplay(x.data.name);
+          setSelectedLine(x.data.lineId);
+          setLineDisplay(x.data.lineName);
+          setSelectedScheduledLine(x.data.scheduledLineCode);
+          setScheduledLineDisplay(
+            `${x.data.scheduledLineCode} : ${x.data.scheduledLineName}`
+          );
+          setModelGroupDisplay(x.data.modelGroupName);
+          setInsGroupName(x.data.name);
 
-        setTaktTimeDisplay(x.data.taktTime);
-        setStationDisplay(x.data.stationName);
-        setSelectedStation(x.data.stationId);
+          setTaktTimeDisplay(x.data.taktTime);
+          setStationDisplay(x.data.stationName);
+          setSelectedStation(x.data.stationId);
 
-        setActiveIns(x.data.status === "Active" || x.data.status === "InActive" );
-        setActiveInsDisplay(x.data.status);
-        setSelectedModelGroup(x.data.modelGroupId);
-        setSelectedTaktTime(x.data.taktTime);
-        setInGroupVersion(x.data.version);
-      }
-      dataInsGroup = x;
-    });
-    return dataInsGroup;
+          setActiveIns(
+            x.data.status === "Active" || x.data.status === "InActive"
+          );
+          setActiveInsDisplay(x.data.status);
+          setSelectedModelGroup(x.data.modelGroupId);
+          setSelectedTaktTime(x.data.taktTime);
+          setInGroupVersion(x.data.version);
+        }
+        dataInsGroup = x;
+      });
+
+      return dataInsGroup;
+    } catch (error) {
+      console.log("error", error);
+    }
   }
 
   async function ActiveInsGroupPage(insId: number) {
+    try{
     await ActiveInsGroupAPI(insId).then((rs) => {
       if (rs.status == "success") {
         toastAlert(rs.status, rs.message, 5000);
         InsGroupPage();
       }
-    });
+      toastAlert(rs.status, rs.message, 5000);
+    })
+  }catch(error){
+    console.log("error", error);
+  }
   
   }
 

@@ -232,6 +232,7 @@ export function Station() {
             }
           },
           (error) => {
+      
             toastAlert("error", error.response.data.message, 5000);
             setOpenBackDrop(false);
           }
@@ -546,16 +547,15 @@ export function Station() {
           })
           .then(
             async (response) => {
+              console.log(response)
               if (response.data.status == "success") {
                 await fetchDataDetail();
                 handlecloseModalEdit();
-                toastAlert("success", "Update Station Success!", 5000);
-              } else {
-                toastAlert("error", "Error Call Api UpdateStation!", 5000);
-              }
+              } 
+              toastAlert(response.data.status, response.data.message, 5000);
             },
             (error) => {
-              toastAlert("error", error.response.data.message, 5000);
+              toastAlert("error", error.response.data.detail, 5000);
             }
           );
       } catch (error) {

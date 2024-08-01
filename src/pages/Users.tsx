@@ -1,4 +1,3 @@
-import UsersData from "../ui-components/AdministratorData/UsersData";
 import ActiveLastBreadcrumb from "../ui-components/ActiveLastBreadcrumb";
 import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { MsalAuthenticationTemplate } from "@azure/msal-react";
@@ -10,13 +9,13 @@ import {
   // AccountInfo,
 } from "@azure/msal-browser";
 import { loginRequest } from "../authProviders/authProvider";
-import { Autocomplete, Backdrop, Box, Button, Checkbox, CircularProgress, createFilterOptions, FormControlLabel, Grid, IconButton, Switch, TextField } from "@mui/material";
+import { Autocomplete, Backdrop, Box, Button, Checkbox, CircularProgress,  FormControlLabel, Grid, IconButton, Switch, TextField } from "@mui/material";
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import StyledDataGrid from "../styles/styledDataGrid";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import {  GridColDef } from "@mui/x-data-grid";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import moment from "moment";
-import { json, Link } from "react-router-dom";
+import {  Link } from "react-router-dom";
 import DeleteIcon from '@mui/icons-material/Delete';
 import React, { useEffect, useState } from "react";
 import instanceAxios from "@api/axios/instanceAxios";
@@ -61,11 +60,12 @@ export function Users() {
     try {
       await instanceAxios.get(`/User/GetUser?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
+          console.log(response)
           for (let i = 0; i < response.data.data.length; i++) {
             if (response.data.data[i].createdOn != null)
-              response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm');
+              response.data.data[i].createdOn = moment(response.data.data[i].createdOn).format('YYYY-MM-DD hh:mm:ss');
             if (response.data.data[i].modifiedOn != null)
-              response.data.data[i].modifiedOn = moment(response.data.data[i].modifiedOn).format('YYYY-MM-DD hh:mm');
+              response.data.data[i].modifiedOn = moment(response.data.data[i].modifiedOn).format('YYYY-MM-DD hh:mm:ss');
           }
           setDataUsers(response.data.data)
         }
@@ -105,6 +105,7 @@ export function Users() {
     try {
       await instanceAxios.get(`/ScheduledLine/GetScheduledLine?page=1&perpage=1000`).then(async (response) => {
         if (response.data.status == "success") {
+          
           setDropDownScheduledLineListAutoComplete(response.data.data)
         }
         else {
@@ -313,7 +314,7 @@ export function Users() {
       flex: 1,
     },
     {
-      field: "role",
+      field: "systemRoleName",
       headerName: "Role",
       minWidth: 200,
       flex: 1,
@@ -571,13 +572,6 @@ export function Users() {
                   <Autocomplete
                     multiple
                     id="checkboxes-tags-demo"
-                    // onOpen={() => {
-                    //   setValueAutoCompleteScheduledLineList([])
-                    //   setLoadingSL(true);
-                    //   fetchDataScheduledLine();
-                    // }}
-                    // onClose={() => setLoadingSL(false)}
-                    // loading={loadingSL}
                     onChange={(_, newValue) => {
                       handleChangeValueAutoCompletedropDownScheduledLineList(
                         newValue
@@ -589,7 +583,7 @@ export function Users() {
                     )}
                     disableCloseOnSelect
                     getOptionLabel={(options: any) =>
-                      `${options.name}`
+                      `${options.scheduledLineCode}:${options.name}`
                     }
                     renderOption={(props, option, { selected }) => {
                       const { key, ...optionProps } = props;
@@ -601,27 +595,10 @@ export function Users() {
                             style={{ marginRight: 8 }}
                             checked={selected}
                           />
-                          {option.name}
+                            {option.scheduledLineCode}:{option.name}
                         </li>
                       );
                     }}
-                    // renderInput={(params) => (
-                    //   <TextField
-                    //     {...params}
-                    //     label="ScheduledLine"
-                    //     InputProps={{
-                    //       ...params.InputProps,
-                    //       endAdornment: (
-                    //         <React.Fragment>
-                    //           {loadingSL ? (
-                    //             <CircularProgress color="inherit" size={20} />
-                    //           ) : null}
-                    //           {params.InputProps.endAdornment}
-                    //         </React.Fragment>
-                    //       ),
-                    //     }}
-                    //   />
-                    // )}
                     renderInput={(params) => (
                       <TextField {...params} label="ScheduledLine" />
                     )}
@@ -665,7 +642,7 @@ export function Users() {
 
 const Modal = styled(BaseModal)`
   position: fixed;
-  z-index: 1300;
+  z-index: 10;
   inset: 0;
   display: flex;
 

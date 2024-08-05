@@ -83,7 +83,7 @@ function Pages() {
       <Route path="/administrator/systemrole/detail" element={<SRDetail />} />
       <Route path="/administrator/users" element={<Users />} />
       <Route path="/administrator/users/detail" element={<UDetail />} />
-      <Route path="/systemsetting" element={<SystemSetting />} />
+      <Route path="/administrator/systemsetting" element={<SystemSetting />} />
       
       <Route path="/" element={<Home />} />
     </Routes>
